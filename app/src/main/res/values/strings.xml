@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">Spotlight</string>
 
-    <string name="hello_world">Hello world!</string>
+    <string name="connecting">Connecting...</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_event_list">EventListActivity</string>
+
+    <string name="hello_world">Hello world!</string>
 </resources>

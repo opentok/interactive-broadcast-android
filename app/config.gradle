@@ -1,0 +1,2 @@
+// Replace the instanceId
+project.ext.instanceId = "AAAA1"
