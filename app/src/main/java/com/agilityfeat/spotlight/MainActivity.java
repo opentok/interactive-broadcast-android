@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
@@ -19,7 +20,7 @@ import org.json.JSONArray;
 /**
  * Main Activity
  */
-public class MainActivity extends Activity implements WebServiceCoordinator.Listener {
+public class MainActivity extends AppCompatActivity implements WebServiceCoordinator.Listener {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private WebServiceCoordinator mWebServiceCoordinator;
@@ -85,19 +86,19 @@ public class MainActivity extends Activity implements WebServiceCoordinator.List
     }
 
     public void showEvent() {
-        Log.i(LOG_TAG, "starting event app");
-        Intent intent = new Intent(MainActivity.this, CelebrityHostActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
+        //Passing the apiData to AudioVideoActivity
+        Intent localIntent = new Intent(MainActivity.this, CelebrityHostActivity.class);
+        Bundle localBundle = new Bundle();
+        localBundle.putString("event_index", "0");
+        localIntent.putExtras(localBundle);
+        startActivity(localIntent);
     }
 
     /**
      * Web Service Coordinator delegate methods
      */
     @Override
-    public void onInstanceAppDataReady(JSONObject instanceAppData) {
+    public void onDataReady(JSONObject instanceAppData) {
         //Set instanceApp Data
         InstanceApp.getInstance().setData(instanceAppData);
 

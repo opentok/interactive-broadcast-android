@@ -41,6 +41,37 @@ public class WebServiceCoordinator {
         this.fetchInstanceAppData(jsonBody, BACKEND_BASE_URL + "/get-instance-by-id");
     }
 
+    public void createCelebrityToken(String celebrity_url) throws JSONException {
+        String url = BACKEND_BASE_URL + "/create-token-celebrity/" + celebrity_url;
+        createToken(url);
+    }
+
+    public void createHostToken(String host_url) throws JSONException {
+        String url = BACKEND_BASE_URL + "/create-token-host/" + host_url;
+        createToken(url);
+    }
+
+    public void createToken(String url) {
+        RequestQueue reqQueue = Volley.newRequestQueue(context);
+
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.i(LOG_TAG, response.toString());
+                delegate.onDataReady(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                delegate.onWebServiceCoordinatorError(error);
+            }
+        });
+
+        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        reqQueue.add(jor);
+    }
+
     public void fetchInstanceAppData(JSONObject jsonBody, String url) {
         RequestQueue reqQueue = Volley.newRequestQueue(context);
 
@@ -48,7 +79,28 @@ public class WebServiceCoordinator {
             @Override
             public void onResponse(JSONObject response) {
                 Log.i(LOG_TAG, response.toString());
-                delegate.onInstanceAppDataReady(response);
+                delegate.onDataReady(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                delegate.onWebServiceCoordinatorError(error);
+            }
+        });
+
+        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        reqQueue.add(jor);
+    }
+
+    public void fetchEventData(JSONObject jsonBody, String url) {
+        RequestQueue reqQueue = Volley.newRequestQueue(context);
+
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.i(LOG_TAG, response.toString());
+                delegate.onDataReady(response);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -63,7 +115,7 @@ public class WebServiceCoordinator {
     }
 
     public static interface Listener {
-        void onInstanceAppDataReady(JSONObject instanceAppData);
+        void onDataReady(JSONObject jsonData);
         void onWebServiceCoordinatorError(Exception error);
     }
 }
