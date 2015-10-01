@@ -8,4 +8,5 @@
     <string name="notification">Ongoing call</string>
     <string name="clearNotificationService">Clear Notification</string>
     <string name="hello_world">Hello world!</string>
+    <string name="send">Send</string>
 </resources>

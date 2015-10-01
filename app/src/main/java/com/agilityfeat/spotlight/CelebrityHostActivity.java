@@ -19,8 +19,11 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.TranslateAnimation;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.agilityfeat.spotlight.model.InstanceApp;
@@ -60,6 +63,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Stream mCelebirtyStream;
     private Stream mFanStream;
     private Stream mHostStream;
+    private ScrollView mScroller;
+    private RelativeLayout mMessageBox;
+    private EditText mMessageEditText;
+    private TextView mMessageView;
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
@@ -86,10 +93,14 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);
         mSubscriberViewContainer = (RelativeLayout) findViewById(R.id.subscriberview);
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberviewfan);
+        mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
         mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
         mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
         mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mScroller = (ScrollView) findViewById(R.id.scroller);
+        mMessageEditText = (EditText) findViewById(R.id.message);
+        mMessageView = (TextView) findViewById(R.id.messageView);
 
         //Get the event
         requestEventData(savedInstanceState);
@@ -287,11 +298,16 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onBackPressed() {
-        if (mSession != null) {
-            mSession.disconnect();
-        }
 
-        super.onBackPressed();
+        if(mScroller.getVisibility() == View.VISIBLE) {
+            toggleChat();
+        }else {
+            if (mSession != null) {
+                mSession.disconnect();
+            }
+
+            super.onBackPressed();
+        }
     }
 
     public void reloadInterface() {
@@ -314,8 +330,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             public void run() {
 
                 int streams = 1;
-                if(mFanStream != null) streams ++;
-                if(mCelebirtyStream != null || mHostStream != null) streams ++;
+                if (mFanStream != null) streams++;
+                if (mCelebirtyStream != null || mHostStream != null) streams++;
 
                 RelativeLayout.LayoutParams publisher_head_params = (RelativeLayout.LayoutParams) mPublisherViewContainer.getLayoutParams();
                 publisher_head_params.width = screenWidth(CelebrityHostActivity.this) / streams;
@@ -600,7 +616,23 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     /* Signal Listener methods */
     @Override
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
+        if (type != null && "chatMessage".equals(type)) {
+            String mycid = mSession.getConnection().getConnectionId();
+            String cid = connection.getConnectionId();
+            String who = "";
+            if (!cid.equals(mycid)) {
+                String message = "";
+                try {
+                    message = new JSONObject(data)
+                                .getJSONObject("message")
+                                .getString("message");
+                } catch (Throwable t) {
+                    Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+                }
+                presentMessage("Producer", message);
+            }
 
+        }
     }
 
     /* Connection Listener methods */
@@ -614,4 +646,56 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     {
 
     }
+
+    /* Chat methods */
+    public void onChatButtonClicked(View v) {
+        toggleChat();
+    }
+
+    public void toggleChat() {
+        if(mScroller.getVisibility() == View.VISIBLE) {
+            mScroller.setVisibility(View.GONE);
+            mMessageBox.setVisibility(View.GONE);
+        } else {
+            mScroller.setVisibility(View.VISIBLE);
+            mMessageBox.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void onClickSend(View v) {
+        if (mMessageEditText.getText().toString().compareTo("") == 0) {
+            Log.i(LOG_TAG, "Cannot Send - Empty String Message");
+        } else {
+            Log.i(LOG_TAG, "Sending a chat message");
+            sendChatMessage(mMessageEditText.getText().toString());
+            mMessageEditText.setText("");
+        }
+    }
+
+    public void sendChatMessage(String message) {
+        message
+        sendSignal("chatMessage", message);
+        presentMessage("Me", message);
+    }
+
+    public void sendSignal(String type, String msg) {
+        mSession.sendSignal(type, msg);
+    }
+
+    private void presentMessage(String who, String message) {
+        presentText("\n" + who + ": " + message);
+    }
+
+    private void presentText(String message) {
+        mMessageView.setText(mMessageView.getText() + message);
+        mScroller.post(new Runnable() {
+            @Override
+            public void run() {
+                int totalHeight = mMessageView.getHeight();
+                mScroller.smoothScrollTo(0, totalHeight);
+            }
+        });
+    }
+
+
 }
