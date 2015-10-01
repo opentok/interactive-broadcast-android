@@ -39,7 +39,6 @@ public class EventListActivity extends AppCompatActivity {
             Log.e(LOG_TAG, ex.getMessage());
         }
 
-        //if you want your array
         String [] eventNames = stringArrayList.toArray(new String[stringArrayList.size()]);
 
         final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,

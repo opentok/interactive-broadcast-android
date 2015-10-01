@@ -1,6 +1,6 @@
 package com.agilityfeat.spotlight;
 
-import android.app.ActionBar;
+
 import android.app.Activity;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -13,10 +13,12 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.TranslateAnimation;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -38,7 +40,7 @@ import com.opentok.android.SubscriberKit;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
+
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
@@ -80,10 +82,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         setContentView(R.layout.activity_celebrity_host);
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
-
-        //ActionBar actionBar = getActionBar();
-        //actionBar.setHomeButtonEnabled(true);
-        //actionBar.setDisplayHomeAsUpEnabled(true);
 
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);
         mSubscriberViewContainer = (RelativeLayout) findViewById(R.id.subscriberview);
@@ -310,6 +308,34 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }, 500);
     }
 
+    public void updateViewsWidth() {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                int streams = 1;
+                if(mFanStream != null) streams ++;
+                if(mCelebirtyStream != null || mHostStream != null) streams ++;
+
+                RelativeLayout.LayoutParams publisher_head_params = (RelativeLayout.LayoutParams) mPublisherViewContainer.getLayoutParams();
+                publisher_head_params.width = screenWidth(CelebrityHostActivity.this) / streams;
+                mPublisherViewContainer.setLayoutParams(publisher_head_params);
+
+                RelativeLayout.LayoutParams subscriber_head_params = (RelativeLayout.LayoutParams) mSubscriberViewContainer.getLayoutParams();
+                subscriber_head_params.width = screenWidth(CelebrityHostActivity.this) / streams;
+                mSubscriberViewContainer.setLayoutParams(subscriber_head_params);
+
+                RelativeLayout.LayoutParams subscriberfan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
+                subscriberfan_head_params.width = screenWidth(CelebrityHostActivity.this) / streams;
+                mSubscriberFanViewContainer.setLayoutParams(subscriberfan_head_params);
+
+
+            }
+        });
+    }
+
+
+
     private void sessionConnect() {
         if (mSession == null) {
             mSession = new Session(CelebrityHostActivity.this,
@@ -405,7 +431,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     private void attachSubscriberFanView(Subscriber subscriber) {
-        Log.i(LOG_TAG, "attach fan");
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                 getResources().getDisplayMetrics().widthPixels, getResources()
                 .getDisplayMetrics().heightPixels);
@@ -440,21 +465,23 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
                 if (mFanStream == null) {
-                    Log.i(LOG_TAG, "fan stream enters");
                     subscribeFanToStream(stream);
                     mFanStream = stream;
+                    updateViewsWidth();
                 }
                 break;
             case "usertype=celebrity":
                 if (mCelebirtyStream == null) {
                     subscribeToStream(stream);
                     mCelebirtyStream = stream;
+                    updateViewsWidth();
                 }
                 break;
             case "usertype=host":
                 if (mHostStream == null) {
                     subscribeToStream(stream);
                     mHostStream = stream;
+                    updateViewsWidth();
                 }
                 break;
         }
@@ -469,19 +496,21 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 if(mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     unsubscribeFanFromStream(stream);
                     mFanStream = null;
-                    Log.i(LOG_TAG, "fan stream dropped");
+                    updateViewsWidth();
                 }
                 break;
             case "usertype=celebrity":
                 if(mCelebirtyStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     unsubscribeFromStream(stream);
                     mCelebirtyStream = null;
+                    updateViewsWidth();
                 }
                 break;
             case "usertype=host":
                 if(mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     unsubscribeFromStream(stream);
                     mHostStream = null;
+                    updateViewsWidth();
                 }
         }
     }
@@ -490,6 +519,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         // stop loading spinning
         mLoadingSubPublisher.setVisibility(View.GONE);
+        updateViewsWidth();
+    }
+
+    public static int screenWidth(Context ctx) {
+        DisplayMetrics displaymetrics = new DisplayMetrics();
+        ((Activity) ctx).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
+        return displaymetrics.widthPixels;
     }
 
     @Override
