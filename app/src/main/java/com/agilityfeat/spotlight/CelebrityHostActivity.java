@@ -55,7 +55,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Publisher mPublisher;
     private Subscriber mSubscriber;
     private Subscriber mSubscriberFan;
-    private ArrayList<Stream> mStreams;
+    private Stream mCelebirtyStream;
+    private Stream mFanStream;
+    private Stream mHostStream;
+
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
     private RelativeLayout mSubscriberViewContainer;
@@ -64,6 +67,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     // Spinning wheel for loading subscriber view
     private ProgressBar mLoadingSub;
     private ProgressBar mLoadingSubPublisher;
+    private ProgressBar mLoadingSubFan;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
     private NotificationCompat.Builder mNotifyBuilder;
@@ -86,8 +90,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberviewfan);
         mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
         mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
+        mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mStreams = new ArrayList<Stream>();
+
         //Get the event
         requestEventData(savedInstanceState);
 
@@ -299,7 +304,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     attachSubscriberView(mSubscriber);
                 }
                 if (mSubscriberFan != null) {
-                    attachSubscriberView(mSubscriberFan);
+                    attachSubscriberFanView(mSubscriberFan);
                 }
             }
         }, 500);
@@ -339,13 +344,15 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
 
         if (mSubscriberFan != null) {
-            mSubscriberViewContainer.removeView(mSubscriberFan.getView());
+            mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
         }
 
         mPublisher = null;
         mSubscriber = null;
         mSubscriberFan = null;
-        mStreams.clear();
+        mCelebirtyStream = null;
+        mFanStream = null;
+        mHostStream = null;
         mSession = null;
     }
 
@@ -361,14 +368,29 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
     }
 
+    private void subscribeFanToStream(Stream stream) {
+
+        mSubscriberFan = new Subscriber(CelebrityHostActivity.this, stream);
+        mSubscriberFan.setVideoListener(this);
+        mSession.subscribe(mSubscriberFan);
+
+        if (mSubscriberFan.getSubscribeToVideo()) {
+            // start loading spinning
+            mLoadingSubFan.setVisibility(View.VISIBLE);
+        }
+    }
+
     private void unsubscribeFromStream(Stream stream) {
-        mStreams.remove(stream);
         if (mSubscriber.getStream().equals(stream)) {
             mSubscriberViewContainer.removeView(mSubscriber.getView());
             mSubscriber = null;
-            if (!mStreams.isEmpty()) {
-                subscribeToStream(mStreams.get(0));
-            }
+        }
+    }
+
+    private void unsubscribeFanFromStream(Stream stream) {
+        if (mSubscriberFan.getStream().equals(stream)) {
+            mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
+            mSubscriberFan = null;
         }
     }
 
@@ -378,6 +400,17 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 .getDisplayMetrics().heightPixels);
         mSubscriberViewContainer.removeView(mSubscriber.getView());
         mSubscriberViewContainer.addView(mSubscriber.getView(), layoutParams);
+        subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+                BaseVideoRenderer.STYLE_VIDEO_FILL);
+    }
+
+    private void attachSubscriberFanView(Subscriber subscriber) {
+        Log.i(LOG_TAG, "attach fan");
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
+                getResources().getDisplayMetrics().widthPixels, getResources()
+                .getDisplayMetrics().heightPixels);
+        mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
+        mSubscriberFanViewContainer.addView(mSubscriberFan.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
                 BaseVideoRenderer.STYLE_VIDEO_FILL);
     }
@@ -403,16 +436,53 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onStreamReceived(Session session, Stream stream) {
-        mStreams.add(stream);
-        if (mSubscriber == null) {
-            subscribeToStream(stream);
+
+        switch(stream.getConnection().getData()) {
+            case "usertype=fan":
+                if (mFanStream == null) {
+                    Log.i(LOG_TAG, "fan stream enters");
+                    subscribeFanToStream(stream);
+                    mFanStream = stream;
+                }
+                break;
+            case "usertype=celebrity":
+                if (mCelebirtyStream == null) {
+                    subscribeToStream(stream);
+                    mCelebirtyStream = stream;
+                }
+                break;
+            case "usertype=host":
+                if (mHostStream == null) {
+                    subscribeToStream(stream);
+                    mHostStream = stream;
+                }
+                break;
         }
+
     }
 
     @Override
     public void onStreamDropped(Session session, Stream stream) {
-        if (mSubscriber != null) {
-            unsubscribeFromStream(stream);
+
+        switch(stream.getConnection().getData()) {
+            case "usertype=fan":
+                if(mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    unsubscribeFanFromStream(stream);
+                    mFanStream = null;
+                    Log.i(LOG_TAG, "fan stream dropped");
+                }
+                break;
+            case "usertype=celebrity":
+                if(mCelebirtyStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    unsubscribeFromStream(stream);
+                    mCelebirtyStream = null;
+                }
+                break;
+            case "usertype=host":
+                if(mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    unsubscribeFromStream(stream);
+                    mHostStream = null;
+                }
         }
     }
 
@@ -435,10 +505,17 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onVideoDataReceived(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "First frame received");
+        Log.i(LOG_TAG, "onVideoDataReceived " + subscriber.getStream().getConnection().getData());
+        if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
+            // stop loading spinning
+            mLoadingSubFan.setVisibility(View.GONE);
+            attachSubscriberFanView(mSubscriberFan);
+        } else {
+            // stop loading spinning
+            mLoadingSub.setVisibility(View.GONE);
+            attachSubscriberView(mSubscriber);
+        }
 
-        // stop loading spinning
-        mLoadingSub.setVisibility(View.GONE);
-        attachSubscriberView(mSubscriber);
     }
 
     @Override
@@ -467,7 +544,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onConnected(SubscriberKit subscriberKit) {
         //Log.i(LOG_TAG, "Subscriber Connected");
-        mSubscriberViewContainer.addView(mSubscriber.getView());
+        if(subscriberKit.getStream().getConnection().getData() == "usertype=fan") {
+            mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
+        } else {
+            mSubscriberViewContainer.addView(mSubscriber.getView());
+        }
     }
 
     @Override
