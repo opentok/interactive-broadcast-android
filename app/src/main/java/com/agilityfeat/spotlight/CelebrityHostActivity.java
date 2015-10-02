@@ -92,6 +92,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_celebrity_host);
 
+        getSupportActionBar().hide();
+
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
 
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);

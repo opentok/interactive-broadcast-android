@@ -28,7 +28,11 @@ public class InstanceApp {
 
     public JSONArray getEvents(){
         try {
-            return this.mData.getJSONArray("events");
+            if(this.mData != null && this.mData.has("events")) {
+                return this.mData.getJSONArray("events");
+            } else {
+                return null;
+            }
         } catch(JSONException e) {
             return null;
         }
