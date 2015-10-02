@@ -19,7 +19,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.TranslateAnimation;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -63,10 +65,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Stream mCelebirtyStream;
     private Stream mFanStream;
     private Stream mHostStream;
+    private Connection mProducerConnection;
     private ScrollView mScroller;
     private RelativeLayout mMessageBox;
     private EditText mMessageEditText;
     private TextView mMessageView;
+    private ImageButton mChatButton;
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
@@ -101,6 +105,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mScroller = (ScrollView) findViewById(R.id.scroller);
         mMessageEditText = (EditText) findViewById(R.id.message);
         mMessageView = (TextView) findViewById(R.id.messageView);
+        mChatButton = (ImageButton) findViewById(R.id.chat_button);
 
         //Get the event
         requestEventData(savedInstanceState);
@@ -638,13 +643,20 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     /* Connection Listener methods */
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
+        if(connection.getData().equals("usertype=producer")) {
 
+            mProducerConnection = connection;
+            mChatButton.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
     public void onConnectionDestroyed(Session session, Connection connection)
     {
-
+        if(connection.getData().equals("usertype=producer")) {
+            mProducerConnection = null;
+            mChatButton.setVisibility(View.GONE);
+        }
     }
 
     /* Chat methods */
@@ -673,13 +685,18 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     public void sendChatMessage(String message) {
-        message
         sendSignal("chatMessage", message);
         presentMessage("Me", message);
     }
 
+
+
     public void sendSignal(String type, String msg) {
-        mSession.sendSignal(type, msg);
+        if(mProducerConnection != null) {
+            msg = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg+"\"}}";
+            mSession.sendSignal(type, msg,mProducerConnection);
+        }
+
     }
 
     private void presentMessage(String who, String message) {
