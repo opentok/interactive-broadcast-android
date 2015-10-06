@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -25,6 +26,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private WebServiceCoordinator mWebServiceCoordinator;
     private ProgressDialog mProgress;
+    private Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,13 +38,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         //start the progress bar
         startLoadingAnimation();
 
-
-
-        try {
-            mWebServiceCoordinator.getInstanceById(BuildConfig.INSTANCE_ID);
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-        }
+        getInstanceId();
     }
 
     @Override
@@ -59,6 +55,14 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     @Override
     public void onResume() {
         super.onResume();
+    }
+
+    public void getInstanceId() {
+        try {
+            mWebServiceCoordinator.getInstanceById(BuildConfig.INSTANCE_ID);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+        }
     }
 
     public void startLoadingAnimation() {
@@ -132,6 +136,12 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     public void onWebServiceCoordinatorError(Exception error) {
         Log.e(LOG_TAG, "Web Service error: " + error.getMessage());
         Toast.makeText(getApplicationContext(),"Unable to connect to the server. Trying again in 5 seconds..", Toast.LENGTH_LONG).show();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                getInstanceId();
+            }
+        }, 500);
     }
 
 }
