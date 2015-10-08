@@ -638,9 +638,45 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 }
                 presentMessage("Producer", message);
             }
-
         }
+
+        if (type != null && "videoOnOff".equals(type)) {
+            videoOnOff(data);
+        }
+
+        if (type != null && "muteAudio".equals(type)) {
+            muteAudio(data);
+        }
+
+        //TODO: onChangeVolumen
+        //TODO: newBackstageFan
+        //TODO: goLive
+        //TODO: finishEvent
     }
+
+    public void videoOnOff(String data){
+        String video="";
+        try {
+            video = new JSONObject(data)
+                    .getString("video");
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+        }
+        mPublisher.setPublishVideo(video.equals("on"));
+        
+    }
+
+    public void muteAudio(String data){
+        String mute="";
+        try {
+            mute = new JSONObject(data)
+                    .getString("mute");
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+        }
+        mPublisher.setPublishAudio(!mute.equals("on"));
+    }
+
 
     /* Connection Listener methods */
     @Override
