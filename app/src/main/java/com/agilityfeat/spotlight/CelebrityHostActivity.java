@@ -92,27 +92,16 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_celebrity_host);
 
+        //Hide the bar
         getSupportActionBar().hide();
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
-
-        mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);
-        mSubscriberViewContainer = (RelativeLayout) findViewById(R.id.subscriberview);
-        mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberviewfan);
-        mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
-        mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
-        mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
-        mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mScroller = (ScrollView) findViewById(R.id.scroller);
-        mMessageEditText = (EditText) findViewById(R.id.message);
-        mMessageView = (TextView) findViewById(R.id.messageView);
-        mChatButton = (ImageButton) findViewById(R.id.chat_button);
+
+        initLayoutWidgets();
 
         //Get the event
         requestEventData(savedInstanceState);
-
-
     }
 
     @Override
@@ -131,6 +120,20 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void initLayoutWidgets() {
+        mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);
+        mSubscriberViewContainer = (RelativeLayout) findViewById(R.id.subscriberview);
+        mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberviewfan);
+        mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
+        mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
+        mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
+        mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
+        mScroller = (ScrollView) findViewById(R.id.scroller);
+        mMessageEditText = (EditText) findViewById(R.id.message);
+        mMessageView = (TextView) findViewById(R.id.messageView);
+        mChatButton = (ImageButton) findViewById(R.id.chat_button);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -384,6 +387,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onDisconnected(Session session) {
         Log.i(LOG_TAG, "Disconnected from the session.");
+        cleanViews();
+    }
+
+    public void cleanViews() {
         if (mPublisher != null) {
             mPublisherViewContainer.removeView(mPublisher.getView());
         }
@@ -623,35 +630,47 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     /* Signal Listener methods */
     @Override
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
-        if (type != null && "chatMessage".equals(type)) {
-            String mycid = mSession.getConnection().getConnectionId();
-            String cid = connection.getConnectionId();
-            String who = "";
-            if (!cid.equals(mycid)) {
-                String message = "";
-                try {
-                    message = new JSONObject(data)
-                                .getJSONObject("message")
-                                .getString("message");
-                } catch (Throwable t) {
-                    Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
-                }
-                presentMessage("Producer", message);
+
+        if(type != null) {
+            switch(type) {
+                case "chatMessage":
+                    handleNewMessage(data, connection);
+                    break;
+                case "videoOnOff":
+                    videoOnOff(data);
+                    break;
+                case "muteAudio":
+                    muteAudio(data);
+                    break;
+                case "goLive":
+                    goLive();
+                    break;
+                case "finishEvent":
+                    finishEvent();
+                    break;
+
             }
         }
-
-        if (type != null && "videoOnOff".equals(type)) {
-            videoOnOff(data);
-        }
-
-        if (type != null && "muteAudio".equals(type)) {
-            muteAudio(data);
-        }
-
         //TODO: onChangeVolumen
         //TODO: newBackstageFan
-        //TODO: goLive
         //TODO: finishEvent
+    }
+
+    public void handleNewMessage(String data, Connection connection) {
+        String mycid = mSession.getConnection().getConnectionId();
+        String cid = connection.getConnectionId();
+        String who = "";
+        if (!cid.equals(mycid)) {
+            String message = "";
+            try {
+                message = new JSONObject(data)
+                        .getJSONObject("message")
+                        .getString("message");
+            } catch (Throwable t) {
+                Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+            }
+            presentMessage("Producer", message);
+        }
     }
 
     public void videoOnOff(String data){
@@ -675,6 +694,18 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
         mPublisher.setPublishAudio(!mute.equals("on"));
+    }
+
+    public void goLive(){
+        try {
+            mEvent.put("status", "L");
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+    }
+
+    public void finishEvent() {
+        onBackPressed();
     }
 
 
