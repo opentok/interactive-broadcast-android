@@ -51,6 +51,11 @@ public class WebServiceCoordinator {
         createToken(url);
     }
 
+    public void createFanToken(String fan_url) throws JSONException {
+        String url = BACKEND_BASE_URL + "/create-token-fan/" + fan_url;
+        createToken(url);
+    }
+
     public void createToken(String url) {
         RequestQueue reqQueue = Volley.newRequestQueue(context);
 

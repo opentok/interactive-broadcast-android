@@ -7,4 +7,5 @@
     <string name="notification">Ongoing call</string>
     <string name="clearNotificationService">Clear Notification</string>
     <string name="send">Send</string>
+    <string name="title_activity_fan">FanActivity</string>
 </resources>

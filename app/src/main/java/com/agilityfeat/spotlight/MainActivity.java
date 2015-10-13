@@ -91,7 +91,12 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
 
     public void showEvent() {
         //Passing the apiData to AudioVideoActivity
-        Intent localIntent = new Intent(MainActivity.this, CelebrityHostActivity.class);
+        Intent localIntent;
+        if(BuildConfig.USER_TYPE == "fan") {
+            localIntent = new Intent(MainActivity.this, FanActivity.class);
+        } else {
+            localIntent = new Intent(MainActivity.this, CelebrityHostActivity.class);
+        }
         Bundle localBundle = new Bundle();
         localBundle.putString("event_index", "0");
         localIntent.putExtras(localBundle);

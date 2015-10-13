@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainlayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#000000" >
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/event_image_end"
+        android:layout_below="@+id/event_name"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/event_image"
+        android:layout_below="@+id/event_name"
+        android:visibility="visible" />
+
+    <RelativeLayout
+        android:id="@+id/publisherView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_alignParentBottom="true">
+
+        <ProgressBar
+            android:id="@+id/loadingSpinnerPublisher"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/subscriberHostView"
+        android:layout_width="200dp"
+        android:layout_height="fill_parent"
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_alignParentStart="false"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/event_name">
+
+        <ProgressBar
+            android:id="@+id/loadingSpinnerHost"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/subscriberCelebrityView"
+        android:layout_width="200dp"
+        android:layout_height="fill_parent"
+        android:keepScreenOn="true"
+        android:gravity="center_horizontal"
+        android:layout_toRightOf="@+id/subscriberHostView"
+        android:foregroundGravity="center"
+        android:layout_below="@+id/event_name">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/loadingSpinnerCelebrity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/subscriberFanView"
+        android:layout_width="200dp"
+        android:layout_height="fill_parent"
+        android:keepScreenOn="true"
+        android:gravity="center_horizontal"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="false"
+        android:layout_below="@+id/event_name">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/loadingSpinnerFan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+    </RelativeLayout>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/chat_button"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/ico_chat"
+        android:background="#ffffff"
+        android:onClick="onChatButtonClicked"
+        android:visibility="gone" />
+
+    <ScrollView
+        android:id="@+id/scroller"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="#FFFFFF"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"
+        android:layout_above="@+id/chat_button">
+
+        <TextView
+            android:id="@+id/messageView"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="#ffffff"
+            android:paddingBottom="8dip"
+            android:paddingLeft="8dip"
+            android:paddingRight="8dip"
+            android:textColor="#000000"
+            android:visibility="visible" />
+    </ScrollView>
+
+    <RelativeLayout
+        android:id="@+id/messagebox"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="false"
+        android:background="#ffffff"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <EditText
+            android:id="@+id/message"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_toLeftOf="@+id/sendMessageButton"
+            android:gravity="top"
+            android:visibility="visible" />
+
+        <Button
+            android:id="@+id/sendMessageButton"
+            android:layout_width="100dp"
+            android:layout_height="fill_parent"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="false"
+            android:onClick="onClickSend"
+            android:text="@string/send" />
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:id="@+id/event_name"
+        android:layout_below="@+id/loadingSpinnerCelebrity"
+        android:textColor="#14369c"
+        android:textSize="35dp"
+        android:paddingLeft="5dp"
+        android:background="#8b8b8b" />
+
+</RelativeLayout>

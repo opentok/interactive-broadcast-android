@@ -78,7 +78,12 @@ public class EventListActivity extends AppCompatActivity {
 
     public void showEvent(int event_index) {
         //Passing the apiData to AudioVideoActivity
-        Intent localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
+        Intent localIntent;
+        if(BuildConfig.USER_TYPE == "fan") {
+            localIntent = new Intent(EventListActivity.this, FanActivity.class);
+        } else {
+            localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
+        }
         Bundle localBundle = new Bundle();
         localBundle.putString("event_index",Integer.toString(event_index));
         localIntent.putExtras(localBundle);
