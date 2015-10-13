@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageSwitcher;
@@ -78,12 +79,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
+    private Button mGetInLine;
+    private Button mInitGetInLine;
+    private Button mCancelGetInLine;
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
     private RelativeLayout mSubscriberHostViewContainer;
     private RelativeLayout mSubscriberCelebrityViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
+    private RelativeLayout mGetInLineView;
 
     // Spinning wheel for loading subscriber view
     private ProgressBar mLoadingSubCelebrity;
@@ -136,6 +141,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberHostViewContainer = (RelativeLayout) findViewById(R.id.subscriberHostView);
         mSubscriberCelebrityViewContainer = (RelativeLayout) findViewById(R.id.subscriberCelebrityView);
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberFanView);
+        mGetInLineView = (RelativeLayout) findViewById(R.id.get_inline_view);
 
         mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
         mLoadingSubCelebrity = (ProgressBar) findViewById(R.id.loadingSpinnerCelebrity);
@@ -149,6 +155,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
+        mGetInLine = (Button) findViewById(R.id.btn_getinline);
+
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -408,6 +416,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnected(Session session) {
         Log.i(LOG_TAG, "Connected to the session.");
+        mGetInLine.setVisibility(View.VISIBLE);
         /*if (mPublisher == null) {
             mPublisher = new Publisher(FanActivity.this, "publisher");
             mPublisher.setPublisherListener(this);
@@ -951,4 +960,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         });
     }
+
+
+    public void onGetInLineClicked(View v) {
+        mGetInLineView.setVisibility(View.VISIBLE);
+    }
+
+    public void initGetInline(View v) {
+
+    }
+
+    public void cancelGetInline(View v) {
+        mGetInLineView.setVisibility(View.GONE);
+    }
 }
+

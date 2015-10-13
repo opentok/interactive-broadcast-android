@@ -8,4 +8,10 @@
     <string name="clearNotificationService">Clear Notification</string>
     <string name="send">Send</string>
     <string name="title_activity_fan">FanActivity</string>
+    <string name="get_inline">Get Inline</string>
+    <string name="leave_line">Leave Line</string>
+    <string name="enter_your_name_below">You may enter your name below.</string>
+    <string name="name_placeholder">Name (Optional)</string>
+
+
 </resources>
