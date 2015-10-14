@@ -8,7 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -22,7 +21,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -61,15 +59,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mApiKey;
     private String mSessionId;
     private String mToken;
+    private String mBackstageSessionId;
+    private String mBackstageToken;
     private Session mSession;
+    private Session mBackstageSession;
     private WebServiceCoordinator mWebServiceCoordinator;
     private Publisher mPublisher;
     private Subscriber mSubscriberHost;
     private Subscriber mSubscriberCelebrity;
     private Subscriber mSubscriberFan;
+    private Subscriber mSubscriberProducer;
     private Stream mCelebirtyStream;
     private Stream mFanStream;
     private Stream mHostStream;
+    private Stream mProducerStream;
     private Connection mProducerConnection;
     private ScrollView mScroller;
     private RelativeLayout mMessageBox;
@@ -80,8 +83,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
     private Button mGetInLine;
-    private Button mInitGetInLine;
-    private Button mCancelGetInLine;
+    private EditText mUsername;
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
@@ -156,7 +158,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
-
+        mUsername = (EditText) findViewById(R.id.user_name);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -202,6 +204,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mApiKey = results.getString("apiKey");
             mToken = results.getString("tokenHost");
             mSessionId = results.getString("sessionIdHost");
+            mBackstageToken = results.getString("tokenProducer");
+            mBackstageSessionId = results.getString("sessionIdProducer");
 
             updateEventName();
             sessionConnect();
@@ -225,6 +229,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if (mSession != null) {
             mSession.onPause();
+            mBackstageSession.onPause();
 
             if (mSubscriberHost != null) {
                 mSubscriberHostViewContainer.removeView(mSubscriberHost.getView());
@@ -294,6 +299,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if (mSession != null) {
                 mSession.onResume();
             }
+
+            if (mBackstageSession != null) {
+                mBackstageSession.onResume();
+            }
         }
         mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
 
@@ -318,6 +327,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if (mSession != null) {
                 mSession.disconnect();
             }
+
+            if (mBackstageSession != null) {
+                mBackstageSession.disconnect();
+            }
         }
     }
 
@@ -333,6 +346,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSession.disconnect();
         }
 
+        if (mBackstageSession != null) {
+            mBackstageSession.disconnect();
+        }
+
         super.onDestroy();
         finish();
     }
@@ -345,6 +362,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }else {
             if (mSession != null) {
                 mSession.disconnect();
+            }
+
+            if (mBackstageSession != null) {
+                mBackstageSession.disconnect();
             }
 
             super.onBackPressed();
@@ -393,14 +414,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     RelativeLayout.LayoutParams fan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
                     fan_head_params.width = screenWidth(FanActivity.this) / streams;
                     mSubscriberFanViewContainer.setLayoutParams(fan_head_params);
+
+
                 } else {
                     mEventImage.setVisibility(View.VISIBLE);
                 }
             }
         });
     }
-
-
 
     private void sessionConnect() {
         if (mSession == null) {
@@ -413,21 +434,35 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
+    private void backstageSessionConnect() {
+        if (mBackstageSession == null) {
+            mBackstageSession = new Session(FanActivity.this,
+                    mApiKey, mBackstageSessionId);
+            mBackstageSession.setSessionListener(this);
+            mBackstageSession.setSignalListener(this);
+            mBackstageSession.setConnectionListener(this);
+            mBackstageSession.connect(mBackstageToken);
+        }
+    }
+
     @Override
     public void onConnected(Session session) {
-        Log.i(LOG_TAG, "Connected to the session.");
+        Log.i(LOG_TAG, "Connected to the session");
         mGetInLine.setVisibility(View.VISIBLE);
-        /*if (mPublisher == null) {
-            mPublisher = new Publisher(FanActivity.this, "publisher");
-            mPublisher.setPublisherListener(this);
-            attachPublisherView(mPublisher);
-        }*/
+
+        //Start publishing in backstage session
+        if(session.getSessionId().equals(mBackstageSessionId)) {
+            mBackstageSession.publish(mPublisher);
+
+        }
     }
 
     @Override
     public void onDisconnected(Session session) {
         Log.i(LOG_TAG, "Disconnected from the session.");
-        cleanViews();
+        if(session.getSessionId().equals(mSessionId)) {
+            cleanViews();
+        }
     }
 
     public void cleanViews() {
@@ -490,6 +525,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mSubscriberFan.getSubscribeToVideo()) {
             // start loading spinning
             mLoadingSubFan.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void subscribeProducer() {
+        if(mProducerStream != null) {
+            mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
+            mBackstageSession.subscribe(mSubscriberProducer);
+        }
+    }
+
+    private void unSubscribeProducer() {
+        if (mProducerStream!= null && mSubscriberProducer != null) {
+            mBackstageSession.unsubscribe(mSubscriberProducer);
+            mSubscriberProducer = null;
         }
     }
 
@@ -599,6 +648,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     }
                 }
                 break;
+            case "usertype=producer":
+                if(mProducerStream == null){
+                    Log.i(LOG_TAG, "producer stream in");
+                    mProducerStream = stream;
+                }
+                break;
         }
 
     }
@@ -635,6 +690,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         updateViewsWidth();
                     }
                 }
+            case "usertype=producer":
+                if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    mProducerStream = null;
+                    Log.i(LOG_TAG, "producer stream out");
+                }
+                break;
         }
     }
 
@@ -642,6 +703,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         // stop loading spinning
         mLoadingSubPublisher.setVisibility(View.GONE);
+        mPublisherViewContainer.bringToFront();
         //updateViewsWidth();
     }
 
@@ -747,11 +809,60 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 case "finishEvent":
                     finishEvent();
                     break;
+                //backstage
+                case "resendNewFanSignal":
+                    sendNewFanSignal();
+                    break;
+                case "joinProducer":
+                    subscribeProducer();
+                    break;
+                case "disconnectProducer":
+                    unSubscribeProducer();
+                    break;
+                case "joinHost":
+                    connectWithOnstage();
+                    break;
+                case "disconnect":
+                    disconnectFromOnstage();
+                    break;
 
             }
         }
         //TODO: onChangeVolumen
-        //TODO: newBackstageFan
+
+
+    }
+
+    public void connectWithOnstage() {
+        //mUserIsOnstage = true;
+        mBackstageSession.unpublish(mPublisher);
+        mSession.publish(mPublisher);
+
+        //show publisher in fan container
+        if(mFanStream != null) subscribeFanToStream(mFanStream);
+        if(mHostStream != null) subscribeHostToStream(mHostStream);
+        if(mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
+        updateViewsWidth();
+    }
+
+    public void disconnectFromOnstage() {
+        //mUserIsOnstage = false;
+
+        //Unpublish
+        mSession.unpublish(mPublisher);
+        //Hide chat
+        mScroller.setVisibility(View.GONE);
+        mMessageBox.setVisibility(View.GONE);
+        //Disconnect from backstage
+        mBackstageSession.disconnect();
+
+        //Remove publisher
+        mPublisherViewContainer.removeView(mPublisher.getView());
+        mPublisher.destroy();
+
+        updateViewsWidth();
+
+        Toast.makeText(getApplicationContext(), "Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.", Toast.LENGTH_LONG).show();
 
     }
 
@@ -801,18 +912,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mEvent.put("status", "L");
             updateEventName();
 
-            if(mFanStream != null) {
-                subscribeFanToStream(mFanStream);
-            }
-
-            if(mHostStream != null) {
-                subscribeHostToStream(mHostStream);
-            }
-
-            if(mCelebirtyStream != null) {
-                subscribeCelebrityToStream(mCelebirtyStream);
-            }
-
+            if(mFanStream != null) subscribeFanToStream(mFanStream);
+            if(mHostStream != null) subscribeHostToStream(mHostStream);
+            if(mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
             updateViewsWidth();
 
         } catch (JSONException ex) {
@@ -868,11 +970,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mSession != null) {
             mSession.disconnect();
         }
+
+        if (mBackstageSession != null) {
+            mBackstageSession.disconnect();
+        }
         //Hide chat
         mScroller.setVisibility(View.GONE);
         mMessageBox.setVisibility(View.GONE);
         mChatButton.setVisibility(View.GONE);
 
+        //Hide getinline
+        mGetInLine.setVisibility(View.GONE);
 
         try {
             //Change status
@@ -941,7 +1049,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void sendSignal(String type, String msg) {
         if(mProducerConnection != null) {
             msg = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg+"\"}}";
-            mSession.sendSignal(type, msg,mProducerConnection);
+            mBackstageSession.sendSignal(type, msg,mProducerConnection);
         }
 
     }
@@ -963,15 +1071,37 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
     public void onGetInLineClicked(View v) {
-        mGetInLineView.setVisibility(View.VISIBLE);
+        //if(mGetInLine.getText().equals(R.string.get_inline)){
+            mGetInLineView.setVisibility(View.VISIBLE);
+            if (mPublisher == null) {
+                Log.i(LOG_TAG, "init publisher");
+                mPublisher = new Publisher(FanActivity.this, "publisher");
+                mPublisher.setPublisherListener(this);
+                attachPublisherView(mPublisher);
+            }
+        //}
     }
 
     public void initGetInline(View v) {
-
+        mGetInLineView.setVisibility(View.GONE);
+        mLoadingSubPublisher.setVisibility(View.VISIBLE);
+        backstageSessionConnect();
     }
 
     public void cancelGetInline(View v) {
         mGetInLineView.setVisibility(View.GONE);
+    }
+
+    public void sendNewFanSignal() {
+
+        if(mProducerConnection != null){
+            //TODO: add quality test
+            String msg = "{\"user\":{\"username\":\"" + mUsername.getText() +"\", \"quality\":\"" + "Great" + "\"}}";
+            mBackstageSession.sendSignal("newFan", msg,mProducerConnection);
+        }
+
+
+
     }
 }
 

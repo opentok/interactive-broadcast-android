@@ -12,6 +12,8 @@
     <string name="leave_line">Leave Line</string>
     <string name="enter_your_name_below">You may enter your name below.</string>
     <string name="name_placeholder">Name (Optional)</string>
+    <string name="ok">OK</string>
+    <string name="cancel">CANCEL</string>
 
 
 </resources>
