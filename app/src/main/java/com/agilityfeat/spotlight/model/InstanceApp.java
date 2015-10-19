@@ -1,6 +1,8 @@
 package com.agilityfeat.spotlight.model;
 
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,9 +33,10 @@ public class InstanceApp {
             if(this.mData != null && this.mData.has("events")) {
                 return this.mData.getJSONArray("events");
             } else {
-                return null;
+                return new JSONArray();
             }
         } catch(JSONException e) {
+            Log.e("InstanceApp", e.getMessage());
             return null;
         }
     }

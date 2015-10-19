@@ -15,5 +15,10 @@
     <string name="ok">OK</string>
     <string name="cancel">CANCEL</string>
 
+    <!-- User status -->
+    <string name="status_inline">Inline</string>
+    <string name="status_backstage">Backstage</string>
+    <string name="status_onstage">OnStage</string>
+    <string name="status_incall">InCall with Producer</string>
 
 </resources>

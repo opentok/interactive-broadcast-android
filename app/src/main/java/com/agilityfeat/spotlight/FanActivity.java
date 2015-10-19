@@ -79,6 +79,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private EditText mMessageEditText;
     private TextView mMessageView;
     private TextView mEventName;
+    private TextView mUserStatus;
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
@@ -99,6 +100,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ProgressBar mLoadingSubFan;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
+    private boolean mUserIsOnstage = false;
     private NotificationCompat.Builder mNotifyBuilder;
     private NotificationManager mNotificationManager;
     private ServiceConnection mConnection;
@@ -154,6 +156,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mMessageEditText = (EditText) findViewById(R.id.message);
         mMessageView = (TextView) findViewById(R.id.messageView);
         mEventName = (TextView) findViewById(R.id.event_name);
+        mUserStatus = (TextView) findViewById(R.id.user_status);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
@@ -229,7 +232,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if (mSession != null) {
             mSession.onPause();
-            mBackstageSession.onPause();
 
             if (mSubscriberHost != null) {
                 mSubscriberHostViewContainer.removeView(mSubscriberHost.getView());
@@ -242,6 +244,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if (mSubscriberFan != null) {
                 mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
             }
+        }
+
+        if(mBackstageSession != null) {
+            mBackstageSession.onPause();
         }
 
         mNotifyBuilder = new NotificationCompat.Builder(this)
@@ -395,7 +401,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             public void run() {
 
                 int streams = 0;
-                if (mFanStream != null) streams++;
+                if (mFanStream != null || mUserIsOnstage) streams++;
                 if (mCelebirtyStream != null) streams++;
                 if (mHostStream != null) streams++;
 
@@ -404,16 +410,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mEventImage.setVisibility(View.GONE);
 
                     RelativeLayout.LayoutParams celebrity_head_params = (RelativeLayout.LayoutParams) mSubscriberCelebrityViewContainer.getLayoutParams();
-                    celebrity_head_params.width = screenWidth(FanActivity.this) / streams;
+                    celebrity_head_params.width = (mCelebirtyStream != null) ? screenWidth(FanActivity.this) / streams : 1;
                     mSubscriberCelebrityViewContainer.setLayoutParams(celebrity_head_params);
 
                     RelativeLayout.LayoutParams host_head_params = (RelativeLayout.LayoutParams) mSubscriberHostViewContainer.getLayoutParams();
-                    host_head_params.width = screenWidth(FanActivity.this) / streams;
+                    host_head_params.width = (mHostStream != null) ? screenWidth(FanActivity.this) / streams : 1;
                     mSubscriberHostViewContainer.setLayoutParams(host_head_params);
 
                     RelativeLayout.LayoutParams fan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                    fan_head_params.width = screenWidth(FanActivity.this) / streams;
+                    fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams : 1;
                     mSubscriberFanViewContainer.setLayoutParams(fan_head_params);
+
+                    if (mUserIsOnstage) {
+                        //copy layoutparams from fan container
+                        RelativeLayout.LayoutParams publisher_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
+                        publisher_head_params.width = screenWidth(FanActivity.this) / streams;
+                        mPublisherViewContainer.setLayoutParams(publisher_head_params);
+                    }
 
 
                 } else {
@@ -453,8 +466,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
             mBackstageSession.publish(mPublisher);
-
+            setUserStatus(R.string.status_inline);
+            mGetInLine.setText(getResources().getString(R.string.leave_line));
         }
+    }
+
+    private void setUserStatus(int status) {
+        mUserStatus.setVisibility(View.VISIBLE);
+        mUserStatus.setText(getResources().getString(status));
     }
 
     @Override
@@ -462,7 +481,31 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Disconnected from the session.");
         if(session.getSessionId().equals(mSessionId)) {
             cleanViews();
+        } else {
+            //TODO: Hide Get Inline button on forceDisconnect event
+            leaveLine();
         }
+    }
+
+    private void leaveLine() {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mLoadingSubPublisher.setVisibility(View.GONE);
+                if (mPublisher != null) {
+                    mPublisherViewContainer.removeView(mPublisher.getView());
+                    mPublisher = null;
+                }
+                if (mBackstageSession != null) {
+                    mBackstageSession.unpublish(mPublisher);
+                    mBackstageSession.disconnect();
+                    mBackstageSession = null;
+                }
+                mUserStatus.setVisibility(View.GONE);
+                mGetInLine.setText(getResources().getString(R.string.get_inline));
+            }
+        }, 100);
+
     }
 
     public void cleanViews() {
@@ -482,14 +525,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
         }
 
-        mPublisher = null;
-        mSubscriberCelebrity = null;
-        mSubscriberHost = null;
-        mSubscriberFan = null;
-        mCelebirtyStream = null;
-        mFanStream = null;
-        mHostStream = null;
-        mSession = null;
+        //mPublisher = null;
+        //mSubscriberCelebrity = null;
+        // mSubscriberHost = null;
+        //mSubscriberFan = null;
+        //mCelebirtyStream = null;
+        //mFanStream = null;
+        // mHostStream = null;
+        //mSession = null;
     }
 
     private void subscribeHostToStream(Stream stream) {
@@ -532,6 +575,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mProducerStream != null) {
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
             mBackstageSession.subscribe(mSubscriberProducer);
+            setUserStatus(R.string.status_incall);
         }
     }
 
@@ -539,6 +583,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mProducerStream!= null && mSubscriberProducer != null) {
             mBackstageSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
+            setUserStatus(R.string.status_inline);
         }
     }
 
@@ -621,7 +666,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "onStreamReceived/" + status);
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
-                if (mFanStream == null) {
+                if (mFanStream == null && session.getSessionId().equals(mSessionId)) {
                     mFanStream = stream;
                     if(status.equals("L")) {
                         subscribeFanToStream(stream);
@@ -664,7 +709,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
-                if(mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(session.getSessionId().equals(mSessionId) && mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     mFanStream = null;
                     if(status.equals("L")) {
                         unsubscribeFanFromStream(stream);
@@ -683,7 +728,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=host":
+                Log.i(LOG_TAG, "drop host");
                 if(mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    Log.i(LOG_TAG, "drop host ok ");
                     mHostStream = null;
                     if(status.equals("L")) {
                         unsubscribeHostFromStream(stream);
@@ -703,8 +750,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         // stop loading spinning
         mLoadingSubPublisher.setVisibility(View.GONE);
-        mPublisherViewContainer.bringToFront();
-        //updateViewsWidth();
+        updateViewsWidth();
     }
 
     public static int screenWidth(Context ctx) {
@@ -825,7 +871,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 case "disconnect":
                     disconnectFromOnstage();
                     break;
-
+                case "joinBackstage":
+                    joinBackstage();
+                    break;
+                case "disconnectBackstage":
+                    disconnectBackstage();
+                    break;
             }
         }
         //TODO: onChangeVolumen
@@ -833,26 +884,45 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    public void connectWithOnstage() {
-        //mUserIsOnstage = true;
-        mBackstageSession.unpublish(mPublisher);
-        mSession.publish(mPublisher);
+    private void joinBackstage() {
+        setUserStatus(R.string.status_backstage);
+    }
 
-        //show publisher in fan container
-        if(mFanStream != null) subscribeFanToStream(mFanStream);
-        if(mHostStream != null) subscribeHostToStream(mHostStream);
-        if(mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
-        updateViewsWidth();
+    private void disconnectBackstage() {
+        setUserStatus(R.string.status_inline);
+    }
+
+    public void connectWithOnstage() {
+        mUserIsOnstage = true;
+        mBackstageSession.unpublish(mPublisher);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                setUserStatus(R.string.status_onstage);
+                mSession.publish(mPublisher);
+                if(mHostStream != null) subscribeHostToStream(mHostStream);
+                if(mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
+                updateViewsWidth();
+            }
+        }, 500);
+
     }
 
     public void disconnectFromOnstage() {
-        //mUserIsOnstage = false;
+        mUserIsOnstage = false;
+        //Hide Get in line button
+        mGetInLine.setVisibility(View.GONE);
+
+        //Hide User Status
+        mUserStatus.setVisibility(View.GONE);
 
         //Unpublish
         mSession.unpublish(mPublisher);
         //Hide chat
         mScroller.setVisibility(View.GONE);
         mMessageBox.setVisibility(View.GONE);
+        mLoadingSubPublisher.setVisibility(View.GONE);
+
         //Disconnect from backstage
         mBackstageSession.disconnect();
 
@@ -861,6 +931,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisher.destroy();
 
         updateViewsWidth();
+
+
 
         Toast.makeText(getApplicationContext(), "Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.", Toast.LENGTH_LONG).show();
 
@@ -953,7 +1025,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         switch(statusId) {
             case "N":
             case "P":
-                statusName = "Preshow";
+                statusName = "Not started";
                 break;
             case "L":
                 statusName = "Live";
@@ -966,6 +1038,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void finishEvent() {
+
         //Disconnect the session
         if (mSession != null) {
             mSession.disconnect();
@@ -1071,7 +1144,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
     public void onGetInLineClicked(View v) {
-        //if(mGetInLine.getText().equals(R.string.get_inline)){
+        if(mGetInLine.getText().equals(getResources().getString(R.string.get_inline))){
             mGetInLineView.setVisibility(View.VISIBLE);
             if (mPublisher == null) {
                 Log.i(LOG_TAG, "init publisher");
@@ -1079,7 +1152,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mPublisher.setPublisherListener(this);
                 attachPublisherView(mPublisher);
             }
-        //}
+        } else {
+            leaveLine();
+
+        }
     }
 
     public void initGetInline(View v) {
@@ -1096,12 +1172,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if(mProducerConnection != null){
             //TODO: add quality test
-            String msg = "{\"user\":{\"username\":\"" + mUsername.getText() +"\", \"quality\":\"" + "Great" + "\"}}";
+            String userName = (mUsername.getText().equals("")) ? "Anonymous" : mUsername.getText().toString();
+            String msg = "{\"user\":{\"username\":\"" + userName  +"\", \"quality\":\"" + "Great" + "\"}}";
             mBackstageSession.sendSignal("newFan", msg,mProducerConnection);
         }
-
-
-
     }
 }
 
