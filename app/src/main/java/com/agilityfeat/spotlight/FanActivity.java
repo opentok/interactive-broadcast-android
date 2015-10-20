@@ -192,7 +192,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void loadEventImage(String image, ImageView imgView) {
-        image = image.equals("") ? SpotlightConfig.eventImageDefault : SpotlightConfig.FRONTEND_URL + image;
+        image = image.equals("") || image.equals("null") ? SpotlightConfig.eventImageDefault : SpotlightConfig.FRONTEND_URL + image;
+        Log.i(LOG_TAG, "Downloading " + image);
         Picasso.with(this).load(image).into(imgView);
     }
 

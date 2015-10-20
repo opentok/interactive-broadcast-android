@@ -8,13 +8,6 @@
     <ImageView
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
-        android:id="@+id/event_image_end"
-        android:layout_below="@+id/event_name"
-        android:visibility="gone" />
-
-    <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="match_parent"
         android:id="@+id/event_image"
         android:layout_below="@+id/event_name"
         android:visibility="visible" />
@@ -195,6 +188,13 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:onClick="onGetInLineClicked"
+        android:visibility="gone" />
+
+    <ImageView
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/event_image_end"
+        android:layout_below="@+id/event_name"
         android:visibility="gone" />
 
     <RelativeLayout
