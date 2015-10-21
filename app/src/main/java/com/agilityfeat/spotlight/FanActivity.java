@@ -55,6 +55,27 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Session.SignalListener,Subscriber.VideoListener{
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
+    private static final int TIME_WINDOW = 3; //3 seconds
+    private static final int TIME_VIDEO_TEST = 10; //time interval to check the video quality in seconds
+
+    //Test call vars
+    private String mQuality = "";
+    private double mVideoPLRatio = 0.0;
+    private long mVideoBw = 0;
+    private double mAudioPLRatio = 0.0;
+    private long mAudioBw = 0;
+    private long mPrevVideoPacketsLost = 0;
+    private long mPrevVideoPacketsRcvd = 0;
+    private double mPrevVideoTimestamp = 0;
+    private long mPrevVideoBytes = 0;
+    private long mPrevAudioPacketsLost = 0;
+    private long mPrevAudioPacketsRcvd = 0;
+    private double mPrevAudioTimestamp = 0;
+    private long mPrevAudioBytes = 0;
+    private long mStartTestTime = 0;
+    private boolean audioOnly = false;
+
+
     private JSONObject mEvent;
     private String mApiKey;
     private String mSessionId;
@@ -69,6 +90,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Subscriber mSubscriberCelebrity;
     private Subscriber mSubscriberFan;
     private Subscriber mSubscriberProducer;
+    private Subscriber mSelfSubscriber;
     private Stream mCelebirtyStream;
     private Stream mFanStream;
     private Stream mHostStream;
@@ -466,6 +488,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
+            mPublisher.setAudioFallbackEnabled(false);
             mBackstageSession.publish(mPublisher);
             setUserStatus(R.string.status_inline);
             mGetInLine.setText(getResources().getString(R.string.leave_line));
@@ -596,7 +619,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    private void unsubscribeCelebirtyFromStream(Stream stream) {
+    private void unsubscribeCelebrityFromStream(Stream stream) {
         if (mSubscriberCelebrity.getStream().equals(stream)) {
             mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
             mSubscriberCelebrity = null;
@@ -723,7 +746,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
                     mCelebirtyStream = null;
                     if(status.equals("L")) {
-                        unsubscribeCelebirtyFromStream(stream);
+                        unsubscribeCelebrityFromStream(stream);
                         updateViewsWidth();
                     }
                 }
@@ -752,9 +775,141 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         // stop loading spinning
         mLoadingSubPublisher.setVisibility(View.GONE);
         updateViewsWidth();
+
+        if (mSelfSubscriber == null) {
+            subscribeToSelfStream(stream);
+        }
     }
 
-    public static int screenWidth(Context ctx) {
+
+    private void subscribeToSelfStream(Stream stream) {
+        mSelfSubscriber = new Subscriber(FanActivity.this, stream);
+
+        mSelfSubscriber.setSubscriberListener(this);
+        mSelfSubscriber.setSubscribeToAudio(false);
+        mBackstageSession.subscribe(mSelfSubscriber);
+
+        mSelfSubscriber.setVideoStatsListener(new SubscriberKit.VideoStatsListener() {
+
+            @Override
+            public void onVideoStats(SubscriberKit subscriber,
+                                     SubscriberKit.SubscriberVideoStats stats) {
+
+                if (mStartTestTime == 0) {
+                    mStartTestTime = System.currentTimeMillis() / 1000;
+                }
+                checkVideoStats(stats);
+
+                //check quality of the video call after TIME_VIDEO_TEST seconds
+                if (((System.currentTimeMillis() / 1000 - mStartTestTime) > TIME_VIDEO_TEST) && !audioOnly) {
+                    checkVideoQuality();
+                }
+            }
+
+        });
+
+        mSelfSubscriber.setAudioStatsListener(new SubscriberKit.AudioStatsListener() {
+            @Override
+            public void onAudioStats(SubscriberKit subscriber, SubscriberKit.SubscriberAudioStats stats) {
+
+                checkAudioStats(stats);
+
+            }
+        });
+    }
+
+    private void checkVideoStats(SubscriberKit.SubscriberVideoStats stats) {
+        double videoTimestamp = stats.timeStamp / 1000;
+
+        //initialize values
+        if (mPrevVideoTimestamp == 0) {
+            mPrevVideoTimestamp = videoTimestamp;
+            mPrevVideoBytes = stats.videoBytesReceived;
+        }
+
+        if (videoTimestamp - mPrevVideoTimestamp >= TIME_WINDOW) {
+            //calculate video packets lost ratio
+            if (mPrevVideoPacketsRcvd != 0) {
+                long pl = stats.videoPacketsLost - mPrevVideoPacketsLost;
+                long pr = stats.videoPacketsReceived - mPrevVideoPacketsRcvd;
+                long pt = pl + pr;
+
+                if (pt > 0) {
+                    mVideoPLRatio = (double) pl / (double) pt;
+                }
+            }
+
+            mPrevVideoPacketsLost = stats.videoPacketsLost;
+            mPrevVideoPacketsRcvd = stats.videoPacketsReceived;
+
+            //calculate video bandwidth
+            mVideoBw = (long) ((8 * (stats.videoBytesReceived - mPrevVideoBytes)) / (videoTimestamp - mPrevVideoTimestamp));
+
+            mPrevVideoTimestamp = videoTimestamp;
+            mPrevVideoBytes = stats.videoBytesReceived;
+
+            Log.i(LOG_TAG, "Video bandwidth (bps): " + mVideoBw + " Video Bytes received: " + stats.videoBytesReceived + " Video packet lost: " + stats.videoPacketsLost + " Video packet loss ratio: " + mVideoPLRatio);
+
+        }
+    }
+
+    private void checkAudioStats(SubscriberKit.SubscriberAudioStats stats) {
+        double audioTimestamp = stats.timeStamp / 1000;
+
+        //initialize values
+        if (mPrevAudioTimestamp == 0) {
+            mPrevAudioTimestamp = audioTimestamp;
+            mPrevAudioBytes = stats.audioBytesReceived;
+        }
+
+        if (audioTimestamp - mPrevAudioTimestamp >= TIME_WINDOW) {
+            //calculate audio packets lost ratio
+            if (mPrevAudioPacketsRcvd != 0) {
+                long pl = stats.audioPacketsLost - mPrevAudioPacketsLost;
+                long pr = stats.audioPacketsReceived - mPrevAudioPacketsRcvd;
+                long pt = pl + pr;
+
+                if (pt > 0) {
+                    mAudioPLRatio = (double) pl / (double) pt;
+                }
+            }
+            mPrevAudioPacketsLost = stats.audioPacketsLost;
+            mPrevAudioPacketsRcvd = stats.audioPacketsReceived;
+
+            //calculate audio bandwidth
+            mAudioBw = (long) ((8 * (stats.audioBytesReceived - mPrevAudioBytes)) / (audioTimestamp - mPrevAudioTimestamp));
+
+            mPrevAudioTimestamp = audioTimestamp;
+            mPrevAudioBytes = stats.audioBytesReceived;
+
+            Log.i(LOG_TAG, "Audio bandwidth (bps): " + mAudioBw + " Audio Bytes received: " + stats.audioBytesReceived + " Audio packet lost: " + stats.audioPacketsLost + " Audio packet loss ratio: " + mAudioPLRatio);
+
+        }
+
+    }
+
+    private void checkVideoQuality() {
+        if (mBackstageSession != null) {
+            Log.i(LOG_TAG, "Check video quality stats data");
+            if (mVideoBw < 150000 || mVideoPLRatio > 0.03) {
+                /*mPublisher.setPublishVideo(false);
+                mSelfSubscriber.setSubscribeToVideo(false);
+                mSelfSubscriber.setVideoStatsListener(null);
+                audioOnly = true;*/
+                mQuality = "Poor";
+            } else if (mVideoBw > 350 * 1000) {
+                mQuality = "Great";
+            } else {
+                mQuality = "Good";
+            }
+            Log.i(LOG_TAG, "Publisher quality is " + mQuality);
+            mBackstageSession.unsubscribe(mSelfSubscriber);
+            mSelfSubscriber = null;
+        }
+    }
+
+
+    private static int screenWidth(Context ctx) {
         DisplayMetrics displaymetrics = new DisplayMetrics();
         ((Activity) ctx).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
         return displaymetrics.widthPixels;
@@ -893,7 +1048,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         setUserStatus(R.string.status_inline);
     }
 
-    public void connectWithOnstage() {
+    private void connectWithOnstage() {
         mUserIsOnstage = true;
         mBackstageSession.unpublish(mPublisher);
         mHandler.postDelayed(new Runnable() {
@@ -909,7 +1064,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    public void disconnectFromOnstage() {
+    private void disconnectFromOnstage() {
         mUserIsOnstage = false;
         //Hide Get in line button
         mGetInLine.setVisibility(View.GONE);
@@ -933,13 +1088,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         updateViewsWidth();
 
-
-
         Toast.makeText(getApplicationContext(), "Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.", Toast.LENGTH_LONG).show();
 
     }
 
-    public void handleNewMessage(String data, Connection connection) {
+    private void handleNewMessage(String data, Connection connection) {
         mChatButton.setVisibility(View.VISIBLE);
         String mycid = mSession.getConnection().getConnectionId();
         String cid = connection.getConnectionId();
@@ -957,7 +1110,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void videoOnOff(String data){
+    private void videoOnOff(String data){
         String video="";
         try {
             video = new JSONObject(data)
@@ -969,7 +1122,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    public void muteAudio(String data){
+    private void muteAudio(String data){
         String mute="";
         try {
             mute = new JSONObject(data)
@@ -995,7 +1148,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void updateEventName() {
+    private void updateEventName() {
         try {
             mEventName.setText(mEvent.getString("event_name") + ": " + getEventStatusName());
         } catch (JSONException ex) {
@@ -1003,15 +1156,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void updateEventName(String event_name, String status) {
+    private void updateEventName(String event_name, String status) {
         mEventName.setText(event_name + ": " + status);
     }
 
-    public String getEventStatusName() {
+    private String getEventStatusName() {
         return getStatusNameById(getEventStatus());
     }
 
-    public String getEventStatus() {
+    private String getEventStatus() {
         String status = "N";
         try {
             status = mEvent.getString("status");
@@ -1021,7 +1174,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         return status;
     }
 
-    public String getStatusNameById(String statusId) {
+    private String getStatusNameById(String statusId) {
         String statusName = "";
         switch(statusId) {
             case "N":
@@ -1038,7 +1191,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         return statusName;
     }
 
-    public void finishEvent() {
+    private void finishEvent() {
 
         //Disconnect the session
         if (mSession != null) {
@@ -1091,11 +1244,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     /* Chat methods */
-    public void onChatButtonClicked(View v) {
+    private void onChatButtonClicked(View v) {
         toggleChat();
     }
 
-    public void toggleChat() {
+    private void toggleChat() {
         if(mScroller.getVisibility() == View.VISIBLE) {
             mScroller.setVisibility(View.GONE);
             mMessageBox.setVisibility(View.GONE);
@@ -1115,12 +1268,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void sendChatMessage(String message) {
+    private void sendChatMessage(String message) {
         sendSignal("chatMessage", message);
         presentMessage("Me", message);
     }
 
-    public void sendSignal(String type, String msg) {
+    private void sendSignal(String type, String msg) {
         if(mProducerConnection != null) {
             msg = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg+"\"}}";
             mBackstageSession.sendSignal(type, msg,mProducerConnection);
@@ -1169,14 +1322,25 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mGetInLineView.setVisibility(View.GONE);
     }
 
-    public void sendNewFanSignal() {
+    private void sendNewFanSignal() {
 
-        if(mProducerConnection != null){
-            //TODO: add quality test
-            String userName = (mUsername.getText().equals("")) ? "Anonymous" : mUsername.getText().toString();
-            String msg = "{\"user\":{\"username\":\"" + userName  +"\", \"quality\":\"" + "Great" + "\"}}";
-            mBackstageSession.sendSignal("newFan", msg,mProducerConnection);
-        }
+            if(mProducerConnection != null){
+                if(!mQuality.equals("")) {
+                    String userName = (mUsername.getText().equals("")) ? "Anonymous" : mUsername.getText().toString();
+                    String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
+                    mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
+                } else {
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            sendNewFanSignal();
+                        }
+                    }, 500);
+                }
+            }
+
+
+
     }
 }
 
