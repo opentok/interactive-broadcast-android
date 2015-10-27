@@ -214,8 +214,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void loadEventImage(String image, ImageView imgView) {
-        image = image.equals("") || image.equals("null") ? SpotlightConfig.eventImageDefault : SpotlightConfig.FRONTEND_URL + image;
-        Log.i(LOG_TAG, "Downloading " + image);
+        image = SpotlightConfig.FRONTEND_URL + image;
         Picasso.with(this).load(image).into(imgView);
     }
 
@@ -735,7 +734,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             case "usertype=fan":
                 if(session.getSessionId().equals(mSessionId) && mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     mFanStream = null;
-                    if(status.equals("L")) {
+                    if(status.equals("L") || status.equals("C")) {
                         unsubscribeFanFromStream(stream);
                         updateViewsWidth();
                     }
@@ -745,7 +744,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if(mCelebirtyStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
 
                     mCelebirtyStream = null;
-                    if(status.equals("L")) {
+                    if(status.equals("L") || status.equals("C")) {
                         unsubscribeCelebrityFromStream(stream);
                         updateViewsWidth();
                     }
@@ -756,7 +755,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if(mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     Log.i(LOG_TAG, "drop host ok ");
                     mHostStream = null;
-                    if(status.equals("L")) {
+                    if(status.equals("L") || status.equals("C")) {
                         unsubscribeHostFromStream(stream);
                         updateViewsWidth();
                     }
@@ -776,9 +775,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLoadingSubPublisher.setVisibility(View.GONE);
         updateViewsWidth();
 
-        if (mSelfSubscriber == null) {
-            subscribeToSelfStream(stream);
-        }
+        //if (mSelfSubscriber == null) {
+           // subscribeToSelfStream(stream);
+       // }
     }
 
 
@@ -902,6 +901,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             } else {
                 mQuality = "Good";
             }
+            //mSelfSubscriber.setVideoStatsListener(null);
             Log.i(LOG_TAG, "Publisher quality is " + mQuality);
             mBackstageSession.unsubscribe(mSelfSubscriber);
             mSelfSubscriber = null;
@@ -1195,7 +1195,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Disconnect the session
         if (mSession != null) {
-            mSession.disconnect();
+            //mSession.disconnect();
         }
 
         if (mBackstageSession != null) {
@@ -1218,6 +1218,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             } else {
                 mEventImage.setVisibility(View.VISIBLE);
             }
+
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
@@ -1244,7 +1245,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     /* Chat methods */
-    private void onChatButtonClicked(View v) {
+    public void onChatButtonClicked(View v) {
         toggleChat();
     }
 
@@ -1304,6 +1305,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 Log.i(LOG_TAG, "init publisher");
                 mPublisher = new Publisher(FanActivity.this, "publisher");
                 mPublisher.setPublisherListener(this);
+                // use an external customer video capturer
                 attachPublisherView(mPublisher);
             }
         } else {
@@ -1326,7 +1328,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             if(mProducerConnection != null){
                 if(!mQuality.equals("")) {
-                    String userName = (mUsername.getText().equals("")) ? "Anonymous" : mUsername.getText().toString();
+                    String userName = (mUsername.getText().toString().trim().equals("")) ? "Anonymous" : mUsername.getText().toString();
                     String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
