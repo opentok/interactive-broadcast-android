@@ -1,4 +1,4 @@
 // Replace the instanceId
 project.ext.instanceId = "AAAA1"
 // Replace the userType [celebrity,host,fan]
-project.ext.userType = "fan"
+project.ext.userType = "host"

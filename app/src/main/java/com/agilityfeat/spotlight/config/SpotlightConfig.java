@@ -11,4 +11,6 @@ public class SpotlightConfig {
             (BuildConfig.DEBUG) ? "https://chatshow-tesla.herokuapp.com" : "https://spotlight-demos-backend.herokuapp.com";
 
     public static final String FRONTEND_URL = "https://chatshow.herokuapp.com";
+    public static final String SIGNALING_URL = "https://chatshow-signaling.herokuapp.com";
+
 }

@@ -6,8 +6,13 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -30,8 +35,11 @@ import android.widget.Toast;
 
 import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.model.InstanceApp;
+import com.agilityfeat.spotlight.video.CustomVideoRenderer;
+import com.agilityfeat.spotlight.socket.SocketCoordinator;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 import com.agilityfeat.spotlight.services.ClearNotificationService;
+
 
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
@@ -46,6 +54,9 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 
 
@@ -74,6 +85,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private long mPrevAudioBytes = 0;
     private long mStartTestTime = 0;
     private boolean audioOnly = false;
+    private boolean mNewFanSignalAckd = false;
 
 
     private JSONObject mEvent;
@@ -85,6 +97,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Session mSession;
     private Session mBackstageSession;
     private WebServiceCoordinator mWebServiceCoordinator;
+    private SocketCoordinator mSocket;
     private Publisher mPublisher;
     private Subscriber mSubscriberHost;
     private Subscriber mSubscriberCelebrity;
@@ -126,6 +139,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private NotificationCompat.Builder mNotifyBuilder;
     private NotificationManager mNotificationManager;
     private ServiceConnection mConnection;
+    private CustomVideoRenderer mCustomVideoRenderer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +151,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        mSocket = new SocketCoordinator();
 
         initLayoutWidgets();
 
@@ -352,6 +368,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
         if (isFinishing()) {
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
+
+            mSocket.disconnect();
+
             if (mSession != null) {
                 mSession.disconnect();
             }
@@ -359,6 +378,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if (mBackstageSession != null) {
                 mBackstageSession.disconnect();
             }
+
         }
     }
 
@@ -388,6 +408,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mScroller.getVisibility() == View.VISIBLE) {
             toggleChat();
         }else {
+            mSocket.disconnect();
             if (mSession != null) {
                 mSession.disconnect();
             }
@@ -514,6 +535,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
+
                 mLoadingSubPublisher.setVisibility(View.GONE);
                 if (mPublisher != null) {
                     mPublisherViewContainer.removeView(mPublisher.getView());
@@ -526,6 +548,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 mUserStatus.setVisibility(View.GONE);
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
+                mNewFanSignalAckd = false;
             }
         }, 100);
 
@@ -775,11 +798,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLoadingSubPublisher.setVisibility(View.GONE);
         updateViewsWidth();
 
-        //if (mSelfSubscriber == null) {
-           // subscribeToSelfStream(stream);
-       // }
+        if (mSelfSubscriber == null && mQuality.equals("")) {
+            subscribeToSelfStream(stream);
+        }
     }
-
 
     private void subscribeToSelfStream(Stream stream) {
         mSelfSubscriber = new Subscriber(FanActivity.this, stream);
@@ -1005,6 +1027,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 case "muteAudio":
                     muteAudio(data);
                     break;
+                case "startEvent":
+                    startEvent();
+                    break;
                 case "goLive":
                     goLive();
                     break;
@@ -1013,7 +1038,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     break;
                 //backstage
                 case "resendNewFanSignal":
-                    sendNewFanSignal();
+                    if (!mNewFanSignalAckd) sendNewFanSignal();
                     break;
                 case "joinProducer":
                     subscribeProducer();
@@ -1033,11 +1058,36 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 case "disconnectBackstage":
                     disconnectBackstage();
                     break;
+                case "newFanAck":
+                    ackNewFanSignal();
+                    break;
+                case "producerLeaving":
+                    mNewFanSignalAckd = false;
+                    break;
             }
         }
         //TODO: onChangeVolumen
 
 
+    }
+
+    private void ackNewFanSignal() {
+        mNewFanSignalAckd = true;
+
+        String connectionId = mPublisher.getStream().getConnection().getConnectionId();
+        String sessionId = mBackstageSessionId;
+        String snapshot = mCustomVideoRenderer.getSnapshot();
+
+        Log.i(LOG_TAG, "sending snapshot : " + snapshot);
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("connectionId", connectionId);
+            obj.put("sessionId", sessionId);
+            obj.put("snapshot", snapshot);
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+        mSocket.SendSnapShot(obj);
     }
 
     private void joinBackstage() {
@@ -1056,8 +1106,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             public void run() {
                 setUserStatus(R.string.status_onstage);
                 mSession.publish(mPublisher);
-                if(mHostStream != null) subscribeHostToStream(mHostStream);
-                if(mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
+                if (mHostStream != null) subscribeHostToStream(mHostStream);
+                if (mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
                 updateViewsWidth();
             }
         }, 500);
@@ -1131,6 +1181,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
         mPublisher.setPublishAudio(!mute.equals("on"));
+    }
+
+    public void startEvent(){
+        /*try {
+            mEvent.put("status", "P");
+            updateEventName();
+            mNewFanSignalAckd = false;
+
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }*/
     }
 
     public void goLive(){
@@ -1302,10 +1363,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mGetInLine.getText().equals(getResources().getString(R.string.get_inline))){
             mGetInLineView.setVisibility(View.VISIBLE);
             if (mPublisher == null) {
+                mPublisherViewContainer.setVisibility(View.VISIBLE);
                 Log.i(LOG_TAG, "init publisher");
                 mPublisher = new Publisher(FanActivity.this, "publisher");
                 mPublisher.setPublisherListener(this);
-                // use an external customer video capturer
+                // use an external custom video renderer
+                mCustomVideoRenderer = new CustomVideoRenderer(this);
+                mPublisher.setRenderer(mCustomVideoRenderer);
                 attachPublisherView(mPublisher);
             }
         } else {
@@ -1315,6 +1379,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline(View v) {
+        mSocket.connect();
+
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mSocket.emitJoinRoom(mBackstageSessionId);
+            }
+        }, 2000);
+
         mGetInLineView.setVisibility(View.GONE);
         mLoadingSubPublisher.setVisibility(View.VISIBLE);
         backstageSessionConnect();
@@ -1326,8 +1399,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void sendNewFanSignal() {
 
-            if(mProducerConnection != null){
-                if(!mQuality.equals("")) {
+            if(mProducerConnection != null && mBackstageSession != null){
+                if(!mQuality.equals("") && !mNewFanSignalAckd) {
+                    mNewFanSignalAckd = true;
                     String userName = (mUsername.getText().toString().trim().equals("")) ? "Anonymous" : mUsername.getText().toString();
                     String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);

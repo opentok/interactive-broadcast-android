@@ -1,13 +1,23 @@
 package com.agilityfeat.spotlight.video;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.os.Environment;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 
 import com.opentok.android.BaseVideoRenderer;
 
+
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -20,9 +30,12 @@ import javax.microedition.khronos.opengles.GL10;
 public class CustomVideoRenderer extends BaseVideoRenderer {
 
     private Context mContext;
+    private ByteBuffer mFirstFrame;
 
     private GLSurfaceView mView;
     private MyRenderer mRenderer;
+
+
 
     static class MyRenderer implements GLSurfaceView.Renderer {
 
@@ -33,8 +46,12 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
         private FloatBuffer mTextureBuffer;
         private ShortBuffer mDrawListBuffer;
 
+
+        private Boolean mSaveScreenshot = true;
+
         boolean mVideoFitEnabled = true;
         boolean mVideoDisabled = false;
+
 
         // number of coordinates per vertex in this array
         static final int COORDS_PER_VERTEX = 3;
@@ -74,8 +91,8 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
                 + "  u=texture2D(Utex,vec2(nx,ny)).r;\n"
                 + "  v=texture2D(Vtex,vec2(nx,ny)).r;\n"
 
-                + "  y=1.0-1.1643*(y-0.0625);\n" // Invert effect
-                // + "  y=1.1643*(y-0.0625);\n" // Normal renderer
+                //+ "  y=1.0-1.1643*(y-0.0625);\n" // Invert effect
+                 + "  y=1.1643*(y-0.0625);\n" // Normal renderer
 
                 + "  u=u-0.5;\n" + "  v=v-0.5;\n" + "  r=y+1.5958*v;\n"
                 + "  g=y-0.39173*u-0.81290*v;\n" + "  b=y+2.017*u;\n"
@@ -89,6 +106,8 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
         private int mTextureHeight;
         private int mViewportWidth;
         private int mViewportHeight;
+
+        private String mSnapshot;
 
         public MyRenderer() {
             ByteBuffer bb = ByteBuffer.allocateDirect(mXYZCoords.length * 4);
@@ -305,6 +324,82 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
             }
             this.mCurrentFrame = frame;
             mFrameLock.unlock();
+
+            if(mSaveScreenshot) {
+                Log.d("Screenshot", "Capturing frame....");
+
+                ByteBuffer bb = frame.getBuffer();
+                bb.clear();
+
+                int width = frame.getWidth();
+                int height = frame.getHeight();
+                int half_width = (width + 1) >> 1;
+                int half_height = (height + 1) >> 1;
+                int y_size = width * height;
+                int uv_size = half_width * half_height;
+
+                byte[] yuv = new byte[y_size + uv_size * 2];
+                bb.get(yuv);
+                int[] intArray = new int[width * height];
+
+                // Decode Yuv data to integer array
+                decodeYUV420(intArray, yuv, width, height);
+
+                //Initialize the bitmap, with the replaced color
+                Bitmap bmp = Bitmap.createBitmap(intArray, width, height, Bitmap.Config.ARGB_8888);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+                try {
+                    //Create a thumbnail of 60x6o
+                    //bmp = Bitmap.createScaledBitmap(bmp, 60, 60, false);
+                    bmp.compress(Bitmap.CompressFormat.PNG, 100, baos);
+
+                    byte[] b = baos.toByteArray();
+                    mSnapshot = "data:image/png;base64," + Base64.encodeToString(b,Base64.DEFAULT);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return;
+                }
+
+                mSaveScreenshot = false;
+            }
+        }
+
+        static public void decodeYUV420(int[] rgba, byte[] yuv420, int width, int height) {
+            int half_width = (width + 1) >> 1;
+            int half_height = (height +1) >> 1;
+            int y_size = width * height;
+            int uv_size = half_width * half_height;
+
+            for (int j = 0; j < height; j++) {
+                for (int i = 0; i < width; i++) {
+
+                    double y = (yuv420[j * width + i]) & 0xff;
+                    double v = (yuv420[y_size + (j >> 1) * half_width + (i>>1)]) & 0xff;
+                    double u = (yuv420[y_size + uv_size + (j >> 1) * half_width + (i>>1)]) & 0xff;
+
+                    double r;
+                    double g;
+                    double b;
+
+                    r = y + 1.402 * (u-128);
+                    g = y - 0.34414*(v-128) - 0.71414*(u-128);
+                    b = y + 1.772*(v-128);
+
+                    if (r < 0) r = 0;
+                    else if (r > 255) r = 255;
+                    if (g < 0) g = 0;
+                    else if (g > 255) g = 255;
+                    if (b < 0) b = 0;
+                    else if (b > 255) b = 255;
+
+                    int ir = (int)r;
+                    int ig = (int)g;
+                    int ib = (int)b;
+                    rgba[j * width + i] = 0xff000000 | (ir << 16) | (ig << 8) | ib;
+                }
+            }
         }
 
         public static int loadShader(int type, String shaderCode) {
@@ -350,8 +445,14 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
 
     @Override
     public void onFrame(Frame frame) {
+
         mRenderer.displayFrame(frame);
         mView.requestRender();
+
+    }
+
+    public String getSnapshot() {
+        return mRenderer.mSnapshot;
     }
 
     @Override
