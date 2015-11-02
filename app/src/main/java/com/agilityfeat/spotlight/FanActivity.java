@@ -1099,6 +1099,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void connectWithOnstage() {
+        //Hidding leave line button
+        mGetInLine.setVisibility(View.GONE);
+
         mUserIsOnstage = true;
         mBackstageSession.unpublish(mPublisher);
         mHandler.postDelayed(new Runnable() {
@@ -1184,14 +1187,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void startEvent(){
-        /*try {
-            mEvent.put("status", "P");
-            updateEventName();
-            mNewFanSignalAckd = false;
-
-        } catch (JSONException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
-        }*/
+       mNewFanSignalAckd = false;
     }
 
     public void goLive(){
