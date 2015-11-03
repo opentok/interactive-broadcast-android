@@ -70,6 +70,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private RelativeLayout mMessageBox;
     private EditText mMessageEditText;
     private TextView mMessageView;
+    private TextView mTextoUnreadMessages;
     private ImageButton mChatButton;
 
     private Handler mHandler = new Handler();
@@ -86,6 +87,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private NotificationCompat.Builder mNotifyBuilder;
     private NotificationManager mNotificationManager;
     private ServiceConnection mConnection;
+
+    private int mUnreadMessages = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,6 +136,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mScroller = (ScrollView) findViewById(R.id.scroller);
         mMessageEditText = (EditText) findViewById(R.id.message);
         mMessageView = (TextView) findViewById(R.id.messageView);
+        mTextoUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
     }
 
@@ -648,18 +652,29 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 case "finishEvent":
                     finishEvent();
                     break;
+                case "newBackstageFan":
+                    newBackstageFan();
+                    break;
 
             }
         }
         //TODO: onChangeVolumen
-        //TODO: newBackstageFan
+
         //TODO: finishEvent
+    }
+
+    private void newBackstageFan() {
+        Toast.makeText(getApplicationContext(),"A new FAN has been moved to backstage", Toast.LENGTH_LONG).show();
     }
 
     public void handleNewMessage(String data, Connection connection) {
         String mycid = mSession.getConnection().getConnectionId();
         String cid = connection.getConnectionId();
         String who = "";
+        if(mScroller.getVisibility() != View.VISIBLE) {
+            mUnreadMessages++;
+            refreshUnreadMessages();
+        }
         if (!cid.equals(mycid)) {
             String message = "";
             try {
@@ -671,6 +686,15 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             }
             presentMessage("Producer", message);
         }
+    }
+
+    private void refreshUnreadMessages() {
+        if(mUnreadMessages > 0) {
+            mTextoUnreadMessages.setVisibility(View.VISIBLE);
+        } else {
+            mTextoUnreadMessages.setVisibility(View.GONE);
+        }
+        mTextoUnreadMessages.setText(Integer.toString(mUnreadMessages));
     }
 
     public void videoOnOff(String data){
@@ -735,12 +759,18 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     public void toggleChat() {
         if(mScroller.getVisibility() == View.VISIBLE) {
-            mScroller.setVisibility(View.GONE);
-            mMessageBox.setVisibility(View.GONE);
+            hideChat();
         } else {
             mScroller.setVisibility(View.VISIBLE);
             mMessageBox.setVisibility(View.VISIBLE);
+            mUnreadMessages = 0;
+            refreshUnreadMessages();
         }
+    }
+
+    private void hideChat() {
+        mScroller.setVisibility(View.GONE);
+        mMessageBox.setVisibility(View.GONE);
     }
 
     public void onClickSend(View v) {

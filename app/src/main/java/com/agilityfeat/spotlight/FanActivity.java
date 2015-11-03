@@ -86,6 +86,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private long mStartTestTime = 0;
     private boolean audioOnly = false;
     private boolean mNewFanSignalAckd = false;
+    private int mUnreadMessages = 0;
 
 
     private JSONObject mEvent;
@@ -115,6 +116,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextView mMessageView;
     private TextView mEventName;
     private TextView mUserStatus;
+    private TextView mTextoUnreadMessages;
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
@@ -195,6 +197,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mMessageView = (TextView) findViewById(R.id.messageView);
         mEventName = (TextView) findViewById(R.id.event_name);
         mUserStatus = (TextView) findViewById(R.id.user_status);
+        mTextoUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
@@ -536,7 +539,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-
+                //Hide chat stuff
+                hideChat();
                 mLoadingSubPublisher.setVisibility(View.GONE);
                 if (mPublisher != null) {
                     mPublisherViewContainer.removeView(mPublisher.getView());
@@ -571,15 +575,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mSubscriberCelebrity != null) {
             mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
         }
-
-        //mPublisher = null;
-        //mSubscriberCelebrity = null;
-        // mSubscriberHost = null;
-        //mSubscriberFan = null;
-        //mCelebirtyStream = null;
-        //mFanStream = null;
-        // mHostStream = null;
-        //mSession = null;
     }
 
     private void subscribeHostToStream(Stream stream) {
@@ -1130,8 +1125,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSession.unpublish(mPublisher);
 
         //Hide chat
-        mScroller.setVisibility(View.GONE);
-        mMessageBox.setVisibility(View.GONE);
+        hideChat();
         mLoadingSubPublisher.setVisibility(View.GONE);
 
         //Disconnect from backstage
@@ -1147,8 +1141,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
+    private void hideChat() {
+        mScroller.setVisibility(View.GONE);
+        mMessageBox.setVisibility(View.GONE);
+        mChatButton.setVisibility(View.GONE);
+    }
+
     private void handleNewMessage(String data, Connection connection) {
         mChatButton.setVisibility(View.VISIBLE);
+        if(mScroller.getVisibility() != View.VISIBLE) {
+            mUnreadMessages++;
+            refreshUnreadMessages();
+        }
         String mycid = mSession.getConnection().getConnectionId();
         String cid = connection.getConnectionId();
         String who = "";
@@ -1163,6 +1167,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
             presentMessage("Producer", message);
         }
+    }
+
+    private void refreshUnreadMessages() {
+        if(mUnreadMessages > 0) {
+            mTextoUnreadMessages.setVisibility(View.VISIBLE);
+        } else {
+            mTextoUnreadMessages.setVisibility(View.GONE);
+        }
+        mTextoUnreadMessages.setText(Integer.toString(mUnreadMessages));
     }
 
     private void videoOnOff(String data){
@@ -1319,11 +1332,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void toggleChat() {
         if(mScroller.getVisibility() == View.VISIBLE) {
-            mScroller.setVisibility(View.GONE);
-            mMessageBox.setVisibility(View.GONE);
+            hideChat();
         } else {
             mScroller.setVisibility(View.VISIBLE);
             mMessageBox.setVisibility(View.VISIBLE);
+            mUnreadMessages = 0;
+            refreshUnreadMessages();
         }
     }
 

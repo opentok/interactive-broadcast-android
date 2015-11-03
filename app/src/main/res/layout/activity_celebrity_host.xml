@@ -76,6 +76,20 @@ android:background="#000000" >
         android:onClick="onChatButtonClicked"
         android:visibility="gone" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="0"
+        android:id="@+id/unread_messages"
+        android:background="#ee0f0f"
+        android:textColor="#FFFFFF"
+        android:layout_alignTop="@+id/chat_button"
+        android:layout_alignLeft="@+id/chat_button"
+        android:layout_alignStart="@+id/chat_button"
+        android:textSize="25dp"
+        android:visibility="gone" />
+
     <ScrollView
         android:id="@+id/scroller"
         android:layout_width="fill_parent"

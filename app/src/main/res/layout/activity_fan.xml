@@ -85,6 +85,20 @@
         android:onClick="onChatButtonClicked"
         android:visibility="gone" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="0"
+        android:id="@+id/unread_messages"
+        android:background="#ee0f0f"
+        android:textColor="#FFFFFF"
+        android:layout_alignTop="@+id/chat_button"
+        android:layout_alignLeft="@+id/chat_button"
+        android:layout_alignStart="@+id/chat_button"
+        android:textSize="25dp"
+        android:visibility="gone" />
+
     <RelativeLayout
         android:id="@+id/publisherView"
         android:layout_width="100dp"
