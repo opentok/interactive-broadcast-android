@@ -12,5 +12,6 @@ public class SpotlightConfig {
 
     public static final String FRONTEND_URL = "https://chatshow.herokuapp.com";
     public static final String SIGNALING_URL = "https://chatshow-signaling.herokuapp.com";
+    public static final String DEFAULT_EVENT_IMAGE = "/img/TAB_VIDEO_PREVIEW_LS.jpg";
 
 }

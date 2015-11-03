@@ -50,6 +50,8 @@
         </activity>
         <activity
             android:name=".EventListActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="landscape">
             android:label="@string/title_activity_event_list" >
         </activity>
         <activity

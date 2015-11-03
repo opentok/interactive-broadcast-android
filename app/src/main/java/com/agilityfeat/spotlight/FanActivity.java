@@ -230,6 +230,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void loadEventImage(String image, ImageView imgView) {
+        if(image.equals("")) image = SpotlightConfig.DEFAULT_EVENT_IMAGE;
         image = SpotlightConfig.FRONTEND_URL + image;
         Picasso.with(this).load(image).into(imgView);
     }
@@ -755,7 +756,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
-                if(session.getSessionId().equals(mSessionId) && mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mFanStream != null && session.getSessionId().equals(mSessionId) && mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     mFanStream = null;
                     if(status.equals("L") || status.equals("C")) {
                         unsubscribeFanFromStream(stream);
@@ -764,7 +765,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=celebrity":
-                if(mCelebirtyStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mCelebirtyStream != null && mCelebirtyStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
 
                     mCelebirtyStream = null;
                     if(status.equals("L") || status.equals("C")) {
@@ -775,7 +776,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 break;
             case "usertype=host":
                 Log.i(LOG_TAG, "drop host");
-                if(mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mHostStream != null && mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     Log.i(LOG_TAG, "drop host ok ");
                     mHostStream = null;
                     if(status.equals("L") || status.equals("C")) {
@@ -796,7 +797,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         // stop loading spinning
         mLoadingSubPublisher.setVisibility(View.GONE);
-        updateViewsWidth();
+
 
         if (mSelfSubscriber == null && mQuality.equals("")) {
             subscribeToSelfStream(stream);
@@ -1127,13 +1128,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Unpublish
         mSession.unpublish(mPublisher);
+
         //Hide chat
         mScroller.setVisibility(View.GONE);
         mMessageBox.setVisibility(View.GONE);
         mLoadingSubPublisher.setVisibility(View.GONE);
 
         //Disconnect from backstage
-        mBackstageSession.disconnect();
+        if(mBackstageSession!=null) mBackstageSession.disconnect();
 
         //Remove publisher
         mPublisherViewContainer.removeView(mPublisher.getView());
@@ -1194,12 +1196,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         try {
             mEvent.put("status", "L");
             updateEventName();
-
-            if(mFanStream != null) subscribeFanToStream(mFanStream);
-            if(mHostStream != null) subscribeHostToStream(mHostStream);
-            if(mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
-            updateViewsWidth();
-
+            if(!mUserIsOnstage) {
+                if (mFanStream != null) subscribeFanToStream(mFanStream);
+                if (mHostStream != null) subscribeHostToStream(mHostStream);
+                if (mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
+                updateViewsWidth();
+            }
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
@@ -1250,14 +1252,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void finishEvent() {
 
-        //Disconnect the session
-        if (mSession != null) {
-            //mSession.disconnect();
-        }
+        //Hide subscriber containters
+        mSubscriberCelebrityViewContainer.setVisibility(View.GONE);
+        mSubscriberFanViewContainer.setVisibility(View.GONE);
+        mSubscriberHostViewContainer.setVisibility(View.GONE);
 
-        if (mBackstageSession != null) {
-            mBackstageSession.disconnect();
-        }
+        //Show Event Image end
+        mEventImageEnd.setVisibility(View.VISIBLE);
+        mEventImage.setVisibility(View.GONE);
+
         //Hide chat
         mScroller.setVisibility(View.GONE);
         mMessageBox.setVisibility(View.GONE);
@@ -1266,16 +1269,24 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Hide getinline
         mGetInLine.setVisibility(View.GONE);
 
+        if(mUserIsOnstage) {
+            disconnectFromOnstage();
+        } else {
+            //Disconnect the onbackstage session
+            if (mBackstageSession != null) mBackstageSession.disconnect();
+        }
+
+        //Disconnect from onstage session
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mSession != null) mSession.disconnect();
+            }
+        }, 10000);
+
         try {
             //Change status
             mEvent.put("status", "C");
-            //Show Event Image
-            if(!mEvent.getString("event_image_end").equals("")) {
-                mEventImageEnd.setVisibility(View.VISIBLE);
-            } else {
-                mEventImage.setVisibility(View.VISIBLE);
-            }
-
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }

@@ -352,7 +352,7 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
 
                 try {
                     //Create a thumbnail of 60x6o
-                    //bmp = Bitmap.createScaledBitmap(bmp, 60, 60, false);
+                    bmp = Bitmap.createScaledBitmap(bmp, 60, 60, false);
                     bmp.compress(Bitmap.CompressFormat.PNG, 100, baos);
 
                     byte[] b = baos.toByteArray();
