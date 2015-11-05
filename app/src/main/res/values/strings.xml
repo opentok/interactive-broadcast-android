@@ -20,5 +20,6 @@
     <string name="status_backstage">Backstage</string>
     <string name="status_onstage">OnStage</string>
     <string name="status_incall">InCall with Producer</string>
+    <string name="title_activity_select">SelectActivity</string>
 
 </resources>

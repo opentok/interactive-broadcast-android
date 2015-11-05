@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.widget.Toast;
 
+import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.model.InstanceApp;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 
@@ -30,6 +31,9 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        Log.i(LOG_TAG, "usert type = " + SpotlightConfig.USER_TYPE);
+
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
@@ -59,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
 
     public void getInstanceId() {
         try {
-            mWebServiceCoordinator.getInstanceById(BuildConfig.INSTANCE_ID);
+            mWebServiceCoordinator.getInstanceById(SpotlightConfig.INSTANCE_ID);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -92,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     public void showEvent() {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
-        if(BuildConfig.USER_TYPE == "fan") {
+        if(SpotlightConfig.USER_TYPE == "fan") {
             localIntent = new Intent(MainActivity.this, FanActivity.class);
         } else {
             localIntent = new Intent(MainActivity.this, CelebrityHostActivity.class);

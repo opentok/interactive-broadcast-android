@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import java.util.ArrayList;
 
+import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.model.InstanceApp;
 
 import org.json.JSONArray;
@@ -79,7 +80,7 @@ public class EventListActivity extends AppCompatActivity {
     public void showEvent(int event_index) {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
-        if(BuildConfig.USER_TYPE == "fan") {
+        if(SpotlightConfig.USER_TYPE == "fan") {
             localIntent = new Intent(EventListActivity.this, FanActivity.class);
         } else {
             localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);

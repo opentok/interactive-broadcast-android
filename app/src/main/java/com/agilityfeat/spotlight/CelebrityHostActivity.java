@@ -28,6 +28,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.model.InstanceApp;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 import com.agilityfeat.spotlight.services.ClearNotificationService;
@@ -159,7 +160,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
 
         try {
-            if(BuildConfig.USER_TYPE == "celebrity") {
+            if(SpotlightConfig.USER_TYPE == "celebrity") {
                 mWebServiceCoordinator.createCelebrityToken(event.getString("celebrity_url"));
             } else {
                 mWebServiceCoordinator.createHostToken(event.getString("host_url"));
@@ -417,7 +418,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     private void subscribeToStream(Stream stream) {
-
+        Log.i(LOG_TAG, "subscribeToStream");
+        Log.i(LOG_TAG, "Subscriber is null? = " + ((mSubscriber==null) ? "Yes" : "No"));
         mSubscriber = new Subscriber(CelebrityHostActivity.this, stream);
         mSubscriber.setVideoListener(this);
         mSession.subscribe(mSubscriber);
@@ -429,7 +431,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     private void subscribeFanToStream(Stream stream) {
-
+        Log.i(LOG_TAG, "subscribeFanToStream");
         mSubscriberFan = new Subscriber(CelebrityHostActivity.this, stream);
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
@@ -495,7 +497,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onStreamReceived(Session session, Stream stream) {
-
+        Log.i(LOG_TAG, "onStreamReceived:" + stream.getConnection().getData());
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
                 if (mFanStream == null) {
@@ -524,7 +526,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onStreamDropped(Session session, Stream stream) {
-
+        Log.i(LOG_TAG, "New stream dropped:" + stream.getConnection().getData());
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
                 if(mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
@@ -564,7 +566,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
-
+        Log.i(LOG_TAG, "Publisher destroyed");
     }
 
     @Override
@@ -601,7 +603,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onVideoDisableWarning(SubscriberKit subscriber) {
-        Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here.");
+
+        Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here." + subscriber.getStream().getConnection().getData());
     }
 
     @Override
