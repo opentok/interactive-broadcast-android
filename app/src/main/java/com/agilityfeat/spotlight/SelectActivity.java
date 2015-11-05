@@ -26,6 +26,7 @@ public class SelectActivity extends AppCompatActivity {
         RadioButton rdFan = (RadioButton) findViewById(R.id.radioButton);
         RadioButton rdCeleb = (RadioButton) findViewById(R.id.radioButton2);
         RadioButton rdHost = (RadioButton) findViewById(R.id.radioButton3);
+
         if(rdFan.isChecked()) {
             SpotlightConfig.USER_TYPE = "fan";
         } else if(rdHost.isChecked()) {

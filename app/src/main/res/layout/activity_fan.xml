@@ -73,6 +73,25 @@
             android:visibility="gone" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/publisherView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/loadingSpinnerPublisher"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+    </RelativeLayout>
+
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -99,24 +118,16 @@
         android:textSize="25dp"
         android:visibility="gone" />
 
-    <RelativeLayout
-        android:id="@+id/publisherView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:gravity="center_horizontal"
-        android:keepScreenOn="true"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/user_status"
         android:layout_alignParentBottom="true"
-        android:visibility="gone">
-
-        <ProgressBar
-            android:id="@+id/loadingSpinnerPublisher"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-    </RelativeLayout>
+        android:layout_centerHorizontal="true"
+        android:background="#8b8b8b"
+        android:textSize="30dp"
+        android:textColor="#14369c"
+        android:visibility="gone" />
 
     <ScrollView
         android:id="@+id/scroller"
@@ -180,17 +191,6 @@
         android:textSize="35dp"
         android:paddingLeft="5dp"
         android:background="#8b8b8b" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/user_status"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:background="#8b8b8b"
-        android:textSize="30dp"
-        android:textColor="#14369c"
-        android:visibility="gone" />
 
     <Button
         style="?android:attr/buttonStyleSmall"

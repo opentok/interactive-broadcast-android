@@ -719,7 +719,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             case "usertype=celebrity":
                 if (mCelebirtyStream == null) {
                     mCelebirtyStream = stream;
-                    if(status.equals("L")) {
+                    if(status.equals("L") || mUserIsOnstage) {
                         subscribeCelebrityToStream(stream);
                         updateViewsWidth();
                     }
@@ -728,7 +728,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             case "usertype=host":
                 if (mHostStream == null) {
                     mHostStream = stream;
-                    if(status.equals("L")) {
+                    if(status.equals("L") || mUserIsOnstage) {
 
                         subscribeHostToStream(stream);
                         updateViewsWidth();
