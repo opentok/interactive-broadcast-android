@@ -73,6 +73,25 @@
             android:visibility="gone" />
     </RelativeLayout>
 
+    <RelativeLayout
+        android:id="@+id/publisherView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_alignParentBottom="true"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/loadingSpinnerPublisher"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+    </RelativeLayout>
+
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -109,25 +128,6 @@
         android:textSize="30dp"
         android:textColor="#14369c"
         android:visibility="gone" />
-
-    <RelativeLayout
-        android:id="@+id/publisherView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:gravity="center_horizontal"
-        android:keepScreenOn="true"
-        android:layout_alignParentBottom="true"
-        android:visibility="gone">
-
-        <ProgressBar
-            android:id="@+id/loadingSpinnerPublisher"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-    </RelativeLayout>
 
     <ScrollView
         android:id="@+id/scroller"

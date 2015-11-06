@@ -421,6 +421,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mBackstageSession.disconnect();
             }
 
+            mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
+            if (mIsBound) {
+                unbindService(mConnection);
+                mIsBound = false;
+            }
+
             super.onBackPressed();
         }
     }
@@ -539,8 +545,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                //Hide chat stuff
-                hideChat();
+
                 mLoadingSubPublisher.setVisibility(View.GONE);
                 if (mPublisher != null) {
                     mPublisherViewContainer.removeView(mPublisher.getView());
@@ -551,6 +556,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mBackstageSession.disconnect();
                     mBackstageSession = null;
                 }
+                //Hide chat stuff
+                hideChat();
                 mUserStatus.setVisibility(View.GONE);
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
                 mNewFanSignalAckd = false;
@@ -1144,7 +1151,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void hideChat() {
         mScroller.setVisibility(View.GONE);
         mMessageBox.setVisibility(View.GONE);
-        mChatButton.setVisibility(View.GONE);
+        if(mBackstageSession == null) {
+            mChatButton.setVisibility(View.GONE);
+        }
     }
 
     private void handleNewMessage(String data, Connection connection) {
