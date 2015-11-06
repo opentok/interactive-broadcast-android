@@ -1187,8 +1187,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
         mPublisher.setPublishVideo(video.equals("on"));
-        mCustomVideoRenderer.onPause();
-
     }
 
     private void muteAudio(String data){

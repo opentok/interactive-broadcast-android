@@ -4,12 +4,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -30,11 +27,9 @@ import javax.microedition.khronos.opengles.GL10;
 public class CustomVideoRenderer extends BaseVideoRenderer {
 
     private Context mContext;
-    private ByteBuffer mFirstFrame;
-
     private GLSurfaceView mView;
     private MyRenderer mRenderer;
-
+    private static final String LOG_TAG = CustomVideoRenderer.class.getSimpleName();
 
 
     static class MyRenderer implements GLSurfaceView.Renderer {
@@ -326,7 +321,7 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
             mFrameLock.unlock();
 
             if(mSaveScreenshot) {
-                Log.d("Screenshot", "Capturing frame....");
+                Log.d(LOG_TAG, "Capturing frame....");
 
                 ByteBuffer bb = frame.getBuffer();
                 bb.clear();
@@ -468,7 +463,14 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
 
     @Override
     public void onVideoPropertiesChanged(boolean videoEnabled) {
+        Log.i(LOG_TAG, "onVideoPropertiesChanged " + Boolean.toString(videoEnabled));
         mRenderer.disableVideo(!videoEnabled);
+        if(!videoEnabled) {
+            mView.setVisibility(View.GONE);
+        } else {
+            mView.setVisibility(View.VISIBLE);
+        }
+
     }
 
     @Override
