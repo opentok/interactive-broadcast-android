@@ -768,6 +768,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mMessageBox.setVisibility(View.VISIBLE);
             mUnreadMessages = 0;
             refreshUnreadMessages();
+            scrollToBottom();
         }
     }
 
@@ -807,6 +808,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void presentText(String message) {
         mMessageView.setText(mMessageView.getText() + message);
+        scrollToBottom();
+    }
+
+    private void scrollToBottom() {
         mScroller.post(new Runnable() {
             @Override
             public void run() {

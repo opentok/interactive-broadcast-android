@@ -1187,6 +1187,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
         mPublisher.setPublishVideo(video.equals("on"));
+        mCustomVideoRenderer.onPause();
 
     }
 
@@ -1338,6 +1339,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mMessageBox.setVisibility(View.VISIBLE);
             mUnreadMessages = 0;
             refreshUnreadMessages();
+            scrollToBottom();
         }
     }
 
@@ -1370,6 +1372,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void presentText(String message) {
         mMessageView.setText(mMessageView.getText() + message);
+        scrollToBottom();
+    }
+
+    private void scrollToBottom() {
         mScroller.post(new Runnable() {
             @Override
             public void run() {
