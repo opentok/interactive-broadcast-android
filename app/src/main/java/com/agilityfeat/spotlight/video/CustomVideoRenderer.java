@@ -28,6 +28,7 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
 
     private Context mContext;
     private GLSurfaceView mView;
+
     private MyRenderer mRenderer;
     private static final String LOG_TAG = CustomVideoRenderer.class.getSimpleName();
 
@@ -431,6 +432,7 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
 
         mView = new GLSurfaceView(context);
         mView.setEGLContextClientVersion(2);
+        mView.setZOrderMediaOverlay(true);
 
         mRenderer = new MyRenderer();
         mView.setRenderer(mRenderer);
