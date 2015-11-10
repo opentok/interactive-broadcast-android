@@ -353,11 +353,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 mPublisherViewContainer.setLayoutParams(publisher_head_params);
 
                 RelativeLayout.LayoutParams subscriber_head_params = (RelativeLayout.LayoutParams) mSubscriberViewContainer.getLayoutParams();
-                subscriber_head_params.width = screenWidth(CelebrityHostActivity.this) / streams;
+                subscriber_head_params.width = (mCelebirtyStream != null || mHostStream != null) ? screenWidth(CelebrityHostActivity.this) / streams:1;
                 mSubscriberViewContainer.setLayoutParams(subscriber_head_params);
 
                 RelativeLayout.LayoutParams subscriberfan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                subscriberfan_head_params.width = screenWidth(CelebrityHostActivity.this) / streams;
+                subscriberfan_head_params.width = (mFanStream != null) ? screenWidth(CelebrityHostActivity.this) / streams : 1;
                 mSubscriberFanViewContainer.setLayoutParams(subscriberfan_head_params);
 
 

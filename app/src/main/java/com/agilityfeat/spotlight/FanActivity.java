@@ -593,7 +593,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberHost.setVideoListener(this);
         mSession.subscribe(mSubscriberHost);
 
-        if (mSubscriberHost.getSubscribeToVideo()) {
+        if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubHost.setVisibility(View.VISIBLE);
         }
@@ -605,7 +605,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberCelebrity.setVideoListener(this);
         mSession.subscribe(mSubscriberCelebrity);
 
-        if (mSubscriberCelebrity.getSubscribeToVideo()) {
+        if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubCelebrity.setVisibility(View.VISIBLE);
         }
@@ -617,7 +617,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
 
-        if (mSubscriberFan.getSubscribeToVideo()) {
+        if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubFan.setVisibility(View.VISIBLE);
         }
