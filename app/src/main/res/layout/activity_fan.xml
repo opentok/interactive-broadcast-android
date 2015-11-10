@@ -80,7 +80,18 @@
         android:gravity="center_horizontal"
         android:keepScreenOn="true"
         android:layout_alignParentBottom="true"
-        android:visibility="gone">
+        android:visibility="visible">
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_alignParentBottom="true"
+        android:visibility="visible" >
 
         <ProgressBar
             android:id="@+id/loadingSpinnerPublisher"

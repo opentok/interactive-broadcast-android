@@ -516,6 +516,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onConnected(Session session) {
         Log.i(LOG_TAG, "Connected to the session");
         mGetInLine.setVisibility(View.VISIBLE);
+        // stop loading spinning
+        mLoadingSubPublisher.setVisibility(View.GONE);
 
         //Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
@@ -802,10 +804,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
-        // stop loading spinning
-        mLoadingSubPublisher.setVisibility(View.GONE);
-
-
         if (mSelfSubscriber == null && mQuality.equals("")) {
             subscribeToSelfStream(stream);
         }
@@ -1401,16 +1399,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onGetInLineClicked(View v) {
         if(mGetInLine.getText().equals(getResources().getString(R.string.get_inline))){
             mGetInLineView.setVisibility(View.VISIBLE);
-            if (mPublisher == null) {
-
-                Log.i(LOG_TAG, "init publisher");
-                mPublisher = new Publisher(FanActivity.this, "publisher");
-                mPublisher.setPublisherListener(this);
-                // use an external custom video renderer
-                mCustomVideoRenderer = new CustomVideoRenderer(this);
-                mPublisher.setRenderer(mCustomVideoRenderer);
-                attachPublisherView(mPublisher);
-            }
         } else {
             leaveLine();
 
@@ -1418,8 +1406,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline(View v) {
-        mSocket.connect();
+        mPublisherViewContainer.setVisibility(View.VISIBLE);
+        mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
+        mSocket.connect();
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -1427,9 +1417,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }, 2000);
 
+        if (mPublisher == null) {
+
+            Log.i(LOG_TAG, "init publisher");
+            mPublisher = new Publisher(FanActivity.this, "publisher");
+            mPublisher.setPublisherListener(this);
+            // use an external custom video renderer
+            mCustomVideoRenderer = new CustomVideoRenderer(this);
+            mPublisher.setRenderer(mCustomVideoRenderer);
+            attachPublisherView(mPublisher);
+        }
+
         mGetInLineView.setVisibility(View.GONE);
-        mPublisherViewContainer.setVisibility(View.VISIBLE);
-        mLoadingSubPublisher.setVisibility(View.VISIBLE);
         backstageSessionConnect();
     }
 
