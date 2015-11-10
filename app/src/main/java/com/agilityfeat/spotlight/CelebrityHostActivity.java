@@ -424,7 +424,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mSubscriber.setVideoListener(this);
         mSession.subscribe(mSubscriber);
 
-        if (mSubscriber.getSubscribeToVideo()) {
+        if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSub.setVisibility(View.VISIBLE);
         }
@@ -436,7 +436,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
 
-        if (mSubscriberFan.getSubscribeToVideo()) {
+        if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubFan.setVisibility(View.VISIBLE);
         }
@@ -445,6 +445,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private void unsubscribeFromStream(Stream stream) {
         if (mSubscriber.getStream().equals(stream)) {
             mSubscriberViewContainer.removeView(mSubscriber.getView());
+            mSession.unsubscribe(mSubscriber);
             mSubscriber = null;
         }
     }
@@ -452,6 +453,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private void unsubscribeFanFromStream(Stream stream) {
         if (mSubscriberFan.getStream().equals(stream)) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
+            mSession.unsubscribe(mSubscriberFan);
             mSubscriberFan = null;
         }
     }

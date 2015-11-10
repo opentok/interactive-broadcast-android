@@ -642,6 +642,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unsubscribeHostFromStream(Stream stream) {
         if (mSubscriberHost.getStream().equals(stream)) {
             mSubscriberHostViewContainer.removeView(mSubscriberHost.getView());
+            mSession.unsubscribe(mSubscriberHost);
             mSubscriberHost = null;
             mLoadingSubHost.setVisibility(View.GONE);
         }
@@ -650,6 +651,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unsubscribeCelebrityFromStream(Stream stream) {
         if (mSubscriberCelebrity.getStream().equals(stream)) {
             mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
+            mSession.unsubscribe(mSubscriberCelebrity);
             mSubscriberCelebrity = null;
             mLoadingSubCelebrity.setVisibility(View.GONE);
         }
@@ -658,6 +660,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unsubscribeFanFromStream(Stream stream) {
         if (mSubscriberFan.getStream().equals(stream)) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
+            mSession.unsubscribe(mSubscriberFan);
             mSubscriberFan = null;
             mLoadingSubFan.setVisibility(View.GONE);
         }
@@ -945,7 +948,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
-
+        mPublisher = null;
     }
 
     @Override
