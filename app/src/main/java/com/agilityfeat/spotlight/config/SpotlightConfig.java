@@ -15,6 +15,7 @@ public class SpotlightConfig {
     public static final String DEFAULT_EVENT_IMAGE = "/img/TAB_VIDEO_PREVIEW_LS.jpg";
     public static String INSTANCE_ID = "AAAA1";
     public static String USER_TYPE = "fan";
+    public static String USER_NAME = "anonymous";
     private String mUserType = "";
 
 

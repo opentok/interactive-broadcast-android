@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Topbar colors -->
+    <color name="top_bar_background_color">#F5F5F5</color>
+    <color name="top_bar_text_color">#01A2E3</color>
+    <color name="get_in_line_background_color">#26A65B</color>
+    <color name="live_color">#26A65B</color>
+    <color name="leave_line_background_color">#F0462D</color>
+    <color name="get_inline_text_color">#FFFFFF</color>
+    <color name="user_status_background_color">#000000</color>
+    <color name="user_status_text_color">#FFFFFF</color>
+
+
+</resources>
+    

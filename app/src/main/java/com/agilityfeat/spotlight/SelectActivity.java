@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 
@@ -26,7 +27,7 @@ public class SelectActivity extends AppCompatActivity {
         RadioButton rdFan = (RadioButton) findViewById(R.id.radioButton);
         RadioButton rdCeleb = (RadioButton) findViewById(R.id.radioButton2);
         RadioButton rdHost = (RadioButton) findViewById(R.id.radioButton3);
-
+        EditText userName = (EditText) findViewById(R.id.editText);
         if(rdFan.isChecked()) {
             SpotlightConfig.USER_TYPE = "fan";
         } else if(rdHost.isChecked()) {
@@ -34,6 +35,8 @@ public class SelectActivity extends AppCompatActivity {
         } else {
             SpotlightConfig.USER_TYPE = "celebrity";
         }
+
+        SpotlightConfig.USER_NAME = userName.getText().toString();
 
         start();
     }

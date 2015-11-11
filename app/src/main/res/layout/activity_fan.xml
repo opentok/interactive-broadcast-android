@@ -7,7 +7,7 @@
 
     <ImageView
         android:layout_width="fill_parent"
-        android:layout_height="match_parent"
+        android:layout_height="fill_parent"
         android:id="@+id/event_image"
         android:layout_below="@+id/event_name"
         android:visibility="visible" />
@@ -130,15 +130,22 @@
         android:visibility="gone" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="200dp"
+        android:layout_height="45dp"
         android:id="@+id/user_status"
-        android:layout_alignParentBottom="true"
+        android:layout_alignParentBottom="false"
         android:layout_centerHorizontal="true"
-        android:background="#8b8b8b"
-        android:textSize="30dp"
-        android:textColor="#14369c"
-        android:visibility="gone" />
+        android:background="@drawable/user_status_button"
+        android:textSize="20sp"
+        android:textColor="@color/user_status_text_color"
+        android:layout_alignParentTop="false"
+        android:layout_below="@+id/top_bar"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:alpha="0"
+        android:padding="10dp"
+        android:visibility="visible" />
 
     <ScrollView
         android:id="@+id/scroller"
@@ -192,28 +199,84 @@
             android:text="@string/send" />
     </RelativeLayout>
 
-    <TextView
-        android:layout_width="fill_parent"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:id="@+id/event_name"
-        android:layout_below="@+id/loadingSpinnerCelebrity"
-        android:textColor="#14369c"
-        android:textSize="35dp"
-        android:paddingLeft="5dp"
-        android:background="#8b8b8b" />
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@color/top_bar_background_color"
+        android:id="@+id/top_bar">
 
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/get_inline"
-        android:id="@+id/btn_getinline"
-        android:layout_above="@+id/event_image"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:onClick="onGetInLineClicked"
-        android:visibility="gone" />
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:text="@string/get_inline"
+            android:id="@+id/btn_getinline"
+            android:onClick="onGetInLineClicked"
+            android:visibility="visible"
+            android:background="@drawable/get_in_line_button"
+            android:textColor="@color/get_inline_text_color"
+            android:textSize="15sp"
+            android:typeface="normal"
+            android:paddingRight="5dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="5dp"
+            android:paddingLeft="5dp" />
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:text="@string/live_text"
+            android:id="@+id/live_button"
+            android:onClick="onGetInLineClicked"
+            android:visibility="gone"
+            android:background="@drawable/live_button"
+            android:textColor="@color/live_color"
+            android:textSize="15sp"
+            android:typeface="normal"
+            android:paddingRight="5dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="5dp"
+            android:paddingLeft="5dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/event_name"
+            android:layout_below="@+id/loadingSpinnerCelebrity"
+            android:textColor="@color/top_bar_text_color"
+            android:textSize="20sp"
+            android:paddingLeft="15dp"
+            android:background="@color/top_bar_background_color"
+            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:typeface="normal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/event_status"
+            android:textColor="@color/top_bar_text_color"
+            android:textSize="13sp"
+            android:background="@color/top_bar_background_color"
+            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:typeface="normal"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/event_name"
+            android:layout_toEndOf="@+id/event_name"
+            android:paddingBottom="15dp"
+            android:paddingLeft="4dp" />
+    </RelativeLayout>
 
     <ImageView
         android:layout_width="fill_parent"

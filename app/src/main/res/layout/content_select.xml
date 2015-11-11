@@ -15,9 +15,9 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:id="@+id/radioGroup"
-        android:layout_marginTop="62dp"
         android:layout_below="@+id/textView3"
-        android:layout_centerHorizontal="true">
+        android:layout_alignRight="@+id/textView3"
+        android:layout_alignEnd="@+id/textView3">
 
         <RadioButton
             android:layout_width="wrap_content"
@@ -43,7 +43,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select the user type"
+        android:text="User login"
         android:id="@+id/textView3"
         android:textSize="45dp"
         android:layout_alignParentTop="true"
@@ -54,9 +54,18 @@
         android:layout_height="wrap_content"
         android:text="Start"
         android:id="@+id/button"
-        android:layout_below="@+id/radioGroup"
+        android:onClick="onStartClicked"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/editText"
+        android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="54dp"
-        android:onClick="onStartClicked" />
+        android:hint="Enter your username"
+        android:background="#FFFFFF"
+        android:textSize="25sp" />
 
 </RelativeLayout>

@@ -8,18 +8,20 @@
     <string name="clearNotificationService">Clear Notification</string>
     <string name="send">Send</string>
     <string name="title_activity_fan">FanActivity</string>
-    <string name="get_inline">Get Inline</string>
-    <string name="leave_line">Leave Line</string>
+    <string name="get_inline">Get in line</string>
+    <string name="live_text">You are live</string>
+    <string name="leave_line">Leave the line</string>
     <string name="enter_your_name_below">You may enter your name below.</string>
     <string name="name_placeholder">Name (Optional)</string>
     <string name="ok">OK</string>
     <string name="cancel">CANCEL</string>
 
     <!-- User status -->
-    <string name="status_inline">Inline</string>
-    <string name="status_backstage">Backstage</string>
-    <string name="status_onstage">OnStage</string>
+    <string name="status_inline">You are now inline</string>
+    <string name="status_backstage">Going Backstage. You are sharing video.</string>
+    <string name="status_onstage">You are now on stage</string>
     <string name="status_incall">InCall with Producer</string>
     <string name="title_activity_select">SelectActivity</string>
+
 
 </resources>

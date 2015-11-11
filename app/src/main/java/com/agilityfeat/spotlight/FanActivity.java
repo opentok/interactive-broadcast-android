@@ -6,13 +6,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -56,8 +53,7 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileOutputStream;
+
 
 
 
@@ -116,12 +112,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private EditText mMessageEditText;
     private TextView mMessageView;
     private TextView mEventName;
+    private TextView mEventStatus;
     private TextView mUserStatus;
     private TextView mTextoUnreadMessages;
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
     private Button mGetInLine;
+    private Button mLiveButton;
+
     private EditText mUsername;
 
     private Handler mHandler = new Handler();
@@ -148,9 +147,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fan);
-
-        //Hide the bar
-        //getSupportActionBar().hide();
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -197,12 +193,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mMessageEditText = (EditText) findViewById(R.id.message);
         mMessageView = (TextView) findViewById(R.id.messageView);
         mEventName = (TextView) findViewById(R.id.event_name);
+        mEventStatus = (TextView) findViewById(R.id.event_status);
         mUserStatus = (TextView) findViewById(R.id.user_status);
         mTextoUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
+        mLiveButton = (Button) findViewById(R.id.live_button);
         mUsername = (EditText) findViewById(R.id.user_name);
     }
 
@@ -236,7 +234,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void loadEventImage(String image, ImageView imgView) {
         if(image.equals("")) image = SpotlightConfig.DEFAULT_EVENT_IMAGE;
         image = SpotlightConfig.FRONTEND_URL + image;
-        Picasso.with(this).load(image).into(imgView);
+        Picasso.with(this).load(image).fit().centerCrop().into(imgView);
     }
 
 
@@ -525,12 +523,39 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSession.publish(mPublisher);
             setUserStatus(R.string.status_inline);
             mGetInLine.setText(getResources().getString(R.string.leave_line));
+            mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
+            mGetInLine.setVisibility(View.VISIBLE);
         }
     }
 
     private void setUserStatus(int status) {
-        mUserStatus.setVisibility(View.VISIBLE);
         mUserStatus.setText(getResources().getString(status));
+        mUserStatus.setVisibility(View.VISIBLE);
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                AlphaAnimation animation1 = new AlphaAnimation(0f, 0.8f);
+                animation1.setDuration(1000);
+                animation1.setStartOffset(5000);
+                animation1.setFillAfter(true);
+                mUserStatus.startAnimation(animation1);
+
+            }
+        });
+
+
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                animation1.setDuration(1000);
+                animation1.setStartOffset(5000);
+                animation1.setFillAfter(true);
+                mUserStatus.startAnimation(animation1);
+
+            }
+        }, 3000);
     }
 
     @Override
@@ -561,8 +586,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 //Hide chat stuff
                 hideChat();
-                mUserStatus.setVisibility(View.GONE);
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
+                mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
                 mNewFanSignalAckd = false;
             }
         }, 100);
@@ -807,6 +832,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
+        Log.i(LOG_TAG, "mSelfSubscriber="+String.valueOf(mSelfSubscriber==null));
+        Log.i(LOG_TAG, "mQuality="+String.valueOf(mQuality.equals("")));
         if (mSelfSubscriber == null && mQuality.equals("")) {
             subscribeToSelfStream(stream);
         }
@@ -1110,6 +1137,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectWithOnstage() {
         //Hidding leave line button
         mGetInLine.setVisibility(View.GONE);
+        mLiveButton.setVisibility(View.VISIBLE);
 
         mUserIsOnstage = true;
         mBackstageSession.unpublish(mPublisher);
@@ -1130,9 +1158,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mUserIsOnstage = false;
         //Hide Get in line button
         mGetInLine.setVisibility(View.GONE);
-
-        //Hide User Status
-        mUserStatus.setVisibility(View.GONE);
 
         //Unpublish
         mSession.unpublish(mPublisher);
@@ -1236,14 +1261,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void updateEventName() {
         try {
-            mEventName.setText(mEvent.getString("event_name") + ": " + getEventStatusName());
+            mEventName.setText(mEvent.getString("event_name"));
+            mEventStatus.setText(getEventStatusName().toUpperCase());
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
     }
 
     private void updateEventName(String event_name, String status) {
-        mEventName.setText(event_name + ": " + status);
+        mEventName.setText(event_name);
+        mEventStatus.setText(status.toUpperCase());
     }
 
     private String getEventStatusName() {
@@ -1401,14 +1428,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     public void onGetInLineClicked(View v) {
         if(mGetInLine.getText().equals(getResources().getString(R.string.get_inline))){
-            mGetInLineView.setVisibility(View.VISIBLE);
+            initGetInline();
         } else {
             leaveLine();
 
         }
     }
 
-    public void initGetInline(View v) {
+    public void initGetInline() {
+        mGetInLine.setVisibility(View.GONE);
         mPublisherViewContainer.setVisibility(View.VISIBLE);
         mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
@@ -1444,7 +1472,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if(mProducerConnection != null && mBackstageSession != null){
                 if(!mQuality.equals("") && !mNewFanSignalAckd) {
                     mNewFanSignalAckd = true;
-                    String userName = (mUsername.getText().toString().trim().equals("")) ? "Anonymous" : mUsername.getText().toString();
+                    String userName = SpotlightConfig.USER_NAME;
                     String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
