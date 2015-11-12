@@ -15,6 +15,8 @@
     <string name="name_placeholder">Name (Optional)</string>
     <string name="ok">OK</string>
     <string name="cancel">CANCEL</string>
+    <string name="going_on_stage">Going On Stage</string>
+
 
     <!-- User status -->
     <string name="status_inline">You are now inline</string>
@@ -22,6 +24,7 @@
     <string name="status_onstage">You are now on stage</string>
     <string name="status_incall">InCall with Producer</string>
     <string name="title_activity_select">SelectActivity</string>
+
 
 
 </resources>

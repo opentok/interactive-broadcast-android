@@ -9,7 +9,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/event_image"
-        android:layout_below="@+id/event_name"
+        android:layout_below="@+id/top_bar"
         android:visibility="visible" />
 
     <RelativeLayout
@@ -130,7 +130,7 @@
         android:visibility="gone" />
 
     <TextView
-        android:layout_width="200dp"
+        android:layout_width="wrap_content"
         android:layout_height="45dp"
         android:id="@+id/user_status"
         android:layout_alignParentBottom="false"
@@ -143,9 +143,46 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="5dp"
         android:layout_marginTop="5dp"
-        android:alpha="0"
+        android:alpha="0.8"
         android:padding="10dp"
-        android:visibility="visible" />
+        android:visibility="gone" />
+
+    <TextView
+        android:layout_width="350dp"
+        android:layout_height="200dp"
+        android:id="@+id/go_live_status"
+        android:background="@drawable/user_status_button"
+        android:textSize="30sp"
+        android:textColor="@color/user_status_text_color"
+        android:alpha="0.8"
+        android:visibility="gone"
+        android:text="@string/going_on_stage"
+        android:textAlignment="center"
+        android:singleLine="false"
+        android:gravity="center_horizontal"
+        android:inputType="textMultiLine"
+        android:paddingTop="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="59dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/go_live_number"
+        android:background="@drawable/user_status_button"
+        android:textSize="60sp"
+        android:textColor="@color/user_status_text_color"
+        android:alpha="0.8"
+        android:visibility="gone"
+        android:text="3"
+        android:textAlignment="center"
+        android:singleLine="false"
+        android:gravity="center_horizontal"
+        android:inputType="textMultiLine"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="90dp" />
 
     <ScrollView
         android:id="@+id/scroller"
@@ -280,77 +317,9 @@
 
     <ImageView
         android:layout_width="fill_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/event_image_end"
-        android:layout_below="@+id/event_name"
-        android:visibility="gone" />
-
-    <RelativeLayout
-        android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_alignTop="@+id/event_image"
-        android:background="#ffffff"
-        android:id="@+id/get_inline_view"
-        android:visibility="gone">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Almost done!"
-            android:id="@+id/textView"
-            android:textSize="45dp"
-            android:layout_gravity="top|center"
-            android:layout_alignWithParentIfMissing="false"
-            android:gravity="center"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:id="@+id/textView2"
-            android:textSize="25dp"
-            android:layout_below="@+id/textView"
-            android:layout_centerHorizontal="true"
-            android:text="@string/enter_your_name_below" />
-
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/user_name"
-            android:layout_centerVertical="true"
-            android:hint="@string/name_placeholder"
-            android:layout_alignRight="@+id/textView"
-            android:layout_alignEnd="@+id/textView"
-            android:layout_alignLeft="@+id/textView"
-            android:layout_alignStart="@+id/textView"
-            android:maxLines="1"
-            android:inputType="textPersonName" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/ok"
-            android:id="@+id/btn_init_getinline"
-            android:onClick="initGetInline"
-            android:layout_below="@+id/user_name"
-            android:layout_alignLeft="@+id/user_name"
-            android:layout_alignStart="@+id/user_name"
-            android:layout_marginLeft="69dp"
-            android:layout_marginStart="69dp"
-            android:layout_marginTop="40dp" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/cancel"
-            android:id="@+id/cancel_getinline"
-            android:onClick="cancelGetInline"
-            android:layout_alignTop="@+id/btn_init_getinline"
-            android:layout_toRightOf="@+id/btn_init_getinline"
-            android:layout_toEndOf="@+id/btn_init_getinline" />
-    </RelativeLayout>
+        android:id="@+id/event_image_end"
+        android:layout_below="@+id/top_bar"
+        android:visibility="gone" />
 
 </RelativeLayout>

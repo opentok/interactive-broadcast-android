@@ -128,7 +128,11 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
                 if(arrEvents.length() > 1) {
                     showEventList();
                 } else {
-                    showEvent();
+                    if(arrEvents.length() == 1) {
+                        showEvent();
+                    } else {
+                        Toast.makeText(getApplicationContext(),"No events were found", Toast.LENGTH_LONG).show();
+                    }
                 }
             } else {
                 Toast.makeText(getApplicationContext(),"Invalid instance ID", Toast.LENGTH_SHORT).show();

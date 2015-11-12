@@ -8,7 +8,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -53,8 +52,8 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-
-
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -114,6 +113,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextView mEventName;
     private TextView mEventStatus;
     private TextView mUserStatus;
+    private TextView mGoLiveStatus;
+    private TextView mGoLiveNumber;
     private TextView mTextoUnreadMessages;
     private ImageButton mChatButton;
     private ImageView mEventImage;
@@ -121,14 +122,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Button mGetInLine;
     private Button mLiveButton;
 
-    private EditText mUsername;
-
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
     private RelativeLayout mSubscriberHostViewContainer;
     private RelativeLayout mSubscriberCelebrityViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
-    private RelativeLayout mGetInLineView;
+
 
     // Spinning wheel for loading subscriber view
     private ProgressBar mLoadingSubCelebrity;
@@ -182,7 +181,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberHostViewContainer = (RelativeLayout) findViewById(R.id.subscriberHostView);
         mSubscriberCelebrityViewContainer = (RelativeLayout) findViewById(R.id.subscriberCelebrityView);
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberFanView);
-        mGetInLineView = (RelativeLayout) findViewById(R.id.get_inline_view);
+
 
         mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
         mLoadingSubCelebrity = (ProgressBar) findViewById(R.id.loadingSpinnerCelebrity);
@@ -195,13 +194,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventName = (TextView) findViewById(R.id.event_name);
         mEventStatus = (TextView) findViewById(R.id.event_status);
         mUserStatus = (TextView) findViewById(R.id.user_status);
+        mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
+        mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
         mTextoUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
         mLiveButton = (Button) findViewById(R.id.live_button);
-        mUsername = (EditText) findViewById(R.id.user_name);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -529,33 +529,60 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void setUserStatus(int status) {
-        mUserStatus.setText(getResources().getString(status));
-        mUserStatus.setVisibility(View.VISIBLE);
-
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                AlphaAnimation animation1 = new AlphaAnimation(0f, 0.8f);
-                animation1.setDuration(1000);
-                animation1.setStartOffset(5000);
-                animation1.setFillAfter(true);
-                mUserStatus.startAnimation(animation1);
-
-            }
-        });
+        if(status != R.string.status_onstage) {
+            mUserStatus.setText(getResources().getString(status));
+            mUserStatus.setVisibility(View.VISIBLE);
+            AlphaAnimation animation1 = new AlphaAnimation(0f, 0.8f);
+            animation1.setDuration(1000);
+            animation1.setFillAfter(true);
+            mUserStatus.startAnimation(animation1);
 
 
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                animation1.setDuration(1000);
-                animation1.setStartOffset(5000);
-                animation1.setFillAfter(true);
-                mUserStatus.startAnimation(animation1);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                    animation1.setDuration(1000);
+                    animation1.setFillAfter(true);
+                    mUserStatus.startAnimation(animation1);
 
-            }
-        }, 3000);
+                }
+            }, 3000);
+        } else {
+            //Going live on 3..2..1
+            mGoLiveStatus.setVisibility(View.VISIBLE);
+            mGoLiveNumber.setVisibility(View.VISIBLE);
+            startCountDown(6);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+
+                    AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                    animation1.setDuration(500);
+                    animation1.setFillAfter(true);
+                    AlphaAnimation animation2 = new AlphaAnimation(0.8f, 0f);
+                    animation2.setDuration(500);
+                    animation2.setFillAfter(true);
+                    mGoLiveStatus.startAnimation(animation1);
+                    mGoLiveNumber.startAnimation(animation2);
+                    publishOnStage();
+                }
+            }, 5000);
+        }
+    }
+
+    private void startCountDown(final int number) {
+
+        mGoLiveNumber.setText(String.valueOf(number-1));
+        if((number-1)>1) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startCountDown(number-1);
+                }
+            }, 1000);
+        }
+
     }
 
     @Override
@@ -832,9 +859,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
-        Log.i(LOG_TAG, "mSelfSubscriber="+String.valueOf(mSelfSubscriber==null));
-        Log.i(LOG_TAG, "mQuality="+String.valueOf(mQuality.equals("")));
-        if (mSelfSubscriber == null && mQuality.equals("")) {
+        Log.i(LOG_TAG, "mSelfSubscriber=" + String.valueOf(mSelfSubscriber == null));
+        Log.i(LOG_TAG, "mQuality=" + String.valueOf(mQuality.equals("")));
+        if (mQuality.equals("")) {
             subscribeToSelfStream(stream);
         }
     }
@@ -975,7 +1002,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
-        mPublisher = null;
+        //mPublisher = null;
+        Log.i(LOG_TAG, "Publisher destroyed");
     }
 
     @Override
@@ -1137,21 +1165,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectWithOnstage() {
         //Hidding leave line button
         mGetInLine.setVisibility(View.GONE);
-        mLiveButton.setVisibility(View.VISIBLE);
+        setUserStatus(R.string.status_onstage);
+    }
 
+    private void publishOnStage(){
+        mLiveButton.setVisibility(View.VISIBLE);
         mUserIsOnstage = true;
         mBackstageSession.unpublish(mPublisher);
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                setUserStatus(R.string.status_onstage);
+
                 mSession.publish(mPublisher);
                 if (mHostStream != null) subscribeHostToStream(mHostStream);
                 if (mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
                 updateViewsWidth();
             }
         }, 500);
-
     }
 
     private void disconnectFromOnstage() {
@@ -1174,7 +1204,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisher.destroy();
 
         updateViewsWidth();
-
+        mLiveButton.setVisibility(View.GONE);
         Toast.makeText(getApplicationContext(), "Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.", Toast.LENGTH_LONG).show();
 
     }
@@ -1427,6 +1457,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
     public void onGetInLineClicked(View v) {
+        if(mGetInLine.getVisibility() == View.GONE) return;
         if(mGetInLine.getText().equals(getResources().getString(R.string.get_inline))){
             initGetInline();
         } else {
@@ -1459,12 +1490,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             attachPublisherView(mPublisher);
         }
 
-        mGetInLineView.setVisibility(View.GONE);
-        backstageSessionConnect();
-    }
 
-    public void cancelGetInline(View v) {
-        mGetInLineView.setVisibility(View.GONE);
+        backstageSessionConnect();
     }
 
     private void sendNewFanSignal() {

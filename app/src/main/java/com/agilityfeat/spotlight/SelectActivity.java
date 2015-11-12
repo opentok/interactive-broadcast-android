@@ -36,8 +36,9 @@ public class SelectActivity extends AppCompatActivity {
             SpotlightConfig.USER_TYPE = "celebrity";
         }
 
-        SpotlightConfig.USER_NAME = userName.getText().toString();
-
+        if((!userName.getText().toString().equals(""))) {
+            SpotlightConfig.USER_NAME = userName.getText().toString();
+        }
         start();
     }
 
