@@ -107,13 +107,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/chat_button"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentRight="false"
         android:layout_alignParentEnd="true"
         android:src="@drawable/ico_chat"
-        android:background="#ffffff"
+        android:background="#000000"
         android:onClick="onChatButtonClicked"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:layout_alignParentTop="false"
+        android:layout_below="@+id/top_bar"
+        android:alpha="0.8" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -121,7 +124,7 @@
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="0"
         android:id="@+id/unread_messages"
-        android:background="#ee0f0f"
+        android:background="@drawable/unread_messages"
         android:textColor="#FFFFFF"
         android:layout_alignTop="@+id/chat_button"
         android:layout_alignLeft="@+id/chat_button"
@@ -184,21 +187,54 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="90dp" />
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/top_bar"
+        android:id="@+id/chat_top_bar"
+        android:visibility="gone"
+        android:background="@drawable/top_border">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chat with Producer"
+            android:id="@+id/textView"
+            android:textAlignment="center"
+            android:textColor="#576873"
+            android:gravity="clip_horizontal|center|clip_vertical"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentBottom="false"
+            android:layout_centerInParent="true"
+            android:textStyle="bold"
+            android:textSize="25sp" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:id="@+id/close_chat"
+            android:background="#E9E9E9"
+            android:src="@drawable/ico_back_chat"
+            android:layout_marginTop="2dp"
+            android:onClick="onCloseChat" />
+    </RelativeLayout>
+
     <ScrollView
         android:id="@+id/scroller"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="#FFFFFF"
+        android:background="#D7D6D4"
         android:layout_centerHorizontal="true"
         android:visibility="gone"
-        android:layout_above="@+id/chat_button"
-        android:layout_below="@+id/event_name">
+        android:layout_above="@+id/messagebox"
+        android:layout_below="@+id/chat_top_bar"
+        android:alpha="0.9">
 
         <TextView
             android:id="@+id/messageView"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:background="#ffffff"
+            android:background="#D7D6D4"
             android:paddingBottom="8dip"
             android:paddingLeft="8dip"
             android:paddingRight="8dip"
@@ -221,19 +257,20 @@
             android:id="@+id/message"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_toLeftOf="@+id/sendMessageButton"
             android:gravity="top"
-            android:visibility="visible" />
+            android:visibility="visible"
+            android:layout_toLeftOf="@+id/imageButton" />
 
-        <Button
-            android:id="@+id/sendMessageButton"
-            android:layout_width="100dp"
-            android:layout_height="fill_parent"
-            android:layout_alignParentLeft="false"
+        <ImageButton
+            android:layout_width="75dp"
+            android:layout_height="75dp"
+            android:id="@+id/imageButton"
+            android:src="@drawable/ico_send_msg"
+            android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentTop="false"
-            android:onClick="onClickSend"
-            android:text="@string/send" />
+            android:layout_alignParentEnd="true"
+            android:background="#D5D5D5"
+            android:onClick="onClickSend" />
     </RelativeLayout>
 
     <RelativeLayout

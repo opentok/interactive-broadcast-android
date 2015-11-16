@@ -127,6 +127,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private RelativeLayout mSubscriberHostViewContainer;
     private RelativeLayout mSubscriberCelebrityViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
+    private RelativeLayout mChatTopBar;
 
 
     // Spinning wheel for loading subscriber view
@@ -181,6 +182,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberHostViewContainer = (RelativeLayout) findViewById(R.id.subscriberHostView);
         mSubscriberCelebrityViewContainer = (RelativeLayout) findViewById(R.id.subscriberCelebrityView);
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberFanView);
+
+        mChatTopBar  = (RelativeLayout) findViewById(R.id.chat_top_bar);
 
 
         mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
@@ -403,6 +406,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         super.onDestroy();
         finish();
+    }
+
+
+    public void onCloseChat(View v) {
+        hideChat();
     }
 
     @Override
@@ -1210,6 +1218,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void hideChat() {
+        mChatTopBar.setVisibility(View.GONE);
         mScroller.setVisibility(View.GONE);
         mMessageBox.setVisibility(View.GONE);
         if(mBackstageSession == null) {
@@ -1405,6 +1414,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mScroller.getVisibility() == View.VISIBLE) {
             hideChat();
         } else {
+            mChatTopBar.setVisibility(View.VISIBLE);
             mScroller.setVisibility(View.VISIBLE);
             mMessageBox.setVisibility(View.VISIBLE);
             mUnreadMessages = 0;
