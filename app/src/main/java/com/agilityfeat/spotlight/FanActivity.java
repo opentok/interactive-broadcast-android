@@ -2,6 +2,7 @@ package com.agilityfeat.spotlight;
 
 
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -22,6 +23,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -52,14 +54,16 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import com.agilityfeat.spotlight.chat.ChatMessage;
+import com.agilityfeat.spotlight.chat.TextChatFragment;
+
 
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
         Session.SessionListener, Session.ConnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
-        Session.SignalListener,Subscriber.VideoListener{
+        Session.SignalListener,Subscriber.VideoListener,
+        TextChatFragment.TextChatListener{
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
     private static final int TIME_WINDOW = 3; //3 seconds
@@ -106,10 +110,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Stream mHostStream;
     private Stream mProducerStream;
     private Connection mProducerConnection;
-    private ScrollView mScroller;
-    private RelativeLayout mMessageBox;
-    private EditText mMessageEditText;
-    private TextView mMessageView;
+
     private TextView mEventName;
     private TextView mEventStatus;
     private TextView mUserStatus;
@@ -127,7 +128,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private RelativeLayout mSubscriberHostViewContainer;
     private RelativeLayout mSubscriberCelebrityViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
-    private RelativeLayout mChatTopBar;
+    private FrameLayout mFragmentContainer;
 
 
     // Spinning wheel for loading subscriber view
@@ -142,6 +143,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private NotificationManager mNotificationManager;
     private ServiceConnection mConnection;
     private CustomVideoRenderer mCustomVideoRenderer;
+
+    private TextChatFragment mTextChatFragment;
+    private FragmentTransaction mFragmentTransaction;
+    private boolean msgError = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,18 +187,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberHostViewContainer = (RelativeLayout) findViewById(R.id.subscriberHostView);
         mSubscriberCelebrityViewContainer = (RelativeLayout) findViewById(R.id.subscriberCelebrityView);
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberFanView);
+        mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
 
-        mChatTopBar  = (RelativeLayout) findViewById(R.id.chat_top_bar);
-
-
-        mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
         mLoadingSubCelebrity = (ProgressBar) findViewById(R.id.loadingSpinnerCelebrity);
         mLoadingSubHost = (ProgressBar) findViewById(R.id.loadingSpinnerHost);
         mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
         mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
-        mScroller = (ScrollView) findViewById(R.id.scroller);
-        mMessageEditText = (EditText) findViewById(R.id.message);
-        mMessageView = (TextView) findViewById(R.id.messageView);
         mEventName = (TextView) findViewById(R.id.event_name);
         mEventStatus = (TextView) findViewById(R.id.event_status);
         mUserStatus = (TextView) findViewById(R.id.user_status);
@@ -409,14 +408,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
 
-    public void onCloseChat(View v) {
-        hideChat();
-    }
-
     @Override
     public void onBackPressed() {
 
-        if(mScroller.getVisibility() == View.VISIBLE) {
+        if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             toggleChat();
         }else {
             mSocket.disconnect();
@@ -533,6 +528,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mGetInLine.setText(getResources().getString(R.string.leave_line));
             mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
             mGetInLine.setVisibility(View.VISIBLE);
+
+            //loading text-chat ui component
+            loadTextChatFragment();
+
         }
     }
 
@@ -581,12 +580,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void startCountDown(final int number) {
 
-        mGoLiveNumber.setText(String.valueOf(number-1));
+        mGoLiveNumber.setText(String.valueOf(number - 1));
         if((number-1)>1) {
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    startCountDown(number-1);
+                    startCountDown(number - 1);
                 }
             }, 1000);
         }
@@ -1088,6 +1087,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
 
+
         if(type != null) {
             switch(type) {
                 case "chatMessage":
@@ -1217,35 +1217,30 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    private void hideChat() {
-        mChatTopBar.setVisibility(View.GONE);
-        mScroller.setVisibility(View.GONE);
-        mMessageBox.setVisibility(View.GONE);
-        if(mBackstageSession == null) {
-            mChatButton.setVisibility(View.GONE);
-        }
-    }
+
 
     private void handleNewMessage(String data, Connection connection) {
-        mChatButton.setVisibility(View.VISIBLE);
-        if(mScroller.getVisibility() != View.VISIBLE) {
+        String text = "";
+        try {
+            text = new JSONObject(data)
+                    .getJSONObject("message")
+                    .getString("message");
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+        }
+
+        ChatMessage msg = null;
+        msg = new ChatMessage(connection.getConnectionId(), "Producer", text);
+        // Add the new ChatMessage to the text-chat component
+        mTextChatFragment.addMessage(msg);
+        if(mFragmentContainer.getVisibility() != View.VISIBLE) {
             mUnreadMessages++;
             refreshUnreadMessages();
+            mChatButton.setVisibility(View.VISIBLE);
         }
-        String mycid = mSession.getConnection().getConnectionId();
-        String cid = connection.getConnectionId();
-        String who = "";
-        if (!cid.equals(mycid)) {
-            String message = "";
-            try {
-                message = new JSONObject(data)
-                        .getJSONObject("message")
-                        .getString("message");
-            } catch (Throwable t) {
-                Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
-            }
-            presentMessage("Producer", message);
-        }
+
+
+
     }
 
     private void refreshUnreadMessages() {
@@ -1280,7 +1275,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void startEvent(){
-       mNewFanSignalAckd = false;
+        mNewFanSignalAckd = false;
     }
 
     public void goLive(){
@@ -1355,9 +1350,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventImage.setVisibility(View.GONE);
 
         //Hide chat
-        mScroller.setVisibility(View.GONE);
-        mMessageBox.setVisibility(View.GONE);
         mChatButton.setVisibility(View.GONE);
+        mFragmentContainer.setVisibility(View.GONE);
 
         //Hide getinline
         mGetInLine.setVisibility(View.GONE);
@@ -1411,60 +1405,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void toggleChat() {
-        if(mScroller.getVisibility() == View.VISIBLE) {
+        if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             hideChat();
         } else {
-            mChatTopBar.setVisibility(View.VISIBLE);
-            mScroller.setVisibility(View.VISIBLE);
-            mMessageBox.setVisibility(View.VISIBLE);
+            mFragmentContainer.setVisibility(View.VISIBLE);
             mUnreadMessages = 0;
             refreshUnreadMessages();
-            scrollToBottom();
         }
     }
-
-    public void onClickSend(View v) {
-        if (mMessageEditText.getText().toString().compareTo("") == 0) {
-            Log.i(LOG_TAG, "Cannot Send - Empty String Message");
-        } else {
-            Log.i(LOG_TAG, "Sending a chat message");
-            sendChatMessage(mMessageEditText.getText().toString());
-            mMessageEditText.setText("");
-        }
-    }
-
-    private void sendChatMessage(String message) {
-        sendSignal("chatMessage", message);
-        presentMessage("Me", message);
-    }
-
-    private void sendSignal(String type, String msg) {
-        if(mProducerConnection != null) {
-            msg = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg+"\"}}";
-            mBackstageSession.sendSignal(type, msg,mProducerConnection);
-        }
-
-    }
-
-    private void presentMessage(String who, String message) {
-        presentText("\n" + who + ": " + message);
-    }
-
-    private void presentText(String message) {
-        mMessageView.setText(mMessageView.getText() + message);
-        scrollToBottom();
-    }
-
-    private void scrollToBottom() {
-        mScroller.post(new Runnable() {
-            @Override
-            public void run() {
-                int totalHeight = mMessageView.getHeight();
-                mScroller.smoothScrollTo(0, totalHeight);
-            }
-        });
-    }
-
 
     public void onGetInLineClicked(View v) {
         if(mGetInLine.getVisibility() == View.GONE) return;
@@ -1521,9 +1469,42 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     }, 500);
                 }
             }
+    }
 
+    // Initialize a TextChatFragment instance and add it to the UI
+    private void loadTextChatFragment(){
+        int containerId = R.id.fragment_textchat_container;
+        mFragmentTransaction = getFragmentManager().beginTransaction();
+        mTextChatFragment = (TextChatFragment)this.getFragmentManager().findFragmentByTag("TextChatFragment");
+        if (mTextChatFragment == null) {
+            mTextChatFragment = new TextChatFragment();
+            mTextChatFragment.setMaxTextLength(1050);
+            mTextChatFragment.setTextChatListener(this);
+            mTextChatFragment.setSenderInfo(mBackstageSession.getConnection().getConnectionId(), SpotlightConfig.USER_NAME);
 
+            mFragmentTransaction.add(containerId, mTextChatFragment, "TextChatFragment").commit();
+            mFragmentContainer.setVisibility(View.GONE);
+        }
 
+    }
+
+    @Override
+    public boolean onMessageReadyToSend(ChatMessage msg) {
+        Log.d(LOG_TAG, "TextChat listener: onMessageReadyToSend: " + msg.getText());
+
+        if (mBackstageSession != null && mProducerConnection != null) {
+            String message = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg.getText()+"\"}}";
+            mBackstageSession.sendSignal("chatMessage", message, mProducerConnection);
+        }
+        return msgError;
+    }
+
+    @Override
+    public void hideChat() {
+        mFragmentContainer.setVisibility(View.GONE);
+        if(mBackstageSession == null) {
+            mChatButton.setVisibility(View.GONE);
+        }
     }
 }
 

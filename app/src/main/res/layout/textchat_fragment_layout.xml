@@ -1,0 +1,132 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/textchat_fragment_layout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_gravity="center_horizontal"
+    android:background="@color/dark_gray">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_below="@+id/top_bar"
+        android:id="@+id/chat_top_bar"
+        android:visibility="visible"
+        android:background="@drawable/top_border" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chat with Producer"
+            android:id="@+id/textView2"
+            android:textAlignment="center"
+            android:textColor="#576873"
+            android:gravity="clip_horizontal|center|clip_vertical"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentBottom="false"
+            android:layout_centerInParent="true"
+            android:textStyle="bold"
+            android:textSize="25sp" />
+
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:id="@+id/close_chat"
+            android:background="#E9E9E9"
+            android:src="@drawable/ico_back_chat"
+            android:layout_marginTop="2dp"
+            android:onClick="onCloseChat" />
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/msgs_list"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/send_msg"
+        android:layout_alignParentLeft="true"
+        android:layout_weight="1"
+        android:background="#D7D6D4"
+        android:divider="@null"
+        android:dividerHeight="0dp"
+        android:scrollbars="vertical"
+        android:layout_below="@+id/chat_top_bar" />
+
+    <View
+        android:id="@+id/divider_notification"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_above="@+id/new_msg_notification"
+        android:background="#D7D6D4"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/new_msg_notification"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:layout_above="@+id/send_msg"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:gravity="center"
+        android:clickable="true"
+        android:text="New messages"
+        android:textColor="@color/text"
+        android:textSize="12sp"
+        android:visibility="gone"
+        android:background="@color/dark_gray"
+      />
+
+    <View
+        android:id="@+id/divider_send_message"
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_above="@+id/send_msg"
+        android:background="@color/dividers" />
+
+    <RelativeLayout
+        android:id="@+id/send_msg"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true">
+
+        <EditText
+            android:id="@+id/edit_msg"
+            android:layout_width="match_parent"
+            android:layout_height="75dp"
+            android:hint="Send a message"
+            android:background="@color/edit_text_bkgd"
+            android:textColor="@color/standard_font"
+            android:paddingLeft="4dp"
+            android:textSize="16sp"
+            android:focusable="true"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/send_button"
+            android:layout_toStartOf="@+id/send_button" />
+
+        <RelativeLayout
+            android:id="@+id/info_new_msg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/edit_msg"
+            android:background="#D7D6D4"
+            >
+
+        </RelativeLayout>
+
+        <ImageButton
+            android:layout_width="75dp"
+            android:layout_height="match_parent"
+            android:id="@+id/send_button"
+            android:src="@drawable/ico_send_msg"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:background="#D5D5D5"
+            android:onClick="onClickSend"
+            android:layout_alignParentTop="true" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

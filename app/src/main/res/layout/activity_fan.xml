@@ -61,7 +61,8 @@
         android:gravity="center_horizontal"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="false"
-        android:layout_below="@+id/event_name">
+        android:layout_below="@+id/event_name"
+        android:visibility="visible">
 
         <ProgressBar
             style="?android:attr/progressBarStyleLarge"
@@ -190,92 +191,6 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_below="@+id/top_bar"
-        android:id="@+id/chat_top_bar"
-        android:visibility="gone"
-        android:background="@drawable/top_border">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Chat with Producer"
-            android:id="@+id/textView"
-            android:textAlignment="center"
-            android:textColor="#576873"
-            android:gravity="clip_horizontal|center|clip_vertical"
-            android:layout_alignParentLeft="false"
-            android:layout_alignParentBottom="false"
-            android:layout_centerInParent="true"
-            android:textStyle="bold"
-            android:textSize="25sp" />
-
-        <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:id="@+id/close_chat"
-            android:background="#E9E9E9"
-            android:src="@drawable/ico_back_chat"
-            android:layout_marginTop="2dp"
-            android:onClick="onCloseChat" />
-    </RelativeLayout>
-
-    <ScrollView
-        android:id="@+id/scroller"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="#D7D6D4"
-        android:layout_centerHorizontal="true"
-        android:visibility="gone"
-        android:layout_above="@+id/messagebox"
-        android:layout_below="@+id/chat_top_bar"
-        android:alpha="0.9">
-
-        <TextView
-            android:id="@+id/messageView"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:background="#D7D6D4"
-            android:paddingBottom="8dip"
-            android:paddingLeft="8dip"
-            android:paddingRight="8dip"
-            android:textColor="#000000"
-            android:visibility="visible" />
-    </ScrollView>
-
-    <RelativeLayout
-        android:id="@+id/messagebox"
-        android:layout_width="fill_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentTop="false"
-        android:background="#ffffff"
-        android:gravity="bottom"
-        android:orientation="horizontal"
-        android:visibility="gone">
-
-        <EditText
-            android:id="@+id/message"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:gravity="top"
-            android:visibility="visible"
-            android:layout_toLeftOf="@+id/imageButton" />
-
-        <ImageButton
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:id="@+id/imageButton"
-            android:src="@drawable/ico_send_msg"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:background="#D5D5D5"
-            android:onClick="onClickSend" />
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -358,5 +273,15 @@
         android:id="@+id/event_image_end"
         android:layout_below="@+id/top_bar"
         android:visibility="gone" />
+
+    <FrameLayout
+        android:id="@+id/fragment_textchat_container"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/top_bar"
+        android:visibility="gone">
+    </FrameLayout>
 
 </RelativeLayout>

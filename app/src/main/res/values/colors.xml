@@ -10,6 +10,16 @@
     <color name="user_status_background_color">#000000</color>
     <color name="user_status_text_color">#FFFFFF</color>
 
+    <!-- Chat colors -->
+    <color name="lighter_bkgd">#f4f4f4</color>
+    <color name="dividers">#ecebeb</color>
+    <color name="standard_font">#333333</color>
+    <color name="text">#888888</color>
+    <color name="light_gray">#f8f8f8</color>
+    <color name="dark_gray">#eeeeee</color>
+    <color name="info">#AAAAAA</color>
+    <color name="edit_text_bkgd">#FFFFFF</color>
+    <color name="borders">#d4d3d3</color>
 
 </resources>
     

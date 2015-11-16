@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/received_msg_row_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:alpha="0.9">
+
+    <RelativeLayout android:id="@+id/info_row"
+        android:layout_height="wrap_content"
+        android:layout_width="450dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/received_message_bg"
+        android:layout_marginTop="2dp"
+        android:layout_alignParentLeft="false"
+        android:layout_marginRight="20dp"
+        android:alpha="1">
+
+        <TextView
+            android:id="@+id/msg_alias"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="5dp"
+            android:textColor="#C0C0C0"
+            android:text="Name"
+            android:textSize="16sp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp" />
+
+        <TextView
+            android:id="@+id/msg_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="18dp"
+            android:textSize="16sp"
+            android:textColor="@color/info"
+            android:text="hh:mm a"
+            android:visibility="invisible" />
+
+        <TextView
+            android:id="@+id/msg_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="bla bla bla bla bla"
+            android:lineSpacingExtra="16sp"
+            android:textColor="#596770"
+            android:layout_below="@+id/msg_alias"
+            android:textSize="16sp"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp" />
+    </RelativeLayout>
+
+</RelativeLayout>
