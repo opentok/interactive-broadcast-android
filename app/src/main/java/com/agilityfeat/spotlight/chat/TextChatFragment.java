@@ -93,15 +93,7 @@ public class TextChatFragment extends Fragment {
         mMessageAdapter = new MessageAdapter(getActivity(), R.layout.sent_msg_row_layout, mMsgsList);
 
         mListView.setAdapter(mMessageAdapter);
-        mMsgNotificationView.setOnTouchListener(new View.OnTouchListener() {
 
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                showMsgNotification(false);
-                mListView.smoothScrollToPosition(mMessageAdapter.getMessagesList().size() - 1);
-                return false;
-            }
-        });
 
         return rootView;
     }
@@ -159,9 +151,6 @@ public class TextChatFragment extends Fragment {
                 msg.setStatus(ChatMessage.MessageStatus.RECEIVED_MESSAGE);
             }
 
-            boolean visible = isNewMessageVisible();
-            mListView.smoothScrollToPosition(mMessageAdapter.getMessagesList().size());
-
 
             //generate message timestamp
             Date date = new Date();
@@ -170,6 +159,7 @@ public class TextChatFragment extends Fragment {
             }
 
             mMessageAdapter.add(msg);
+            isNewMessageVisible();
         }
     }
 
@@ -195,10 +185,12 @@ public class TextChatFragment extends Fragment {
                     mMsgEditText.setEnabled(true);
                     mMsgEditText.setFocusable(true);
                     mMsgEditText.setText("");
-                    mListView.smoothScrollToPosition(mMessageAdapter.getMessagesList().size());
+
 
                     //add the message to the component
                     addMessage(myMsg);
+
+                    isNewMessageVisible();
                 }
 
             }
@@ -226,24 +218,8 @@ public class TextChatFragment extends Fragment {
 
     // To check if the next item is visible in the list
     private boolean isNewMessageVisible() {
-        int last = mListView.getLastVisiblePosition();
-        int transpose = 0;
-        View currentBottomView;
-        currentBottomView = mListView.getChildAt(last);
-
-        if (mListView.getCount() > 1) {
-            while (currentBottomView == null) {
-                transpose++;
-                currentBottomView = mListView.getChildAt(last - transpose);
-            }
-            if (last == mListView.getCount() - 1 && currentBottomView.getBottom() <= mListView.getHeight()) {
-                mListView.setScrollContainer(false);
-                return false;
-            } else {
-                mListView.setScrollContainer(true);
-                return true;
-            }
-        }
+        mListView.smoothScrollToPosition(mMessageAdapter.getCount());
+        mListView.smoothScrollToPosition(mMessageAdapter.getMessagesList().size() - 1);
         return false;
     }
 

@@ -28,10 +28,13 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.agilityfeat.spotlight.chat.ChatMessage;
+import com.agilityfeat.spotlight.chat.TextChatFragment;
 import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.model.InstanceApp;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 import com.agilityfeat.spotlight.services.ClearNotificationService;
+
 
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;

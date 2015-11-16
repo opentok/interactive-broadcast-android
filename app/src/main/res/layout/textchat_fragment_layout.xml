@@ -11,7 +11,8 @@
         android:layout_below="@+id/top_bar"
         android:id="@+id/chat_top_bar"
         android:visibility="visible"
-        android:background="@drawable/top_border" >
+        android:background="@drawable/top_border"
+        android:alpha="1">
 
         <TextView
             android:layout_width="wrap_content"
@@ -48,7 +49,8 @@
         android:divider="@null"
         android:dividerHeight="0dp"
         android:scrollbars="vertical"
-        android:layout_below="@+id/chat_top_bar" />
+        android:layout_below="@+id/chat_top_bar"
+        android:alpha="0.9" />
 
     <View
         android:id="@+id/divider_notification"
@@ -89,7 +91,8 @@
         android:layout_width="fill_parent"
         android:layout_height="50dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true">
+        android:layout_alignParentLeft="true"
+        android:alpha="1">
 
         <EditText
             android:id="@+id/edit_msg"

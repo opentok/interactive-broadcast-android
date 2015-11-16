@@ -18,9 +18,8 @@ import java.util.concurrent.TimeUnit;
 class MessageAdapter extends ArrayAdapter<ChatMessage> {
 
     private final static int VIEW_TYPE_ROW_SENT = 0;
-    private final static int VIEW_TYPE_ROW_SENT_GROUP = 1;
     private final static int VIEW_TYPE_ROW_RECEIVED = 2;
-    private final static int VIEW_TYPE_ROW_RECEIVED_GROUP = 3;
+
 
 
     private List<ChatMessage> messagesList = new ArrayList<ChatMessage>();
@@ -110,14 +109,6 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
                     convertView = LayoutInflater.from(getContext()).inflate(R.layout.received_msg_row_layout, parent, false);
                     holder.viewType = VIEW_TYPE_ROW_RECEIVED;
                     break;
-                case VIEW_TYPE_ROW_SENT_GROUP:
-                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.group_sent_msg_row_layout, parent, false);
-                    holder.viewType = VIEW_TYPE_ROW_SENT_GROUP;
-                    break;
-                case VIEW_TYPE_ROW_RECEIVED_GROUP:
-                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.group_received_msg_row_layout, parent, false);
-                    holder.viewType = VIEW_TYPE_ROW_RECEIVED_GROUP;
-                    break;
             }
             if (!messagesGroup) {
                 holder.aliasText = (TextView) convertView.findViewById(R.id.msg_alias);
@@ -131,22 +122,22 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        if (holder.viewType != VIEW_TYPE_ROW_RECEIVED_GROUP && holder.viewType != VIEW_TYPE_ROW_SENT_GROUP) {
-            //msg alias
-            holder.aliasText.setText(message.getSenderAlias()+":");
 
-            //msg time
-            SimpleDateFormat ft =
-                    new SimpleDateFormat("hh:mm a");
-            holder.timestampText.setText(ft.format(new
+        //msg alias
+        holder.aliasText.setText(message.getSenderAlias()+":");
 
-                            Date(message.getTimestamp()
+        //msg time
+        SimpleDateFormat ft =
+                new SimpleDateFormat("hh:mm a");
+        holder.timestampText.setText(ft.format(new
 
-                    )).
+                        Date(message.getTimestamp()
 
-                            toString()
-            );
-        }
+                )).
+
+                        toString()
+        );
+
         //msg txt
         holder.messageText.setText(message.getText());
 

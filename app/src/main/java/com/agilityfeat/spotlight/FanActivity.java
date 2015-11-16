@@ -1121,6 +1121,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 case "joinHost":
                     connectWithOnstage();
                     break;
+                case "closeChat":
+                    hideChat();
+                    mChatButton.setVisibility(View.GONE);
+                    break;
+
                 case "disconnect":
                     disconnectFromOnstage();
                     break;

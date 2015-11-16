@@ -105,19 +105,22 @@
     </RelativeLayout>
 
     <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
         android:id="@+id/chat_button"
         android:layout_alignParentBottom="false"
         android:layout_alignParentRight="false"
         android:layout_alignParentEnd="true"
-        android:src="@drawable/ico_chat"
-        android:background="#000000"
+        android:src="@drawable/icon_bubble"
+        android:background="@drawable/chat_button_bg"
         android:onClick="onChatButtonClicked"
         android:visibility="gone"
         android:layout_alignParentTop="false"
         android:layout_below="@+id/top_bar"
-        android:alpha="0.8" />
+        android:alpha="0.8"
+        android:adjustViewBounds="false"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -128,10 +131,17 @@
         android:background="@drawable/unread_messages"
         android:textColor="#FFFFFF"
         android:layout_alignTop="@+id/chat_button"
-        android:layout_alignLeft="@+id/chat_button"
         android:layout_alignStart="@+id/chat_button"
         android:textSize="25dp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="30dp"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:foreground="#ee0f0f"
+        android:foregroundGravity="fill_vertical"
+        android:layout_alignRight="@+id/chat_button"
+        android:layout_alignEnd="@+id/chat_button" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -281,7 +291,8 @@
         android:layout_alignParentLeft="true"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/top_bar"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:alpha="0.9">
     </FrameLayout>
 
 </RelativeLayout>
