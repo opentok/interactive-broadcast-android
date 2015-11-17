@@ -5,3 +5,5 @@
 .DS_Store
 /build
 /captures
+app/libs/opentok-android-sdk.jar
+app/src/main/jniLibs/.*
