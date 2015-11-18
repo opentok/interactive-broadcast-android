@@ -48,7 +48,7 @@ import com.opentok.android.Session;
 import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
-import com.squareup.picasso.Picasso;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;

@@ -24,6 +24,8 @@
     <string name="status_onstage">You are now on stage</string>
     <string name="status_incall">InCall with Producer</string>
     <string name="title_activity_select">SelectActivity</string>
+    <string name="new_backstage_fan">"A new FAN has been moved to backstage"</string>
+
 
     <!-- Event list -->
     <string name="join_event_btn">Join Event</string>

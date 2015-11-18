@@ -2,6 +2,7 @@ package com.agilityfeat.spotlight;
 
 
 import android.app.Activity;
+import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -18,10 +19,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.TranslateAnimation;
+import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -31,6 +34,7 @@ import android.widget.Toast;
 import com.agilityfeat.spotlight.chat.ChatMessage;
 import com.agilityfeat.spotlight.chat.TextChatFragment;
 import com.agilityfeat.spotlight.config.SpotlightConfig;
+import com.agilityfeat.spotlight.events.EventUtils;
 import com.agilityfeat.spotlight.model.InstanceApp;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 import com.agilityfeat.spotlight.services.ClearNotificationService;
@@ -54,7 +58,8 @@ import org.json.JSONObject;
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
         Session.SessionListener, Session.ConnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
-        Session.SignalListener,Subscriber.VideoListener{
+        Session.SignalListener,Subscriber.VideoListener,
+        TextChatFragment.TextChatListener{
 
     private static final String LOG_TAG = CelebrityHostActivity.class.getSimpleName();
     private JSONObject mEvent;
@@ -70,17 +75,21 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Stream mFanStream;
     private Stream mHostStream;
     private Connection mProducerConnection;
-    private ScrollView mScroller;
-    private RelativeLayout mMessageBox;
-    private EditText mMessageEditText;
-    private TextView mMessageView;
     private TextView mTextoUnreadMessages;
+    private TextView mEventName;
+    private TextView mEventStatus;
+    private TextView mGoLiveStatus;
+    private TextView mGoLiveNumber;
+    private TextView mUserStatus;
     private ImageButton mChatButton;
+    private Button mLiveButton;
+    private ImageView mEventImageEnd;
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
     private RelativeLayout mSubscriberViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
+    private FrameLayout mFragmentContainer;
 
     // Spinning wheel for loading subscriber view
     private ProgressBar mLoadingSub;
@@ -91,6 +100,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private NotificationCompat.Builder mNotifyBuilder;
     private NotificationManager mNotificationManager;
     private ServiceConnection mConnection;
+
+    private TextChatFragment mTextChatFragment;
+    private FragmentTransaction mFragmentTransaction;
+    private boolean msgError = false;
 
     private int mUnreadMessages = 0;
 
@@ -133,15 +146,20 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);
         mSubscriberViewContainer = (RelativeLayout) findViewById(R.id.subscriberview);
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberviewfan);
-        mMessageBox = (RelativeLayout) findViewById(R.id.messagebox);
+
         mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
         mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
         mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
-        mScroller = (ScrollView) findViewById(R.id.scroller);
-        mMessageEditText = (EditText) findViewById(R.id.message);
-        mMessageView = (TextView) findViewById(R.id.messageView);
         mTextoUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
+        mLiveButton = (Button) findViewById(R.id.live_button);
+        mEventName = (TextView) findViewById(R.id.event_name);
+        mEventStatus = (TextView) findViewById(R.id.event_status);
+        mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
+        mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
+        mUserStatus = (TextView) findViewById(R.id.user_status);
+        mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
+        mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -163,6 +181,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
 
         try {
+            updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
+            EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
             if(SpotlightConfig.USER_TYPE == "celebrity") {
                 mWebServiceCoordinator.createCelebrityToken(event.getString("celebrity_url"));
             } else {
@@ -172,6 +192,34 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
 
+    }
+
+    private void updateEventName() {
+        try {
+            mEventName.setText(mEvent.getString("event_name"));
+            mEventStatus.setText(getEventStatusName().toUpperCase());
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+    }
+
+    private String getEventStatusName() {
+        return EventUtils.getStatusNameById(getEventStatus());
+    }
+
+    private void updateEventName(String event_name, String status) {
+        mEventName.setText(event_name);
+        mEventStatus.setText(status.toUpperCase());
+    }
+
+    private String getEventStatus() {
+        String status = "N";
+        try {
+            status = mEvent.getString("status");
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+        return status;
     }
 
     /**
@@ -185,6 +233,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mToken = results.getString("tokenHost");
             mSessionId = results.getString("sessionIdHost");
 
+            updateEventName();
             sessionConnect();
 
         } catch(JSONException ex) {
@@ -317,7 +366,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onBackPressed() {
 
-        if(mScroller.getVisibility() == View.VISIBLE) {
+        if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             toggleChat();
         }else {
             if (mSession != null) {
@@ -356,7 +405,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 mPublisherViewContainer.setLayoutParams(publisher_head_params);
 
                 RelativeLayout.LayoutParams subscriber_head_params = (RelativeLayout.LayoutParams) mSubscriberViewContainer.getLayoutParams();
-                subscriber_head_params.width = (mCelebirtyStream != null || mHostStream != null) ? screenWidth(CelebrityHostActivity.this) / streams:1;
+                subscriber_head_params.width = (mCelebirtyStream != null || mHostStream != null) ? screenWidth(CelebrityHostActivity.this) / streams : 1;
                 mSubscriberViewContainer.setLayoutParams(subscriber_head_params);
 
                 RelativeLayout.LayoutParams subscriberfan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
@@ -390,6 +439,36 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             attachPublisherView(mPublisher);
             mSession.publish(mPublisher);
         }
+        //loading text-chat ui component
+        loadTextChatFragment();
+    }
+
+    // Initialize a TextChatFragment instance and add it to the UI
+    private void loadTextChatFragment(){
+        int containerId = R.id.fragment_textchat_container;
+        mFragmentTransaction = getFragmentManager().beginTransaction();
+        mTextChatFragment = (TextChatFragment)this.getFragmentManager().findFragmentByTag("TextChatFragment");
+        if (mTextChatFragment == null) {
+            mTextChatFragment = new TextChatFragment();
+            mTextChatFragment.setMaxTextLength(1050);
+            mTextChatFragment.setTextChatListener(this);
+            mTextChatFragment.setSenderInfo(mSession.getConnection().getConnectionId(), "Me");
+
+            mFragmentTransaction.add(containerId, mTextChatFragment, "TextChatFragment").commit();
+            mFragmentContainer.setVisibility(View.GONE);
+        }
+
+    }
+
+    @Override
+    public boolean onMessageReadyToSend(ChatMessage msg) {
+        Log.d(LOG_TAG, "TextChat listener: onMessageReadyToSend: " + msg.getText());
+
+        if (mSession != null && mProducerConnection != null) {
+            String message = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg.getText()+"\"}}";
+            mSession.sendSignal("chatMessage", message, mProducerConnection);
+        }
+        return msgError;
     }
 
     @Override
@@ -668,31 +747,44 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
         //TODO: onChangeVolumen
 
-        //TODO: finishEvent
     }
 
     private void newBackstageFan() {
-        Toast.makeText(getApplicationContext(),"A new FAN has been moved to backstage", Toast.LENGTH_LONG).show();
+        mUserStatus.setVisibility(View.VISIBLE);
+        AlphaAnimation animation1 = new AlphaAnimation(0f, 0.8f);
+        animation1.setDuration(1000);
+        animation1.setFillAfter(true);
+        mUserStatus.startAnimation(animation1);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                animation1.setDuration(1000);
+                animation1.setFillAfter(true);
+                mUserStatus.startAnimation(animation1);
+
+            }
+        }, 3000);
     }
 
     public void handleNewMessage(String data, Connection connection) {
-        String mycid = mSession.getConnection().getConnectionId();
-        String cid = connection.getConnectionId();
-        String who = "";
-        if(mScroller.getVisibility() != View.VISIBLE) {
+        String text = "";
+        try {
+            text = new JSONObject(data)
+                    .getJSONObject("message")
+                    .getString("message");
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+        }
+
+        ChatMessage msg = null;
+        msg = new ChatMessage(connection.getConnectionId(), "Producer", text);
+        // Add the new ChatMessage to the text-chat component
+        mTextChatFragment.addMessage(msg);
+        if(mFragmentContainer.getVisibility() != View.VISIBLE) {
             mUnreadMessages++;
             refreshUnreadMessages();
-        }
-        if (!cid.equals(mycid)) {
-            String message = "";
-            try {
-                message = new JSONObject(data)
-                        .getJSONObject("message")
-                        .getString("message");
-            } catch (Throwable t) {
-                Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
-            }
-            presentMessage("Producer", message);
+            mChatButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -731,13 +823,89 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void goLive(){
         try {
             mEvent.put("status", "L");
+            updateEventName();
+            showCountDown();
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
     }
 
+    private void showCountDown() {
+        //Going live on 3..2..1
+        mGoLiveStatus.setVisibility(View.VISIBLE);
+        mGoLiveNumber.setVisibility(View.VISIBLE);
+        startCountDown(6);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+
+                AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                animation1.setDuration(500);
+                animation1.setFillAfter(true);
+                AlphaAnimation animation2 = new AlphaAnimation(0.8f, 0f);
+                animation2.setDuration(500);
+                animation2.setFillAfter(true);
+                mGoLiveStatus.startAnimation(animation1);
+                mGoLiveNumber.startAnimation(animation2);
+                mLiveButton.setVisibility(View.VISIBLE);
+            }
+        }, 5000);
+    }
+
+    private void startCountDown(final int number) {
+
+        mGoLiveNumber.setText(String.valueOf(number - 1));
+        if((number-1)>1) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    startCountDown(number - 1);
+                }
+            }, 1000);
+        }
+    }
+
     public void finishEvent() {
-        onBackPressed();
+        //Show Event Image end
+        mEventImageEnd.setVisibility(View.VISIBLE);
+        mLiveButton.setVisibility(View.GONE);
+
+        //Hide subscriber containters
+        mSubscriberViewContainer.setVisibility(View.GONE);
+        mSubscriberFanViewContainer.setVisibility(View.GONE);
+
+        //Unpublish
+        mSession.unpublish(mPublisher);
+
+        //Hide chat
+        hideChat();
+
+        //Remove publisher
+        mPublisherViewContainer.removeView(mPublisher.getView());
+        mPublisher.destroy();
+
+        updateViewsWidth();
+
+        //Hide chat
+        mChatButton.setVisibility(View.GONE);
+        //mFragmentContainer.setVisibility(View.GONE);
+
+        //Disconnect from onstage session
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (mSession != null) mSession.disconnect();
+            }
+        }, 10000);
+
+        try {
+            //Change status
+            mEvent.put("status", "C");
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+        //Update event name and Status.
+        updateEventName();
     }
 
 
@@ -765,65 +933,22 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         toggleChat();
     }
 
-    public void toggleChat() {
-        if(mScroller.getVisibility() == View.VISIBLE) {
+    private void toggleChat() {
+        if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             hideChat();
         } else {
-            mScroller.setVisibility(View.VISIBLE);
-            mMessageBox.setVisibility(View.VISIBLE);
+            mFragmentContainer.setVisibility(View.VISIBLE);
             mUnreadMessages = 0;
             refreshUnreadMessages();
-            scrollToBottom();
         }
     }
 
-    private void hideChat() {
-        mScroller.setVisibility(View.GONE);
-        mMessageBox.setVisibility(View.GONE);
-    }
-
-    public void onClickSend(View v) {
-        if (mMessageEditText.getText().toString().compareTo("") == 0) {
-            Log.i(LOG_TAG, "Cannot Send - Empty String Message");
-        } else {
-            Log.i(LOG_TAG, "Sending a chat message");
-            sendChatMessage(mMessageEditText.getText().toString());
-            mMessageEditText.setText("");
+    @Override
+    public void hideChat() {
+        mFragmentContainer.setVisibility(View.GONE);
+        if(mSession == null) {
+            mChatButton.setVisibility(View.GONE);
         }
-    }
-
-    public void sendChatMessage(String message) {
-        sendSignal("chatMessage", message);
-        presentMessage("Me", message);
-    }
-
-
-
-    public void sendSignal(String type, String msg) {
-        if(mProducerConnection != null) {
-            msg = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg+"\"}}";
-            mSession.sendSignal(type, msg,mProducerConnection);
-        }
-
-    }
-
-    private void presentMessage(String who, String message) {
-        presentText("\n" + who + ": " + message);
-    }
-
-    private void presentText(String message) {
-        mMessageView.setText(mMessageView.getText() + message);
-        scrollToBottom();
-    }
-
-    private void scrollToBottom() {
-        mScroller.post(new Runnable() {
-            @Override
-            public void run() {
-                int totalHeight = mMessageView.getHeight();
-                mScroller.smoothScrollTo(0, totalHeight);
-            }
-        });
     }
 
 
