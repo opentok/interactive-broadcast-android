@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         mEventList.clear();
         try {
             for (int i=0; i<arrEvents.length(); i++) {
+                Log.i(LOG_TAG, "iteration" + (arrEvents.getJSONObject(i).getString("event_name")));
                 mEventList.add(arrEvents.getJSONObject(i));
             }
         } catch(JSONException ex) {

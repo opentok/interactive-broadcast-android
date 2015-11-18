@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/event_item"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
     android:background="#FFFFFF">
 
     <RelativeLayout android:id="@+id/info_row"
@@ -22,7 +22,6 @@
             android:layout_alignParentTop="true"
             android:layout_marginTop="5dp"
             android:textColor="#576770"
-            android:text="Event name"
             android:textSize="17sp"
             android:layout_alignParentRight="false"
             android:layout_marginLeft="5dp"

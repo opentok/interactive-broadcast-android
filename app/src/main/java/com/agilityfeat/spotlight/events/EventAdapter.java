@@ -66,10 +66,11 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
         }
 
         try {
-            Log.i(LOG_TAG, "getView! " + event.getString("event_name"));
+            if(holder.name.getText().equals("")) {
+                EventUtils.loadEventImage(getContext(), event.getString("event_image"), holder.event_img);
+            }
             holder.name.setText(event.getString("event_name"));
             holder.date_status.setText(EventUtils.getStatusNameById(event.getString("status")));
-            EventUtils.loadEventImage(getContext(), event.getString("event_image"), holder.event_img);
             holder.join_event.setOnClickListener(new View.OnClickListener() {
 
                 @Override
