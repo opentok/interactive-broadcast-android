@@ -1323,14 +1323,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void finishEvent() {
 
+        //Show Event Image end
+        mEventImage.setVisibility(View.GONE);
+        mEventImageEnd.setVisibility(View.VISIBLE);
+
         //Hide subscriber containters
         mSubscriberCelebrityViewContainer.setVisibility(View.GONE);
         mSubscriberFanViewContainer.setVisibility(View.GONE);
         mSubscriberHostViewContainer.setVisibility(View.GONE);
-
-        //Show Event Image end
-        mEventImageEnd.setVisibility(View.VISIBLE);
-        mEventImage.setVisibility(View.GONE);
 
         //Hide chat
         mChatButton.setVisibility(View.GONE);

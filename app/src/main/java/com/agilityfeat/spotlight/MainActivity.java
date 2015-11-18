@@ -8,15 +8,19 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
+import android.widget.GridView;
 import android.widget.Toast;
 
 import com.agilityfeat.spotlight.config.SpotlightConfig;
+import com.agilityfeat.spotlight.events.EventAdapter;
 import com.agilityfeat.spotlight.model.InstanceApp;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONArray;
+
+import java.util.ArrayList;
 
 
 /**
@@ -28,6 +32,9 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     private WebServiceCoordinator mWebServiceCoordinator;
     private ProgressDialog mProgress;
     private Handler mHandler = new Handler();
+    private ArrayList<JSONObject> mEventList = new ArrayList<JSONObject>();
+    private EventAdapter mEventAdapter;
+    private GridView mListActivities;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +42,8 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         Log.i(LOG_TAG, "usert type = " + SpotlightConfig.USER_TYPE);
 
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
 
         //start the progress bar
@@ -58,7 +65,16 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
 
     @Override
     public void onResume() {
+
         super.onResume();
+
+        if(mListActivities != null) {
+            mListActivities.setAdapter(null);
+            //start the progress bar
+            startLoadingAnimation();
+            getInstanceId();
+        }
+
     }
 
     public void getInstanceId() {
@@ -86,11 +102,20 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     public void showEventList() {
         Log.i(LOG_TAG, "starting event list app");
 
-        Intent intent = new Intent(MainActivity.this, EventListActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
-        finish();
+        mListActivities = (GridView) findViewById(R.id.gridView);
+        JSONArray arrEvents = InstanceApp.getInstance().getEvents();
+        mEventList.clear();
+        try {
+            for (int i=0; i<arrEvents.length(); i++) {
+                mEventList.add(arrEvents.getJSONObject(i));
+            }
+        } catch(JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+
+        mEventAdapter = new EventAdapter(this, R.layout.event_item, mEventList);
+
+        mListActivities.setAdapter(mEventAdapter);
     }
 
     public void showEvent() {
@@ -103,6 +128,20 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         }
         Bundle localBundle = new Bundle();
         localBundle.putString("event_index", "0");
+        localIntent.putExtras(localBundle);
+        startActivity(localIntent);
+    }
+
+    public void showEvent(int event_index) {
+        //Passing the apiData to AudioVideoActivity
+        Intent localIntent;
+        if(SpotlightConfig.USER_TYPE == "fan") {
+            localIntent = new Intent(MainActivity.this, FanActivity.class);
+        } else {
+            localIntent = new Intent(MainActivity.this, CelebrityHostActivity.class);
+        }
+        Bundle localBundle = new Bundle();
+        localBundle.putString("event_index",Integer.toString(event_index));
         localIntent.putExtras(localBundle);
         startActivity(localIntent);
     }

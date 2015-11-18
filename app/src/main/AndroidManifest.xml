@@ -45,13 +45,6 @@
             android:screenOrientation="landscape" >
         </activity>
         <activity
-            android:name=".EventListActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:label="@string/title_activity_event_list" >
-        </activity>
-        <activity
             android:name=".FanActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_fan"

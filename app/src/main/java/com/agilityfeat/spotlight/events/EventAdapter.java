@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.agilityfeat.spotlight.CelebrityHostActivity;
-import com.agilityfeat.spotlight.EventListActivity;
 import com.agilityfeat.spotlight.FanActivity;
 import com.agilityfeat.spotlight.R;
 import com.agilityfeat.spotlight.config.SpotlightConfig;
