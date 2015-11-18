@@ -1,18 +1,15 @@
 package com.agilityfeat.spotlight;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.GridView;
 import java.util.ArrayList;
 
+import com.agilityfeat.spotlight.events.EventAdapter;
 import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.model.InstanceApp;
 
@@ -22,43 +19,33 @@ import org.json.JSONObject;
 
 public class EventListActivity extends AppCompatActivity {
     private static final String LOG_TAG = EventListActivity.class.getSimpleName();
+    private ArrayList<JSONObject> mEventList = new ArrayList<JSONObject>();
+    private EventAdapter mEventAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_event_list);
 
-        final ListView listActivities = (ListView) findViewById(R.id.listview);
+        final GridView listActivities = (GridView) findViewById(R.id.gridView);
         JSONArray arrEvents = InstanceApp.getInstance().getEvents();
-        ArrayList<String> stringArrayList = new ArrayList<String>();
         try {
             for (int i=0; i<arrEvents.length(); i++) {
-                JSONObject event = arrEvents.getJSONObject(i);
-                stringArrayList.add(event.getString("event_name"));
+                mEventList.add(arrEvents.getJSONObject(i));
             }
         } catch(JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
 
-        String [] eventNames = stringArrayList.toArray(new String[stringArrayList.size()]);
+        mEventAdapter = new EventAdapter(this, R.layout.event_item, mEventList);
 
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
-                android.R.layout.simple_list_item_1, eventNames);
-        listActivities.setAdapter(adapter);
-
-        listActivities.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> a, View v, int position,
-                                    long id) {
-                showEvent(position);
-            }
-        });
+        listActivities.setAdapter(mEventAdapter);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_event_list, menu);
+        getMenuInflater().inflate(R.menu.menu_celebrity_host, menu);
         return true;
     }
 

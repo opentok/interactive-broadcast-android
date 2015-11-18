@@ -124,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
             }
 
             if(bSuccess) {
+                SpotlightConfig.FRONTEND_URL = (String)instanceAppData.get("frontend_url");
+                SpotlightConfig.DEFAULT_EVENT_IMAGE = (String)instanceAppData.get("default_event_image");
                 //Check the count of events.
                 if(arrEvents.length() > 1) {
                     showEventList();

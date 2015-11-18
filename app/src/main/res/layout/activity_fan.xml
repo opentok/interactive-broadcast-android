@@ -9,7 +9,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/event_image"
-        android:layout_below="@+id/top_bar"
+        android:layout_below="@+id/event_list_top_bar"
         android:visibility="visible" />
 
     <RelativeLayout
@@ -116,7 +116,7 @@
         android:onClick="onChatButtonClicked"
         android:visibility="gone"
         android:layout_alignParentTop="false"
-        android:layout_below="@+id/top_bar"
+        android:layout_below="@+id/event_list_top_bar"
         android:alpha="0.8"
         android:adjustViewBounds="false"
         android:layout_marginTop="10dp"
@@ -153,7 +153,7 @@
         android:textSize="20sp"
         android:textColor="@color/user_status_text_color"
         android:layout_alignParentTop="false"
-        android:layout_below="@+id/top_bar"
+        android:layout_below="@+id/event_list_top_bar"
         android:layout_alignParentRight="true"
         android:layout_marginRight="5dp"
         android:layout_marginTop="5dp"
@@ -205,7 +205,7 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:background="@color/top_bar_background_color"
-        android:id="@+id/top_bar">
+        android:id="@+id/event_list_top_bar">
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -281,7 +281,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/event_image_end"
-        android:layout_below="@+id/top_bar"
+        android:layout_below="@+id/event_list_top_bar"
         android:visibility="gone" />
 
     <FrameLayout
@@ -290,7 +290,7 @@
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true"
         android:layout_centerHorizontal="true"
-        android:layout_below="@+id/top_bar"
+        android:layout_below="@+id/event_list_top_bar"
         android:visibility="gone"
         android:alpha="0.9">
     </FrameLayout>

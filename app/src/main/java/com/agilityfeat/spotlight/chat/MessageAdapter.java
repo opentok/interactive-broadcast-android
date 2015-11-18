@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 import com.agilityfeat.spotlight.R;
 import java.text.SimpleDateFormat;
@@ -111,7 +110,7 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
                     break;
             }
             if (!messagesGroup) {
-                holder.aliasText = (TextView) convertView.findViewById(R.id.msg_alias);
+                holder.aliasText = (TextView) convertView.findViewById(R.id.name);
                 holder.timestampText = (TextView) convertView.findViewById(R.id.msg_time);
 
 

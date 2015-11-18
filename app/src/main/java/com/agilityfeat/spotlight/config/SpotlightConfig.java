@@ -10,9 +10,9 @@ public class SpotlightConfig {
     public static final String BACKEND_BASE_URL =
             (BuildConfig.DEBUG) ? "https://chatshow-tesla.herokuapp.com" : "https://spotlight-demos-backend.herokuapp.com";
 
-    public static final String FRONTEND_URL = "https://chatshow.herokuapp.com";
+    public static String FRONTEND_URL = "";
     public static final String SIGNALING_URL = "https://chatshow-signaling.herokuapp.com";
-    public static final String DEFAULT_EVENT_IMAGE = "/img/TAB_VIDEO_PREVIEW_LS.jpg";
+    public static String DEFAULT_EVENT_IMAGE = "";
     public static String INSTANCE_ID = "AAAA1";
     public static String USER_TYPE = "fan";
     public static String USER_NAME = "anonymous";

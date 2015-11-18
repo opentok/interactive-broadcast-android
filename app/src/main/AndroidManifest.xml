@@ -41,12 +41,14 @@
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_main"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape" >
         </activity>
         <activity
             android:name=".EventListActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.NoActionBar"
             android:label="@string/title_activity_event_list" >
         </activity>
         <activity

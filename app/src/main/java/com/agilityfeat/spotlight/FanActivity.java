@@ -22,17 +22,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.agilityfeat.spotlight.config.SpotlightConfig;
+import com.agilityfeat.spotlight.events.EventUtils;
 import com.agilityfeat.spotlight.model.InstanceApp;
 import com.agilityfeat.spotlight.video.CustomVideoRenderer;
 import com.agilityfeat.spotlight.socket.SocketCoordinator;
@@ -223,20 +222,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
         try {
-            updateEventName(event.getString("event_name"), getStatusNameById(event.getString("status")));
-            loadEventImage(event.getString("event_image"), mEventImage);
-            loadEventImage(event.getString("event_image_end"), mEventImageEnd);
+            updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
+            EventUtils.loadEventImage(this, event.getString("event_image"), mEventImage);
+            EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
             mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
 
-    }
-
-    public void loadEventImage(String image, ImageView imgView) {
-        if(image.equals("")) image = SpotlightConfig.DEFAULT_EVENT_IMAGE;
-        image = SpotlightConfig.FRONTEND_URL + image;
-        Picasso.with(this).load(image).fit().centerCrop().into(imgView);
     }
 
 
@@ -1313,7 +1306,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private String getEventStatusName() {
-        return getStatusNameById(getEventStatus());
+        return EventUtils.getStatusNameById(getEventStatus());
     }
 
     private String getEventStatus() {
@@ -1326,22 +1319,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         return status;
     }
 
-    private String getStatusNameById(String statusId) {
-        String statusName = "";
-        switch(statusId) {
-            case "N":
-            case "P":
-                statusName = "Not started";
-                break;
-            case "L":
-                statusName = "Live";
-                break;
-            case "C":
-                statusName = "Closed";
-                break;
-        }
-        return statusName;
-    }
+
 
     private void finishEvent() {
 

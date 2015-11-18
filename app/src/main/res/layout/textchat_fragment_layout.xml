@@ -8,7 +8,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_below="@+id/top_bar"
+        android:layout_below="@+id/event_list_top_bar"
         android:id="@+id/chat_top_bar"
         android:visibility="visible"
         android:background="@drawable/top_border"

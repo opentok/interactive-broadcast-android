@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/event_item"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF">
+
+    <RelativeLayout android:id="@+id/info_row"
+        android:layout_height="wrap_content"
+        android:layout_width="200dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="false"
+        android:background="@drawable/event_bg"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="10dp">
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="5dp"
+            android:textColor="#576770"
+            android:text="Event name"
+            android:textSize="17sp"
+            android:layout_alignParentRight="false"
+            android:layout_marginLeft="5dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/date_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Waiting to start"
+            android:lineSpacingExtra="16sp"
+            android:textColor="#59686F"
+            android:layout_below="@+id/name"
+            android:textSize="13sp"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="5dp" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:id="@+id/event_img"
+            android:layout_below="@+id/date_status"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:text="@string/join_event_btn"
+            android:id="@+id/join_btn"
+            android:layout_below="@+id/event_img"
+            android:background="@drawable/join_event_button_bg"
+            android:textColor="#FFFFFF"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentEnd="true"
+            android:layout_alignLeft="@+id/date_status"
+            android:layout_alignStart="@+id/date_status"
+            android:layout_alignParentLeft="true"
+            android:layout_margin="10dp" />
+    </RelativeLayout>
+
+</RelativeLayout>
