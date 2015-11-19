@@ -291,8 +291,7 @@
         android:layout_alignParentLeft="true"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/event_list_top_bar"
-        android:visibility="gone"
-        android:alpha="0.9">
+        android:visibility="gone">
     </FrameLayout>
 
 </RelativeLayout>

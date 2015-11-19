@@ -61,7 +61,8 @@
             android:layout_alignLeft="@+id/date_status"
             android:layout_alignStart="@+id/date_status"
             android:layout_alignParentLeft="true"
-            android:layout_margin="10dp" />
+            android:layout_margin="10dp"
+            android:gravity="center" />
     </RelativeLayout>
 
 </RelativeLayout>

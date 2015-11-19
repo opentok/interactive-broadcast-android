@@ -67,7 +67,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
     private static final int TIME_WINDOW = 3; //3 seconds
     private static final int TIME_VIDEO_TEST = 10; //time interval to check the video quality in seconds
-    private static final int TIME_MAX_TEST = 15;
+    private static final int TIME_MAX_TEST = 10;
 
     //Test call vars
     private float mTimeTotalTest = 0;
@@ -863,6 +863,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         Log.i(LOG_TAG, "mSelfSubscriber=" + String.valueOf(mSelfSubscriber == null));
         Log.i(LOG_TAG, "mQuality=" + String.valueOf(mQuality.equals("")));
+
         if (mQuality.equals("")) {
             subscribeToSelfStream(stream);
         }
@@ -880,6 +881,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void onVideoStats(SubscriberKit subscriber,
                                      SubscriberKit.SubscriberVideoStats stats) {
+                Log.i(LOG_TAG, "onVideoStats");
 
                 if (mStartTestTime == 0) {
                     mStartTestTime = System.currentTimeMillis() / 1000;
@@ -887,7 +889,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 checkVideoStats(stats);
 
                 //check quality of the video call after TIME_VIDEO_TEST seconds
-                if (((System.currentTimeMillis() / 1000 - mStartTestTime) > TIME_VIDEO_TEST) && !audioOnly) {
+                if (((System.currentTimeMillis() / 1000 - mStartTestTime) > TIME_VIDEO_TEST) && !audioOnly && mQuality.equals("") ) {
                     checkVideoQuality();
                 }
             }
@@ -897,8 +899,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSelfSubscriber.setAudioStatsListener(new SubscriberKit.AudioStatsListener() {
             @Override
             public void onAudioStats(SubscriberKit subscriber, SubscriberKit.SubscriberAudioStats stats) {
+                Log.i(LOG_TAG, "onAudioStats");
+                if( mQuality.equals("") ) {
+                    checkAudioStats(stats);
+                }
 
-                checkAudioStats(stats);
 
             }
         });
@@ -988,7 +993,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             } else {
                 mQuality = "Good";
             }
-            //mSelfSubscriber.setVideoStatsListener(null);
+            mSelfSubscriber.setVideoStatsListener(null);
+            mSelfSubscriber.setAudioStatsListener(null);
             Log.i(LOG_TAG, "Publisher quality is " + mQuality);
             mBackstageSession.unsubscribe(mSelfSubscriber);
             mSelfSubscriber = null;
@@ -1082,7 +1088,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
 
-
+        Log.i(LOG_TAG, "New signal:" + type);
         if(type != null) {
             switch(type) {
                 case "chatMessage":
@@ -1173,23 +1179,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectWithOnstage() {
         //Hidding leave line button
         mGetInLine.setVisibility(View.GONE);
+        mBackstageSession.unpublish(mPublisher);
         setUserStatus(R.string.status_onstage);
     }
 
     private void publishOnStage(){
         mLiveButton.setVisibility(View.VISIBLE);
         mUserIsOnstage = true;
-        mBackstageSession.unpublish(mPublisher);
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
 
-                mSession.publish(mPublisher);
-                if (mHostStream != null) subscribeHostToStream(mHostStream);
-                if (mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
-                updateViewsWidth();
-            }
-        }, 500);
+        mPublisherViewContainer.setVisibility(View.VISIBLE);
+        mSession.publish(mPublisher);
+        if (mHostStream != null && mSubscriberHost == null) subscribeHostToStream(mHostStream);
+        if (mCelebirtyStream != null && mSubscriberCelebrity == null) subscribeCelebrityToStream(mCelebirtyStream);
+        updateViewsWidth();
+
     }
 
     private void disconnectFromOnstage() {
@@ -1450,6 +1453,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     if(mTimeTotalTest >= TIME_MAX_TEST) {
                         Log.i(LOG_TAG, "Quality test time out. Forcing to Poor quality");
                         mQuality = "Poor";
+                        if(mSelfSubscriber!=null) {
+                            mSelfSubscriber.setVideoStatsListener(null);
+                            mSelfSubscriber.setAudioStatsListener(null);
+                            mBackstageSession.unsubscribe(mSelfSubscriber);
+                            mSelfSubscriber=null;
+                        }
                     }
                     mHandler.postDelayed(new Runnable() {
                         @Override
