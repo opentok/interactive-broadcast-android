@@ -67,8 +67,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
     private static final int TIME_WINDOW = 3; //3 seconds
     private static final int TIME_VIDEO_TEST = 10; //time interval to check the video quality in seconds
+    private static final int TIME_MAX_TEST = 15;
 
     //Test call vars
+    private float mTimeTotalTest = 0;
     private String mQuality = "";
     private double mVideoPLRatio = 0.0;
     private long mVideoBw = 0;
@@ -1444,6 +1446,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
+                    mTimeTotalTest += 0.5;
+                    if(mTimeTotalTest >= TIME_MAX_TEST) {
+                        Log.i(LOG_TAG, "Quality test time out. Forcing to Poor quality");
+                        mQuality = "Poor";
+                    }
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
