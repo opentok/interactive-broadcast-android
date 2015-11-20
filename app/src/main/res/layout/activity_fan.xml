@@ -209,7 +209,7 @@
 
         <Button
             style="?android:attr/buttonStyleSmall"
-            android:layout_width="wrap_content"
+            android:layout_width="150dp"
             android:layout_height="35dp"
             android:text="@string/get_inline"
             android:id="@+id/btn_getinline"
@@ -224,7 +224,7 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_marginRight="5dp"
-            android:paddingLeft="5dp" />
+            android:paddingLeft="30dp" />
 
         <Button
             style="?android:attr/buttonStyleSmall"
@@ -243,14 +243,13 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:layout_marginRight="5dp"
-            android:paddingLeft="5dp" />
+            android:paddingLeft="10dp" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/event_name"
-            android:layout_below="@+id/loadingSpinnerCelebrity"
             android:textColor="@color/top_bar_text_color"
             android:textSize="20sp"
             android:paddingLeft="15dp"
@@ -275,6 +274,18 @@
             android:layout_toEndOf="@+id/event_name"
             android:paddingBottom="15dp"
             android:paddingLeft="4dp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/icon_check"
+            android:src="@drawable/icon_check_circle"
+            android:layout_alignParentBottom="false"
+            android:layout_alignLeft="@+id/btn_getinline"
+            android:layout_alignParentTop="false"
+            android:layout_alignWithParentIfMissing="false"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="5dp" />
     </RelativeLayout>
 
     <ImageView

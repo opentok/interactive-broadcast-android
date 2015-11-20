@@ -123,6 +123,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
+    private ImageView mIconCheck;
     private Button mGetInLine;
     private Button mLiveButton;
 
@@ -207,6 +208,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
+        mIconCheck = (ImageView) findViewById(R.id.icon_check);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
         mLiveButton = (Button) findViewById(R.id.live_button);
@@ -530,7 +532,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnected(Session session) {
         Log.i(LOG_TAG, "Connected to the session");
-        mGetInLine.setVisibility(View.VISIBLE);
+        setVisibilityGetInLine(View.VISIBLE);
         // stop loading spinning
         mLoadingSubPublisher.setVisibility(View.GONE);
 
@@ -540,8 +542,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSession.publish(mPublisher);
             setUserStatus(R.string.status_inline);
             mGetInLine.setText(getResources().getString(R.string.leave_line));
+
             mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
-            mGetInLine.setVisibility(View.VISIBLE);
+
 
             //loading text-chat ui component
             loadTextChatFragment();
@@ -636,6 +639,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 hideChat();
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
+                mIconCheck.setImageResource(R.drawable.icon_check_circle);
                 mNewFanSignalAckd = false;
             }
         });
@@ -1205,7 +1209,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void connectWithOnstage() {
         //Hidding leave line button
-        mGetInLine.setVisibility(View.GONE);
+        setVisibilityGetInLine(View.GONE);
         mPublisherViewContainer.setVisibility(View.GONE);
         mPublisher.getView().setVisibility(View.GONE);
         mBackstageSession.unpublish(mPublisher);
@@ -1227,7 +1231,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void disconnectFromOnstage() {
         mUserIsOnstage = false;
         //Hide Get in line button
-        mGetInLine.setVisibility(View.GONE);
+        setVisibilityGetInLine(View.GONE);
 
         //Unpublish
         mSession.unpublish(mPublisher);
@@ -1371,7 +1375,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mFragmentContainer.setVisibility(View.GONE);
 
         //Hide getinline
-        mGetInLine.setVisibility(View.GONE);
+        setVisibilityGetInLine(View.GONE);
 
         if(mUserIsOnstage) {
             disconnectFromOnstage();
@@ -1441,8 +1445,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
+    public void setVisibilityGetInLine(int visibility) {
+        mGetInLine.setVisibility(visibility);
+        mIconCheck.setVisibility(visibility);
+    }
+
     public void initGetInline() {
-        mGetInLine.setVisibility(View.GONE);
+        setVisibilityGetInLine(View.GONE);
+        mIconCheck.setImageResource(R.drawable.icon_close_circle);
         mPublisherViewContainer.setVisibility(View.VISIBLE);
         mLoadingSubPublisher.setVisibility(View.VISIBLE);
 

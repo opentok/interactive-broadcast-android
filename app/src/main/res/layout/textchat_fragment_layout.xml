@@ -78,13 +78,6 @@
         android:background="@color/dark_gray"
       />
 
-    <View
-        android:id="@+id/divider_send_message"
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_above="@+id/send_msg"
-        android:background="@color/dividers" />
-
     <RelativeLayout
         android:id="@+id/send_msg"
         android:orientation="vertical"
@@ -105,7 +98,7 @@
             android:textSize="16sp"
             android:focusable="true"
             android:layout_alignParentBottom="true"
-            android:layout_alignParentTop="true"
+            android:layout_alignParentTop="false"
             android:layout_toLeftOf="@+id/send_button"
             android:layout_toStartOf="@+id/send_button" />
 
@@ -121,14 +114,13 @@
 
         <ImageButton
             android:layout_width="75dp"
-            android:layout_height="match_parent"
+            android:layout_height="fill_parent"
             android:id="@+id/send_button"
             android:src="@drawable/ico_send_msg"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:background="#D5D5D5"
-            android:onClick="onClickSend"
-            android:layout_alignParentTop="true" />
+            android:onClick="onClickSend" />
 
     </RelativeLayout>
 
