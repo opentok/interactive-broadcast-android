@@ -1,6 +1,7 @@
 package com.agilityfeat.spotlight.events;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -33,5 +34,9 @@ public class EventUtils {
         image = SpotlightConfig.FRONTEND_URL + image;
         Log.i(LOG_TAG, "loadEventImage.." + image);
         Picasso.with(context).load(image).fit().centerCrop().into(imgView);
+    }
+
+    public static Typeface getFont(Context context) {
+        return Typeface.createFromAsset(context.getAssets(), "fonts/Montserrat-Regular.ttf");
     }
 }

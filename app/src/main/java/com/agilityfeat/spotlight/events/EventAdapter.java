@@ -2,6 +2,7 @@ package com.agilityfeat.spotlight.events;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +22,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +34,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
     private List<JSONObject> eventList = new ArrayList<JSONObject>();
     ViewHolder holder;
     private Context mContext;
+    private Typeface mFont;
 
     private class ViewHolder {
         public TextView name, date_status;
@@ -43,6 +46,8 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
         super(context, resource, entities);
         this.eventList = entities;
         this.mContext = context;
+
+        mFont = EventUtils.getFont(context);
     }
 
 
@@ -82,6 +87,12 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception", e);
         }
+
+        //Set fonts
+        holder.name.setTypeface(mFont);
+        holder.date_status.setTypeface(mFont);
+        holder.join_event.setTypeface(mFont);
+
 
         return convertView;
     }

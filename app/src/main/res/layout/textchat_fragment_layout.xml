@@ -18,7 +18,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Chat with Producer"
-            android:id="@+id/textView2"
+            android:id="@+id/top_bar_title"
             android:textAlignment="center"
             android:textColor="#576873"
             android:gravity="clip_horizontal|center|clip_vertical"

@@ -5,10 +5,12 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.usage.UsageEvents;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Typeface;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
@@ -67,7 +69,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
     private static final int TIME_WINDOW = 3; //3 seconds
     private static final int TIME_VIDEO_TEST = 10; //time interval to check the video quality in seconds
-    private static final int TIME_MAX_TEST = 10;
+    private static final int TIME_MAX_TEST = 20;
 
     //Test call vars
     private float mTimeTotalTest = 0;
@@ -117,7 +119,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextView mUserStatus;
     private TextView mGoLiveStatus;
     private TextView mGoLiveNumber;
-    private TextView mTextoUnreadMessages;
+    private TextView mTextUnreadMessages;
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
@@ -158,8 +160,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         mSocket = new SocketCoordinator();
+        mSocket.connect();
 
         initLayoutWidgets();
+
+        setupFonts();
 
         //Get the event
         requestEventData(savedInstanceState);
@@ -199,12 +204,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mUserStatus = (TextView) findViewById(R.id.user_status);
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
         mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
-        mTextoUnreadMessages = (TextView) findViewById(R.id.unread_messages);
+        mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
         mLiveButton = (Button) findViewById(R.id.live_button);
+    }
+
+    private void setupFonts() {
+        Typeface font = EventUtils.getFont(this);
+        mGoLiveNumber.setTypeface(font);
+        mEventName.setTypeface(font);
+        mGoLiveStatus.setTypeface(font);
+        mUserStatus.setTypeface(font);
+        mEventStatus.setTypeface(font);
+        mGetInLine.setTypeface(font);
+        mTextUnreadMessages.setTypeface(font);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -476,6 +492,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         RelativeLayout.LayoutParams publisher_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
                         publisher_head_params.width = screenWidth(FanActivity.this) / streams;
                         mPublisherViewContainer.setLayoutParams(publisher_head_params);
+
+                        mPublisher.getView().setVisibility(View.VISIBLE);
+                        mPublisherViewContainer.setVisibility(View.VISIBLE);
                     }
 
 
@@ -599,19 +618,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void leaveLine() {
-        mHandler.postDelayed(new Runnable() {
+        mHandler.post(new Runnable() {
             @Override
             public void run() {
 
                 mLoadingSubPublisher.setVisibility(View.GONE);
-                if (mPublisher != null) {
-                    mPublisherViewContainer.removeView(mPublisher.getView());
-                    mPublisher = null;
-                }
                 if (mBackstageSession != null) {
                     mBackstageSession.unpublish(mPublisher);
                     mBackstageSession.disconnect();
                     mBackstageSession = null;
+                }
+                if (mPublisher != null) {
+                    mPublisherViewContainer.removeView(mPublisher.getView());
+                    mPublisher = null;
                 }
                 //Hide chat stuff
                 hideChat();
@@ -619,7 +638,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
                 mNewFanSignalAckd = false;
             }
-        }, 100);
+        });
 
     }
 
@@ -1152,20 +1171,28 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void ackNewFanSignal() {
         mNewFanSignalAckd = true;
 
-        String connectionId = mPublisher.getStream().getConnection().getConnectionId();
-        String sessionId = mBackstageSessionId;
-        String snapshot = mCustomVideoRenderer.getSnapshot();
 
-        Log.i(LOG_TAG, "sending snapshot : " + snapshot);
-        JSONObject obj = new JSONObject();
-        try {
-            obj.put("connectionId", connectionId);
-            obj.put("sessionId", sessionId);
-            obj.put("snapshot", snapshot);
-        } catch (JSONException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
-        }
-        mSocket.SendSnapShot(obj);
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                String connectionId = mPublisher.getStream().getConnection().getConnectionId();
+                String sessionId = mBackstageSessionId;
+                String snapshot = mCustomVideoRenderer.getSnapshot();
+                Log.i(LOG_TAG, "sending snapshot : " + snapshot);
+                JSONObject obj = new JSONObject();
+                try {
+                    obj.put("connectionId", connectionId);
+                    obj.put("sessionId", sessionId);
+                    obj.put("snapshot", snapshot);
+                } catch (JSONException ex) {
+                    Log.e(LOG_TAG, ex.getMessage());
+                }
+                mSocket.SendSnapShot(obj);
+            }
+        });
+
+
     }
 
     private void joinBackstage() {
@@ -1179,6 +1206,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectWithOnstage() {
         //Hidding leave line button
         mGetInLine.setVisibility(View.GONE);
+        mPublisherViewContainer.setVisibility(View.GONE);
+        mPublisher.getView().setVisibility(View.GONE);
         mBackstageSession.unpublish(mPublisher);
         setUserStatus(R.string.status_onstage);
     }
@@ -1187,11 +1216,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLiveButton.setVisibility(View.VISIBLE);
         mUserIsOnstage = true;
 
-        mPublisherViewContainer.setVisibility(View.VISIBLE);
         mSession.publish(mPublisher);
         if (mHostStream != null && mSubscriberHost == null) subscribeHostToStream(mHostStream);
         if (mCelebirtyStream != null && mSubscriberCelebrity == null) subscribeCelebrityToStream(mCelebirtyStream);
         updateViewsWidth();
+
 
     }
 
@@ -1248,11 +1277,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void refreshUnreadMessages() {
         if(mUnreadMessages > 0) {
-            mTextoUnreadMessages.setVisibility(View.VISIBLE);
+            mTextUnreadMessages.setVisibility(View.VISIBLE);
         } else {
-            mTextoUnreadMessages.setVisibility(View.GONE);
+            mTextUnreadMessages.setVisibility(View.GONE);
         }
-        mTextoUnreadMessages.setText(Integer.toString(mUnreadMessages));
+        mTextUnreadMessages.setText(Integer.toString(mUnreadMessages));
     }
 
     private void videoOnOff(String data){
@@ -1417,13 +1446,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisherViewContainer.setVisibility(View.VISIBLE);
         mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
-        mSocket.connect();
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mSocket.emitJoinRoom(mBackstageSessionId);
-            }
-        }, 2000);
+
+        //Send socket signal
+        mSocket.emitJoinRoom(mBackstageSessionId);
 
         if (mPublisher == null) {
 

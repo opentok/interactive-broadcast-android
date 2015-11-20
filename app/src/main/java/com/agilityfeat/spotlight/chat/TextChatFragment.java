@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -18,6 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.agilityfeat.spotlight.R;
+import com.agilityfeat.spotlight.events.EventUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -41,7 +43,9 @@ public class TextChatFragment extends Fragment {
     private ImageButton mCloseChat;
     private EditText mMsgEditText;
     private TextView mMsgNotificationView;
+    private TextView mTopBarTitle;
     private View mMsgDividerView;
+    private Typeface mFont;
 
     private int maxTextLength = 1000; // By default the maximum length is 1000.
 
@@ -67,14 +71,14 @@ public class TextChatFragment extends Fragment {
 
         View rootView = inflater.inflate(R.layout.textchat_fragment_layout,
                 container, false);
-
+        mFont = EventUtils.getFont(mContext);
         mListView = (ListView) rootView.findViewById(R.id.msgs_list);
         mSendButton = (ImageButton) rootView.findViewById(R.id.send_button);
         mCloseChat = (ImageButton) rootView.findViewById(R.id.close_chat);
         mMsgNotificationView = (TextView) rootView.findViewById(R.id.new_msg_notification);
         mMsgEditText = (EditText) rootView.findViewById(R.id.edit_msg);
         mMsgDividerView = (View) rootView.findViewById(R.id.divider_notification);
-
+        mTopBarTitle = (TextView) rootView.findViewById(R.id.top_bar_title);
         mSendButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
@@ -91,11 +95,17 @@ public class TextChatFragment extends Fragment {
         });
 
         mMessageAdapter = new MessageAdapter(getActivity(), R.layout.sent_msg_row_layout, mMsgsList);
-
         mListView.setAdapter(mMessageAdapter);
+        setupFonts();
 
 
         return rootView;
+    }
+
+    private void setupFonts() {
+
+        mMsgEditText.setTypeface(mFont);
+        mTopBarTitle.setTypeface(mFont);
     }
 
     /**

@@ -1,12 +1,15 @@
 package com.agilityfeat.spotlight.chat;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import com.agilityfeat.spotlight.R;
+import com.agilityfeat.spotlight.events.EventUtils;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,7 +21,7 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
 
     private final static int VIEW_TYPE_ROW_SENT = 0;
     private final static int VIEW_TYPE_ROW_RECEIVED = 2;
-
+    private Typeface mFont;
 
 
     private List<ChatMessage> messagesList = new ArrayList<ChatMessage>();
@@ -34,6 +37,7 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
     public MessageAdapter(Context context, int resource, List<ChatMessage> entities) {
         super(context, resource, entities);
         this.messagesList = entities;
+        mFont = EventUtils.getFont(context);
     }
 
 
@@ -109,39 +113,21 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
                     holder.viewType = VIEW_TYPE_ROW_RECEIVED;
                     break;
             }
-            if (!messagesGroup) {
-                holder.aliasText = (TextView) convertView.findViewById(R.id.name);
-                holder.timestampText = (TextView) convertView.findViewById(R.id.msg_time);
-
-
-            }
-
+            holder.aliasText = (TextView) convertView.findViewById(R.id.name);
             holder.messageText = (TextView) convertView.findViewById(R.id.msg_text);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
+        //Set fonts
+        holder.messageText.setTypeface(mFont);
+        holder.aliasText.setTypeface(mFont);
+
         //msg alias
         holder.aliasText.setText(message.getSenderAlias()+":");
-
-        //msg time
-        SimpleDateFormat ft =
-                new SimpleDateFormat("hh:mm a");
-        holder.timestampText.setText(ft.format(new
-
-                        Date(message.getTimestamp()
-
-                )).
-
-                        toString()
-        );
-
         //msg txt
         holder.messageText.setText(message.getText());
-
-        //divider
-
 
         return convertView;
     }

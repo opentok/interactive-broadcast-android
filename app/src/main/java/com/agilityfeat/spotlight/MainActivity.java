@@ -3,16 +3,19 @@ package com.agilityfeat.spotlight;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.widget.GridView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.events.EventAdapter;
+import com.agilityfeat.spotlight.events.EventUtils;
 import com.agilityfeat.spotlight.model.InstanceApp;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 
@@ -35,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     private ArrayList<JSONObject> mEventList = new ArrayList<JSONObject>();
     private EventAdapter mEventAdapter;
     private GridView mListActivities;
+    private TextView mEventListTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +49,11 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         setContentView(R.layout.activity_main);
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
+
+        //Set fonts
+        mEventListTitle = (TextView) findViewById(R.id.event_list_title);
+        Typeface font = EventUtils.getFont(this);
+        mEventListTitle.setTypeface(font);
 
         //start the progress bar
         startLoadingAnimation();
