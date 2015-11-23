@@ -29,6 +29,7 @@ public class SocketCoordinator {
 
     public void connect() {
         mSocket.connect();
+
         Log.i(LOG_TAG, "connected");
     }
 
@@ -40,6 +41,21 @@ public class SocketCoordinator {
             Log.i(LOG_TAG, "joinRoom not emitted");
         }
     }
+
+    public Socket getSocket() {
+        return mSocket;
+    }
+
+    public void on(String sessionIdProducer) {
+        if(mSocket.connected()) {
+            mSocket.emit("joinRoom", sessionIdProducer);
+            Log.i(LOG_TAG, "joinRoom emitted");
+        } else {
+            Log.i(LOG_TAG, "joinRoom not emitted");
+        }
+    }
+
+
 
     public void SendSnapShot(JSONObject data) {
         mSocket.emit("mySnapshot", data);

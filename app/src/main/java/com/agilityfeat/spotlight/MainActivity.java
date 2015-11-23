@@ -17,7 +17,11 @@ import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.events.EventAdapter;
 import com.agilityfeat.spotlight.events.EventUtils;
 import com.agilityfeat.spotlight.model.InstanceApp;
+import com.agilityfeat.spotlight.services.ClearNotificationService;
+import com.agilityfeat.spotlight.socket.SocketCoordinator;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
+import com.github.nkzawa.emitter.Emitter;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,11 +43,11 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     private EventAdapter mEventAdapter;
     private GridView mListActivities;
     private TextView mEventListTitle;
+    private SocketCoordinator mSocket;
+    private JSONArray mArrEvents;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-        Log.i(LOG_TAG, "usert type = " + SpotlightConfig.USER_TYPE);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -55,11 +59,53 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         Typeface font = EventUtils.getFont(this);
         mEventListTitle.setTypeface(font);
 
+        mSocket = new SocketCoordinator();
+        mSocket.connect();
+        mSocket.getSocket().on("change-event-status", onChangeStatus);
+
         //start the progress bar
         startLoadingAnimation();
 
         getInstanceId();
     }
+
+    private Emitter.Listener onChangeStatus = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            JSONObject data = (JSONObject) args[0];
+
+            String id;
+            String newStatus;
+            try {
+                id = data.getString("id");
+                newStatus = data.getString("newStatus");
+                Log.i(LOG_TAG, "change" + newStatus);
+
+
+
+
+                for (int i=0; i<mArrEvents.length(); i++) {
+                    if(mArrEvents.getJSONObject(i).getString("id").equals(id)) {
+                        mArrEvents.getJSONObject(i).put("status", newStatus);
+                        break;
+                    }
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showEventList();
+                    }
+                });
+
+
+            } catch (JSONException e) {
+                return;
+            }
+
+        }
+    };
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -84,6 +130,14 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
             getInstanceId();
         }
 
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (isFinishing()) {
+            mSocket.disconnect();
+        }
     }
 
     public void getInstanceId() {
@@ -112,12 +166,12 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         Log.i(LOG_TAG, "starting event list app");
 
         mListActivities = (GridView) findViewById(R.id.gridView);
-        JSONArray arrEvents = InstanceApp.getInstance().getEvents();
         mEventList.clear();
         try {
-            for (int i=0; i<arrEvents.length(); i++) {
-                Log.i(LOG_TAG, "iteration" + (arrEvents.getJSONObject(i).getString("event_name")));
-                mEventList.add(arrEvents.getJSONObject(i));
+            for (int i=0; i<mArrEvents.length(); i++) {
+                if(!mArrEvents.getJSONObject(i).getString("status").equals("C")) {
+                    mEventList.add(mArrEvents.getJSONObject(i));
+                }
             }
         } catch(JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -165,21 +219,21 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         InstanceApp.getInstance().setData(instanceAppData);
 
         Boolean bSuccess = false;
-        JSONArray arrEvents = new JSONArray();
+        mArrEvents = new JSONArray();
         try {
             bSuccess = (Boolean)instanceAppData.get("success");
             if(instanceAppData.has("events")) {
-                arrEvents = instanceAppData.getJSONArray("events");
+                mArrEvents = instanceAppData.getJSONArray("events");
             }
 
             if(bSuccess) {
                 SpotlightConfig.FRONTEND_URL = (String)instanceAppData.get("frontend_url");
                 SpotlightConfig.DEFAULT_EVENT_IMAGE = (String)instanceAppData.get("default_event_image");
                 //Check the count of events.
-                if(arrEvents.length() > 1) {
+                if(mArrEvents.length() > 1) {
                     showEventList();
                 } else {
-                    if(arrEvents.length() == 1) {
+                    if(mArrEvents.length() == 1) {
                         showEvent();
                     } else {
                         Toast.makeText(getApplicationContext(),"No events were found", Toast.LENGTH_LONG).show();

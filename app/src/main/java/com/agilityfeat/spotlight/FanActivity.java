@@ -163,6 +163,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSocket = new SocketCoordinator();
         mSocket.connect();
 
+
         initLayoutWidgets();
 
         setupFonts();
@@ -170,6 +171,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Get the event
         requestEventData(savedInstanceState);
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
