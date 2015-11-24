@@ -120,12 +120,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextView mGoLiveStatus;
     private TextView mGoLiveNumber;
     private TextView mTextUnreadMessages;
+    private TextView mLiveButton;
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
     private ImageView mIconCheck;
     private Button mGetInLine;
-    private Button mLiveButton;
+
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
@@ -208,12 +209,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
         mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
+        mLiveButton = (TextView) findViewById(R.id.live_button);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mIconCheck = (ImageView) findViewById(R.id.icon_check);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
-        mLiveButton = (Button) findViewById(R.id.live_button);
+
     }
 
     private void setupFonts() {
@@ -704,6 +706,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void subscribeProducer() {
         if(mProducerStream != null) {
+            enableVideoAndAudio(true);
+
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
             mBackstageSession.subscribe(mSubscriberProducer);
             setUserStatus(R.string.status_incall);
@@ -712,6 +716,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void unSubscribeProducer() {
         if (mProducerStream!= null && mSubscriberProducer != null) {
+
+            enableVideoAndAudio(false);
+
             mBackstageSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
             setUserStatus(R.string.status_inline);
@@ -1008,10 +1015,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mBackstageSession != null) {
             Log.i(LOG_TAG, "Check video quality stats data");
             if (mVideoBw < 150000 || mVideoPLRatio > 0.03) {
-                /*mPublisher.setPublishVideo(false);
-                mSelfSubscriber.setSubscribeToVideo(false);
-                mSelfSubscriber.setVideoStatsListener(null);
-                audioOnly = true;*/
                 mQuality = "Poor";
             } else if (mVideoBw > 350 * 1000) {
                 mQuality = "Great";
@@ -1021,6 +1024,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSelfSubscriber.setVideoStatsListener(null);
             mSelfSubscriber.setAudioStatsListener(null);
             Log.i(LOG_TAG, "Publisher quality is " + mQuality);
+            Log.i(LOG_TAG, "mVideoBw is " + mVideoBw);
+            Log.i(LOG_TAG, "mVideoPLRatio is " + mVideoPLRatio);
             mBackstageSession.unsubscribe(mSelfSubscriber);
             mSelfSubscriber = null;
         }
@@ -1202,14 +1207,22 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinBackstage() {
+        enableVideoAndAudio(true);
         setUserStatus(R.string.status_backstage);
     }
 
+    private void enableVideoAndAudio(Boolean enable) {
+        mPublisher.setPublishAudio(enable);
+        mPublisher.setPublishVideo(enable);
+    }
+
     private void disconnectBackstage() {
+        enableVideoAndAudio(false);
         setUserStatus(R.string.status_inline);
     }
 
     private void connectWithOnstage() {
+
         //Hidding leave line button
         setVisibilityGetInLine(View.GONE);
         mPublisherViewContainer.setVisibility(View.GONE);
@@ -1221,8 +1234,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void publishOnStage(){
         mLiveButton.setVisibility(View.VISIBLE);
         mUserIsOnstage = true;
-
+        enableVideoAndAudio(true);
         mSession.publish(mPublisher);
+
         if (mHostStream != null && mSubscriberHost == null) subscribeHostToStream(mHostStream);
         if (mCelebirtyStream != null && mSubscriberCelebrity == null) subscribeCelebrityToStream(mCelebirtyStream);
         updateViewsWidth();
@@ -1485,6 +1499,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     String userName = SpotlightConfig.USER_NAME;
                     String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
+
+                    mPublisherViewContainer.setVisibility(View.GONE);
+                    mPublisher.getView().setVisibility(View.GONE);
+
+                    enableVideoAndAudio(false);
+
                 } else {
                     mTimeTotalTest += 0.5;
                     if(mTimeTotalTest >= TIME_MAX_TEST) {

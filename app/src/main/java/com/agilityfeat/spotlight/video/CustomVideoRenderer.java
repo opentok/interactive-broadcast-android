@@ -467,12 +467,6 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
     public void onVideoPropertiesChanged(boolean videoEnabled) {
         Log.i(LOG_TAG, "onVideoPropertiesChanged " + Boolean.toString(videoEnabled));
         mRenderer.disableVideo(!videoEnabled);
-        if(!videoEnabled) {
-            mView.setVisibility(View.GONE);
-        } else {
-            mView.setVisibility(View.VISIBLE);
-        }
-
     }
 
     @Override

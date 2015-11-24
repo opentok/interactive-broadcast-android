@@ -61,8 +61,7 @@
         android:gravity="center_horizontal"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="false"
-        android:layout_below="@+id/event_name"
-        android:visibility="visible">
+        android:layout_below="@+id/event_name">
 
         <ProgressBar
             style="?android:attr/progressBarStyleLarge"
@@ -76,23 +75,38 @@
 
     <RelativeLayout
         android:id="@+id/publisherView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:gravity="center_horizontal"
         android:keepScreenOn="true"
-        android:layout_alignParentBottom="true"
-        android:visibility="visible">
+        android:layout_alignParentBottom="false"
+        android:visibility="gone"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/event_list_top_bar"
+        android:background="@drawable/publisher_bg"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="7dp"
+        android:layout_marginBottom="10dp">
 
     </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/relativeLayout"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:gravity="center_horizontal"
         android:keepScreenOn="true"
-        android:layout_alignParentBottom="true"
-        android:visibility="visible" >
+        android:layout_alignParentBottom="false"
+        android:visibility="gone"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/event_list_top_bar"
+        android:background="@drawable/publisher_bg"
+        android:layout_marginRight="8dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp">
 
         <ProgressBar
             android:id="@+id/loadingSpinnerPublisher"
@@ -101,7 +115,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:indeterminate="false"
-            android:visibility="gone" />
+            android:visibility="visible" />
     </RelativeLayout>
 
     <ImageButton
@@ -226,24 +240,24 @@
             android:layout_marginRight="5dp"
             android:paddingLeft="30dp" />
 
-        <Button
-            style="?android:attr/buttonStyleSmall"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="35dp"
-            android:text="@string/live_text"
+            android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/live_button"
-            android:onClick="onGetInLineClicked"
-            android:visibility="gone"
-            android:background="@drawable/live_button"
             android:textColor="@color/live_color"
             android:textSize="15sp"
+            android:paddingLeft="10dp"
+            android:background="@color/top_bar_background_color"
+            android:gravity="center_vertical"
             android:typeface="normal"
-            android:paddingRight="5dp"
-            android:layout_centerVertical="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
             android:layout_marginRight="5dp"
-            android:paddingLeft="10dp" />
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:paddingRight="5dp"
+            android:text="@string/live_text"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
