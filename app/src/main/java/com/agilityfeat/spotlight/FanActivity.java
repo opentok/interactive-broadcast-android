@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.usage.UsageEvents;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -68,7 +67,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
     private static final int TIME_WINDOW = 3; //3 seconds
-    private static final int TIME_VIDEO_TEST = 10; //time interval to check the video quality in seconds
+    private static final int TIME_VIDEO_TEST = 15; //time interval to check the video quality in seconds
     private static final int TIME_MAX_TEST = 20;
 
     //Test call vars
@@ -133,13 +132,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private RelativeLayout mSubscriberHostViewContainer;
     private RelativeLayout mSubscriberCelebrityViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
+    private RelativeLayout mPublisherSpinnerLayout;
     private FrameLayout mFragmentContainer;
 
 
     // Spinning wheel for loading subscriber view
     private ProgressBar mLoadingSubCelebrity;
     private ProgressBar mLoadingSubHost;
-    private ProgressBar mLoadingSubPublisher;
     private ProgressBar mLoadingSubFan;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
@@ -202,7 +201,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLoadingSubCelebrity = (ProgressBar) findViewById(R.id.loadingSpinnerCelebrity);
         mLoadingSubHost = (ProgressBar) findViewById(R.id.loadingSpinnerHost);
         mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
-        mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
+        mPublisherSpinnerLayout = (RelativeLayout) findViewById(R.id.publisher_spinner_layout);
         mEventName = (TextView) findViewById(R.id.event_name);
         mEventStatus = (TextView) findViewById(R.id.event_status);
         mUserStatus = (TextView) findViewById(R.id.user_status);
@@ -538,7 +537,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Connected to the session");
         setVisibilityGetInLine(View.VISIBLE);
         // stop loading spinning
-        mLoadingSubPublisher.setVisibility(View.GONE);
+        //mPublisherSpinnerLayout.setVisibility(View.GONE);
 
         //Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
@@ -629,7 +628,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
 
-                mLoadingSubPublisher.setVisibility(View.GONE);
+
                 if (mBackstageSession != null) {
                     mBackstageSession.unpublish(mPublisher);
                     mBackstageSession.disconnect();
@@ -644,6 +643,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
                 mIconCheck.setImageResource(R.drawable.icon_check_circle);
+                mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
             }
         });
@@ -893,12 +893,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
-        Log.i(LOG_TAG, "mSelfSubscriber=" + String.valueOf(mSelfSubscriber == null));
-        Log.i(LOG_TAG, "mQuality=" + String.valueOf(mQuality.equals("")));
-
+        mPublisherSpinnerLayout.setVisibility(View.GONE);
         if (mQuality.equals("")) {
             subscribeToSelfStream(stream);
+        } else {
+            if(stream.getSession().getSessionId() == mBackstageSessionId) {
+                hidePublisher();
+            }
         }
+    }
+
+    private void hidePublisher() {
+        mPublisherViewContainer.setVisibility(View.GONE);
+        mPublisher.getView().setVisibility(View.GONE);
+        enableVideoAndAudio(false);
     }
 
     private void subscribeToSelfStream(Stream stream) {
@@ -1028,6 +1036,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.i(LOG_TAG, "mVideoPLRatio is " + mVideoPLRatio);
             mBackstageSession.unsubscribe(mSelfSubscriber);
             mSelfSubscriber = null;
+
+            hidePublisher();
         }
     }
 
@@ -1225,8 +1235,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Hidding leave line button
         setVisibilityGetInLine(View.GONE);
-        mPublisherViewContainer.setVisibility(View.GONE);
-        mPublisher.getView().setVisibility(View.GONE);
         mBackstageSession.unpublish(mPublisher);
         setUserStatus(R.string.status_onstage);
     }
@@ -1234,8 +1242,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void publishOnStage(){
         mLiveButton.setVisibility(View.VISIBLE);
         mUserIsOnstage = true;
-        enableVideoAndAudio(true);
         mSession.publish(mPublisher);
+        enableVideoAndAudio(true);
 
         if (mHostStream != null && mSubscriberHost == null) subscribeHostToStream(mHostStream);
         if (mCelebirtyStream != null && mSubscriberCelebrity == null) subscribeCelebrityToStream(mCelebirtyStream);
@@ -1252,9 +1260,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Unpublish
         mSession.unpublish(mPublisher);
 
+        //Hide publisher
+        hidePublisher();
+
         //Hide chat
         hideChat();
-        mLoadingSubPublisher.setVisibility(View.GONE);
 
         //Disconnect from backstage
         if(mBackstageSession!=null) mBackstageSession.disconnect();
@@ -1464,13 +1474,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void setVisibilityGetInLine(int visibility) {
         mGetInLine.setVisibility(visibility);
         mIconCheck.setVisibility(visibility);
+        mIconCheck.setVisibility(visibility);
     }
 
     public void initGetInline() {
         setVisibilityGetInLine(View.GONE);
         mIconCheck.setImageResource(R.drawable.icon_close_circle);
         mPublisherViewContainer.setVisibility(View.VISIBLE);
-        mLoadingSubPublisher.setVisibility(View.VISIBLE);
+        mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
 
 
         //Send socket signal
@@ -1499,17 +1510,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     String userName = SpotlightConfig.USER_NAME;
                     String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
-
-                    mPublisherViewContainer.setVisibility(View.GONE);
-                    mPublisher.getView().setVisibility(View.GONE);
-
-                    enableVideoAndAudio(false);
-
                 } else {
-                    mTimeTotalTest += 0.5;
+                    if(mStartTestTime > 0) mTimeTotalTest += 0.5;
                     if(mTimeTotalTest >= TIME_MAX_TEST) {
                         Log.i(LOG_TAG, "Quality test time out. Forcing to Poor quality");
                         mQuality = "Poor";
+                        hidePublisher();
                         if(mSelfSubscriber!=null) {
                             mSelfSubscriber.setVideoStatsListener(null);
                             mSelfSubscriber.setAudioStatsListener(null);
