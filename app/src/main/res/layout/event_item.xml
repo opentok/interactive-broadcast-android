@@ -6,7 +6,7 @@
     android:background="#FFFFFF">
 
     <RelativeLayout android:id="@+id/info_row"
-        android:layout_height="wrap_content"
+        android:layout_height="190dp"
         android:layout_width="200dp"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="false"
@@ -62,7 +62,8 @@
             android:layout_alignStart="@+id/date_status"
             android:layout_alignParentLeft="true"
             android:layout_margin="10dp"
-            android:gravity="center" />
+            android:gravity="center"
+            android:visibility="gone" />
     </RelativeLayout>
 
 </RelativeLayout>

@@ -23,7 +23,10 @@ import org.json.JSONObject;
 
 
 import java.lang.reflect.Type;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -76,6 +79,27 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
             }
             holder.name.setText(event.getString("event_name"));
             holder.date_status.setText(EventUtils.getStatusNameById(event.getString("status")));
+            if(event.getString("status").equals("N")) {
+                //holder.join_event.setVisibility(View.GONE);
+
+                if(!event.getString("date_time_start").equals("null")){
+                    holder.date_status.setText(event.getString("date_time_start"));
+                    Date date = new Date();
+                    //msg time
+                    SimpleDateFormat ft = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+                    SimpleDateFormat ft2 = new SimpleDateFormat("MMM dd, yyyy hh:mm:ss a");
+                    try {
+                        date = ft.parse(event.getString("date_time_start").replace(".0", ""));
+                    }
+                    catch(ParseException pe) {
+                        Log.e(LOG_TAG, pe.getMessage());
+                    }
+
+                    holder.date_status.setText(ft2.format(date).toString().toUpperCase());
+                }
+            } else {
+                holder.join_event.setVisibility(View.VISIBLE);
+            }
             holder.join_event.setOnClickListener(new View.OnClickListener() {
 
                 @Override
