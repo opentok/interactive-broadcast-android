@@ -135,9 +135,15 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
     @Override
     public void onStop() {
         super.onStop();
-        if (isFinishing()) {
-            mSocket.disconnect();
-        }
+
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mSocket.disconnect();
+        mSocket.getSocket().off("change-event-status", onChangeStatus);
+
     }
 
     public void getInstanceId() {
@@ -208,6 +214,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
         localBundle.putString("event_index",Integer.toString(event_index));
         localIntent.putExtras(localBundle);
         startActivity(localIntent);
+        finish();
     }
 
     /**

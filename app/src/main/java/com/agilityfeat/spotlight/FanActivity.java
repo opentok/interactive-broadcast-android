@@ -541,11 +541,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
-            mPublisher.setAudioFallbackEnabled(false);
+            //mPublisher.setAudioFallbackEnabled(false);
             mBackstageSession.publish(mPublisher);
             setUserStatus(R.string.status_inline);
             mGetInLine.setText(getResources().getString(R.string.leave_line));
-
             mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
 
 
@@ -1511,7 +1510,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
-                    if(mStartTestTime > 0) mTimeTotalTest += 0.5;
+                    mTimeTotalTest += 0.5;
                     if(mTimeTotalTest >= TIME_MAX_TEST) {
                         Log.i(LOG_TAG, "Quality test time out. Forcing to Poor quality");
                         mQuality = "Poor";

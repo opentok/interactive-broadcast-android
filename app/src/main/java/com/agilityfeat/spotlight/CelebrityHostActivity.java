@@ -660,8 +660,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onVideoDataReceived(SubscriberKit subscriber) {
-        Log.i(LOG_TAG, "First frame received");
-        Log.i(LOG_TAG, "onVideoDataReceived " + subscriber.getStream().getConnection().getData());
         if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
             // stop loading spinning
             mLoadingSubFan.setVisibility(View.GONE);

@@ -1,5 +1,6 @@
 package com.agilityfeat.spotlight.events;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -130,7 +131,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
             localIntent = new Intent(mContext, CelebrityHostActivity.class);
         }
         Bundle localBundle = new Bundle();
-        localBundle.putString("event_index",Integer.toString(event_index));
+        localBundle.putString("event_index", Integer.toString(event_index));
         localIntent.putExtras(localBundle);
         mContext.startActivity(localIntent);
     }
