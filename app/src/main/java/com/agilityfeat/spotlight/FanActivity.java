@@ -125,6 +125,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
     private ImageView mIconCheck;
+    private ImageView mCircleLiveButton;
     private Button mGetInLine;
 
 
@@ -219,6 +220,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mIconCheck = (ImageView) findViewById(R.id.icon_check);
+        mCircleLiveButton = (ImageView) findViewById(R.id.circle_live_button);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
 
@@ -318,8 +320,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         mNotifyBuilder = new NotificationCompat.Builder(this)
                 .setContentTitle(this.getTitle())
-                .setContentText(getResources().getString(R.string.notification));
-        //.setSmallIcon(R.drawable.ic_launcher).setOngoing(true);
+                .setContentText(getResources().getString(R.string.notification))
+                .setSmallIcon(R.drawable.ic_launcher).setOngoing(true);
 
         Intent notificationIntent = new Intent(this, FanActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -332,9 +334,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mConnection = new ServiceConnection() {
                 @Override
                 public void onServiceConnected(ComponentName className, IBinder binder) {
-                    ((ClearNotificationService.ClearBinder) binder).service.startService(new Intent(FanActivity.this, ClearNotificationService.class));
-                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                    mNotificationManager.notify(ClearNotificationService.NOTIFICATION_ID, mNotifyBuilder.build());
+                    try {
+                        ((ClearNotificationService.ClearBinder) binder).service.startService(new Intent(FanActivity.this, ClearNotificationService.class));
+                        NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                        mNotificationManager.notify(ClearNotificationService.NOTIFICATION_ID, mNotifyBuilder.build());
+                    } catch (Exception ex) {
+                        Log.e(LOG_TAG, ex.getMessage());
+                    }
+
                 }
 
                 @Override
@@ -641,6 +648,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mBackstageSession = null;
                 }
                 if (mPublisher != null) {
+                    mPublisherViewContainer.setVisibility(View.GONE);
+                    mPublisher.getView().setVisibility(View.GONE);
                     mPublisherViewContainer.removeView(mPublisher.getView());
                     mPublisher = null;
                 }
@@ -1247,6 +1256,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void publishOnStage(){
         mLiveButton.setVisibility(View.VISIBLE);
+        mCircleLiveButton.setVisibility(View.VISIBLE);
         mUserIsOnstage = true;
         mSession.publish(mPublisher);
         enableVideoAndAudio(true);
@@ -1281,6 +1291,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         updateViewsWidth();
         mLiveButton.setVisibility(View.GONE);
+        mCircleLiveButton.setVisibility(View.GONE);
         Toast.makeText(getApplicationContext(), "Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.", Toast.LENGTH_LONG).show();
 
     }

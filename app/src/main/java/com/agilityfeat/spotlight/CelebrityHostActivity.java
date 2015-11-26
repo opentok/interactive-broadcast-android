@@ -274,8 +274,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         mNotifyBuilder = new NotificationCompat.Builder(this)
                 .setContentTitle(this.getTitle())
-                .setContentText(getResources().getString(R.string.notification));
-                //.setSmallIcon(R.drawable.ic_launcher).setOngoing(true);
+                .setContentText(getResources().getString(R.string.notification))
+                .setSmallIcon(R.drawable.ic_launcher).setOngoing(true);
 
         Intent notificationIntent = new Intent(this, CelebrityHostActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -598,6 +598,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 }
                 break;
             case "usertype=celebrity":
+                Log.i(LOG_TAG, "Celebrity!");
                 if (mCelebirtyStream == null) {
                     subscribeToStream(stream);
                     mCelebirtyStream = stream;
