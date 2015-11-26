@@ -21,6 +21,7 @@ import com.agilityfeat.spotlight.services.ClearNotificationService;
 import com.agilityfeat.spotlight.socket.SocketCoordinator;
 import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 import com.github.nkzawa.emitter.Emitter;
+import com.newrelic.agent.android.NewRelic;
 
 
 import org.json.JSONException;
@@ -51,6 +52,11 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //Adding NewRelic
+        NewRelic.withApplicationToken(
+                SpotlightConfig.NEWRELIC_TOKEN
+        ).start(this.getApplication());
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
 
@@ -211,7 +217,7 @@ public class MainActivity extends AppCompatActivity implements WebServiceCoordin
             localIntent = new Intent(MainActivity.this, CelebrityHostActivity.class);
         }
         Bundle localBundle = new Bundle();
-        localBundle.putString("event_index",Integer.toString(event_index));
+        localBundle.putString("event_index", Integer.toString(event_index));
         localIntent.putExtras(localBundle);
         startActivity(localIntent);
         finish();

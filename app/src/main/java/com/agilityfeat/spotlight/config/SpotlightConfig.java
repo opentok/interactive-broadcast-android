@@ -16,7 +16,9 @@ public class SpotlightConfig {
     public static String INSTANCE_ID = "AAAA1";
     public static String USER_TYPE = "fan";
     public static String USER_NAME = "anonymous";
+    public static String NEWRELIC_TOKEN = "AA7e042e8e5d41efec5f390b3f00cf4943c1a3b79d";
     private String mUserType = "";
+
 
 
     public void setUserType(String userType) {

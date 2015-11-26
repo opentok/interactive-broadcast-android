@@ -57,6 +57,7 @@ import org.json.JSONObject;
 import com.agilityfeat.spotlight.chat.ChatMessage;
 import com.agilityfeat.spotlight.chat.TextChatFragment;
 
+import com.newrelic.agent.android.NewRelic;
 
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -156,6 +157,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fan);
+
+        //Adding NewRelic
+        NewRelic.withApplicationToken(
+                SpotlightConfig.NEWRELIC_TOKEN
+        ).start(this.getApplication());
+
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

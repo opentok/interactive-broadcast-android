@@ -40,6 +40,7 @@ import com.agilityfeat.spotlight.ws.WebServiceCoordinator;
 import com.agilityfeat.spotlight.services.ClearNotificationService;
 
 
+import com.newrelic.agent.android.NewRelic;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
 import com.opentok.android.OpentokError;
@@ -111,6 +112,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_celebrity_host);
+
+        //Adding NewRelic
+        NewRelic.withApplicationToken(
+                SpotlightConfig.NEWRELIC_TOKEN
+        ).start(this.getApplication());
+
 
         //Hide the bar
         getSupportActionBar().hide();
