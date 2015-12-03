@@ -919,9 +919,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void hidePublisher() {
-        mPublisherViewContainer.setVisibility(View.GONE);
-        mPublisher.getView().setVisibility(View.GONE);
-        enableVideoAndAudio(false);
+        if(mPublisher != null) {
+            mPublisherViewContainer.setVisibility(View.GONE);
+            mPublisher.getView().setVisibility(View.GONE);
+            enableVideoAndAudio(false);
+        }
+
     }
 
     private void subscribeToSelfStream(Stream stream) {
