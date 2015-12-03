@@ -913,16 +913,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             subscribeToSelfStream(stream);
         } else {
             if(stream.getSession().getSessionId() == mBackstageSessionId) {
-                hidePublisher();
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        hidePublisher();
+                    }
+                }, 10000);
             }
         }
     }
 
     private void hidePublisher() {
         if(mPublisher != null) {
+
             mPublisherViewContainer.setVisibility(View.GONE);
             mPublisher.getView().setVisibility(View.GONE);
             enableVideoAndAudio(false);
+
         }
 
     }
