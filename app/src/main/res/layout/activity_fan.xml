@@ -119,8 +119,8 @@
     </RelativeLayout>
 
     <ImageButton
-        android:layout_width="80dp"
-        android:layout_height="80dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:id="@+id/chat_button"
         android:layout_alignParentBottom="false"
         android:layout_alignParentRight="false"
@@ -128,7 +128,7 @@
         android:src="@drawable/icon_bubble"
         android:background="@drawable/chat_button_bg"
         android:onClick="onChatButtonClicked"
-        android:visibility="gone"
+        android:visibility="visible"
         android:layout_alignParentTop="false"
         android:layout_below="@+id/event_list_top_bar"
         android:alpha="0.8"
@@ -144,18 +144,16 @@
         android:id="@+id/unread_messages"
         android:background="@drawable/unread_messages"
         android:textColor="#FFFFFF"
-        android:layout_alignTop="@+id/chat_button"
         android:layout_alignStart="@+id/chat_button"
-        android:textSize="25dp"
-        android:visibility="gone"
-        android:layout_marginTop="5dp"
-        android:layout_marginLeft="30dp"
+        android:textSize="20dp"
+        android:visibility="visible"
         android:textAlignment="center"
         android:gravity="center"
         android:foreground="#ee0f0f"
         android:foregroundGravity="fill_vertical"
-        android:layout_alignRight="@+id/chat_button"
-        android:layout_alignEnd="@+id/chat_button" />
+        android:layout_alignEnd="@+id/chat_button"
+        android:layout_alignBottom="@+id/chat_button"
+        android:layout_marginRight="18dp" />
 
     <TextView
         android:layout_width="wrap_content"
