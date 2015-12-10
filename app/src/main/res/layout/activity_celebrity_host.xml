@@ -67,13 +67,12 @@ android:background="#000000" >
     </RelativeLayout>
 
     <TextView
-        android:layout_width="350dp"
+        android:layout_width="250dp"
         android:layout_height="200dp"
         android:id="@+id/go_live_status"
         android:background="@drawable/user_status_button"
         android:textSize="30sp"
         android:textColor="@color/user_status_text_color"
-        android:alpha="0.8"
         android:visibility="gone"
         android:text="@string/going_on_stage"
         android:textAlignment="center"
@@ -83,7 +82,7 @@ android:background="#000000" >
         android:paddingTop="50dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="59dp" />
+        android:layout_marginBottom="30dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -92,7 +91,6 @@ android:background="#000000" >
         android:background="@drawable/user_status_button"
         android:textSize="60sp"
         android:textColor="@color/user_status_text_color"
-        android:alpha="0.8"
         android:visibility="gone"
         android:text="3"
         android:textAlignment="center"
@@ -101,7 +99,7 @@ android:background="#000000" >
         android:inputType="textMultiLine"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="90dp" />
+        android:layout_marginBottom="60dp" />
 
     <TextView
         android:layout_width="wrap_content"

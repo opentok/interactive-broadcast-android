@@ -123,6 +123,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextView mGoLiveNumber;
     private TextView mTextUnreadMessages;
     private TextView mLiveButton;
+    private TextView mCameraPreview1;
+    private TextView mCameraPreview2;
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
@@ -144,6 +146,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ProgressBar mLoadingSubCelebrity;
     private ProgressBar mLoadingSubHost;
     private ProgressBar mLoadingSubFan;
+    private ProgressBar mLoadingSubPublisher;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
     private boolean mUserIsOnstage = false;
@@ -211,6 +214,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLoadingSubCelebrity = (ProgressBar) findViewById(R.id.loadingSpinnerCelebrity);
         mLoadingSubHost = (ProgressBar) findViewById(R.id.loadingSpinnerHost);
         mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
+        mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
         mPublisherSpinnerLayout = (RelativeLayout) findViewById(R.id.publisher_spinner_layout);
         mEventName = (TextView) findViewById(R.id.event_name);
         mEventStatus = (TextView) findViewById(R.id.event_status);
@@ -219,6 +223,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mLiveButton = (TextView) findViewById(R.id.live_button);
+        mCameraPreview1 = (TextView) findViewById(R.id.camera_preview_1);
+        mCameraPreview2 = (TextView) findViewById(R.id.camera_preview_2);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
         mCircleLiveButton = (ImageView) findViewById(R.id.circle_live_button);
@@ -237,6 +243,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventStatus.setTypeface(font);
         mGetInLine.setTypeface(font);
         mTextUnreadMessages.setTypeface(font);
+        mCameraPreview1.setTypeface(font);
+        mCameraPreview2.setTypeface(font);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -551,7 +559,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnected(Session session) {
         Log.i(LOG_TAG, "Connected to the session");
-        setVisibilityGetInLine(View.VISIBLE);
+
         // stop loading spinning
         //mPublisherSpinnerLayout.setVisibility(View.GONE);
 
@@ -559,15 +567,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(session.getSessionId().equals(mBackstageSessionId)) {
             //mPublisher.setAudioFallbackEnabled(false);
             mBackstageSession.publish(mPublisher);
-            setUserStatus(R.string.status_inline);
             mGetInLine.setText(getResources().getString(R.string.leave_line));
             mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
-
+            setVisibilityGetInLine(View.VISIBLE);
 
             //loading text-chat ui component
             loadTextChatFragment();
 
         }
+
     }
 
     private void setUserStatus(int status) {
@@ -909,7 +917,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
-        mPublisherSpinnerLayout.setVisibility(View.GONE);
+        mLoadingSubPublisher.setVisibility(View.GONE);
         if (mQuality.equals("")) {
             subscribeToSelfStream(stream);
         } else {
@@ -927,10 +935,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void hidePublisher() {
         if(mPublisher != null) {
 
-            mPublisherViewContainer.setVisibility(View.GONE);
-            mPublisher.getView().setVisibility(View.GONE);
-            enableVideoAndAudio(false);
-
+            AlphaAnimation animation1 = new AlphaAnimation(1f, 0f);
+            animation1.setDuration(2000);
+            //animation1.setFillAfter(true);
+            mPublisherSpinnerLayout.startAnimation(animation1);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mPublisherSpinnerLayout.setVisibility(View.GONE);
+                    mPublisherViewContainer.setVisibility(View.GONE);
+                    mPublisher.getView().setVisibility(View.GONE);
+                    enableVideoAndAudio(false);
+                }
+            }, 2000);
         }
 
     }
@@ -1398,7 +1415,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void updateEventName() {
         try {
             mEventName.setText(mEvent.getString("event_name"));
-            mEventStatus.setText(getEventStatusName().toUpperCase());
+            mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
@@ -1406,7 +1423,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void updateEventName(String event_name, String status) {
         mEventName.setText(event_name);
-        mEventStatus.setText(status.toUpperCase());
+        mEventStatus.setText("(" + status +")");
     }
 
     private String getEventStatusName() {
@@ -1517,9 +1534,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     public void initGetInline() {
         setVisibilityGetInLine(View.GONE);
+        mPublisherViewContainer.setAlpha(1f);
         mPublisherViewContainer.setVisibility(View.VISIBLE);
         mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-
+        mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
         //Send socket signal
         mSocket.emitJoinRoom(mBackstageSessionId);

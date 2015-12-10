@@ -74,27 +74,8 @@
     </RelativeLayout>
 
     <RelativeLayout
-        android:id="@+id/publisherView"
-        android:layout_width="150dp"
-        android:layout_height="200dp"
-        android:gravity="center_horizontal"
-        android:keepScreenOn="true"
-        android:layout_alignParentBottom="false"
-        android:visibility="gone"
-        android:layout_alignParentLeft="false"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/event_list_top_bar"
-        android:background="@drawable/publisher_bg"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="20dp"
-        android:layout_marginBottom="10dp">
-
-    </RelativeLayout>
-
-    <RelativeLayout
         android:id="@+id/publisher_spinner_layout"
-        android:layout_width="150dp"
+        android:layout_width="160dp"
         android:layout_height="200dp"
         android:gravity="center_horizontal"
         android:keepScreenOn="true"
@@ -108,6 +89,44 @@
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/camera_preview_1"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="5dp"
+            android:text="Camera preview:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/camera_preview_2"
+            android:textColor="@color/get_in_line_background_color"
+            android:text="ON"
+            android:layout_marginTop="10dp"
+            android:layout_toRightOf="@+id/camera_preview_1"
+            android:textStyle="bold"
+            android:layout_marginLeft="3dp" />
+
+        <RelativeLayout
+            android:id="@+id/publisherView"
+            android:layout_width="150dp"
+            android:layout_height="160dp"
+            android:keepScreenOn="true"
+            android:layout_alignParentBottom="true"
+            android:visibility="visible"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentRight="false"
+            android:background="@drawable/publisher_bg"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp">
+
+        </RelativeLayout>
+
         <ProgressBar
             android:id="@+id/loadingSpinnerPublisher"
             style="?android:attr/progressBarStyleLarge"
@@ -115,7 +134,8 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:indeterminate="false"
-            android:visibility="visible" />
+            android:visibility="visible"
+            android:layout_marginTop="50dp" />
     </RelativeLayout>
 
     <ImageButton
@@ -190,13 +210,12 @@
         android:visibility="gone" />
 
     <TextView
-        android:layout_width="350dp"
+        android:layout_width="250dp"
         android:layout_height="200dp"
         android:id="@+id/go_live_status"
         android:background="@drawable/user_status_button"
         android:textSize="30sp"
         android:textColor="@color/user_status_text_color"
-        android:alpha="0.8"
         android:visibility="gone"
         android:text="@string/going_on_stage"
         android:textAlignment="center"
@@ -206,7 +225,7 @@
         android:paddingTop="50dp"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="59dp" />
+        android:layout_marginBottom="30dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -215,7 +234,6 @@
         android:background="@drawable/user_status_button"
         android:textSize="60sp"
         android:textColor="@color/user_status_text_color"
-        android:alpha="0.8"
         android:visibility="gone"
         android:text="3"
         android:textAlignment="center"
@@ -224,7 +242,7 @@
         android:inputType="textMultiLine"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="90dp" />
+        android:layout_marginBottom="60dp" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -237,7 +255,7 @@
 
         <Button
             style="?android:attr/buttonStyleSmall"
-            android:layout_width="150dp"
+            android:layout_width="160dp"
             android:layout_height="35dp"
             android:text="@string/get_inline"
             android:id="@+id/btn_getinline"
@@ -304,7 +322,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:id="@+id/event_status"
             android:textColor="@color/top_bar_text_color"
-            android:textSize="13sp"
+            android:textSize="20sp"
             android:background="@color/top_bar_background_color"
             android:textStyle="bold"
             android:gravity="center_vertical"
@@ -312,7 +330,6 @@
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@+id/event_name"
             android:layout_toEndOf="@+id/event_name"
-            android:paddingBottom="15dp"
             android:paddingLeft="4dp" />
 
     </RelativeLayout>
