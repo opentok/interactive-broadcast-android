@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -16,6 +17,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -76,7 +78,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Stream mFanStream;
     private Stream mHostStream;
     private Connection mProducerConnection;
-    private TextView mTextoUnreadMessages;
+    private TextView mTextUnreadMessages;
     private TextView mEventName;
     private TextView mEventStatus;
     private TextView mGoLiveStatus;
@@ -85,6 +87,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private ImageButton mChatButton;
     private Button mLiveButton;
     private ImageView mEventImageEnd;
+    private ImageButton mUnreadCircle;
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
@@ -157,7 +160,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
         mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
         mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
-        mTextoUnreadMessages = (TextView) findViewById(R.id.unread_messages);
+        mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mLiveButton = (Button) findViewById(R.id.live_button);
         mEventName = (TextView) findViewById(R.id.event_name);
@@ -167,6 +170,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mUserStatus = (TextView) findViewById(R.id.user_status);
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
+        mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -796,11 +800,23 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void refreshUnreadMessages() {
         if(mUnreadMessages > 0) {
-            mTextoUnreadMessages.setVisibility(View.VISIBLE);
+            mTextUnreadMessages.setVisibility(View.VISIBLE);
+            mUnreadCircle.setVisibility(View.VISIBLE);
+            setUnreadCircleWidth();
         } else {
-            mTextoUnreadMessages.setVisibility(View.GONE);
+            mTextUnreadMessages.setVisibility(View.GONE);
+            mUnreadCircle.setVisibility(View.GONE);
         }
-        mTextoUnreadMessages.setText(Integer.toString(mUnreadMessages));
+        mTextUnreadMessages.setText(Integer.toString(mUnreadMessages));
+    }
+
+    private void setUnreadCircleWidth() {
+        android.view.ViewGroup.LayoutParams params = mUnreadCircle.getLayoutParams();
+        Resources r = getResources();
+        int newWidth = 0;
+        newWidth = mUnreadMessages > 9 ? 35:27;
+        params.width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newWidth, r.getDisplayMetrics());
+        mUnreadCircle.setLayoutParams(params);
     }
 
     public void videoOnOff(String data){

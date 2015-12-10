@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Resources;
 import android.graphics.Typeface;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -126,6 +128,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageView mEventImageEnd;
     private ImageView mCircleLiveButton;
     private Button mGetInLine;
+    private ImageButton mUnreadCircle;
 
 
     private Handler mHandler = new Handler();
@@ -221,6 +224,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mCircleLiveButton = (ImageView) findViewById(R.id.circle_live_button);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
+        mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
 
     }
 
@@ -1332,10 +1336,22 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void refreshUnreadMessages() {
         if(mUnreadMessages > 0) {
             mTextUnreadMessages.setVisibility(View.VISIBLE);
+            mUnreadCircle.setVisibility(View.VISIBLE);
+            setUnreadCircleWidth();
         } else {
             mTextUnreadMessages.setVisibility(View.GONE);
+            mUnreadCircle.setVisibility(View.GONE);
         }
         mTextUnreadMessages.setText(Integer.toString(mUnreadMessages));
+    }
+
+    private void setUnreadCircleWidth() {
+        android.view.ViewGroup.LayoutParams params = mUnreadCircle.getLayoutParams();
+        Resources r = getResources();
+        int newWidth = 0;
+        newWidth = mUnreadMessages > 9 ? 35:27;
+        params.width = (int)TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newWidth, r.getDisplayMetrics());
+        mUnreadCircle.setLayoutParams(params);
     }
 
     private void videoOnOff(String data){
