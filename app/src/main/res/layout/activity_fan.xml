@@ -75,7 +75,7 @@
 
     <RelativeLayout
         android:id="@+id/publisherView"
-        android:layout_width="200dp"
+        android:layout_width="150dp"
         android:layout_height="200dp"
         android:gravity="center_horizontal"
         android:keepScreenOn="true"
@@ -87,14 +87,14 @@
         android:background="@drawable/publisher_bg"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="10dp"
-        android:layout_marginRight="7dp"
+        android:layout_marginRight="20dp"
         android:layout_marginBottom="10dp">
 
     </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/publisher_spinner_layout"
-        android:layout_width="200dp"
+        android:layout_width="150dp"
         android:layout_height="200dp"
         android:gravity="center_horizontal"
         android:keepScreenOn="true"
@@ -103,7 +103,7 @@
         android:layout_alignParentRight="true"
         android:layout_below="@+id/event_list_top_bar"
         android:background="@drawable/publisher_bg"
-        android:layout_marginRight="8dp"
+        android:layout_marginRight="20dp"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp">
@@ -250,7 +250,7 @@
             android:layout_centerVertical="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="20dp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -263,7 +263,7 @@
             android:background="@color/top_bar_background_color"
             android:gravity="center_vertical"
             android:typeface="normal"
-            android:layout_marginRight="5dp"
+            android:layout_marginRight="20dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentRight="true"
             android:paddingRight="5dp"
