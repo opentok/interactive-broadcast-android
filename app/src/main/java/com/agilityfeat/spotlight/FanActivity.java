@@ -124,7 +124,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageButton mChatButton;
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
-    private ImageView mIconCheck;
     private ImageView mCircleLiveButton;
     private Button mGetInLine;
 
@@ -219,7 +218,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLiveButton = (TextView) findViewById(R.id.live_button);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mEventImage = (ImageView) findViewById(R.id.event_image);
-        mIconCheck = (ImageView) findViewById(R.id.icon_check);
         mCircleLiveButton = (ImageView) findViewById(R.id.circle_live_button);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
@@ -657,7 +655,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 hideChat();
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
-                mIconCheck.setImageResource(R.drawable.icon_check_circle);
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
             }
@@ -1500,13 +1497,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     public void setVisibilityGetInLine(int visibility) {
         mGetInLine.setVisibility(visibility);
-        mIconCheck.setVisibility(visibility);
-        mIconCheck.setVisibility(visibility);
     }
 
     public void initGetInline() {
         setVisibilityGetInLine(View.GONE);
-        mIconCheck.setImageResource(R.drawable.icon_close_circle);
         mPublisherViewContainer.setVisibility(View.VISIBLE);
         mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
 
