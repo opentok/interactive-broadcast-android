@@ -9,4 +9,6 @@
 /app/src/main/jniLibs/
 /app/src/main/jniLibs/armeabi
 /app/src/main/jniLibs/armeabi/libopentok.so
+/app/src/main/jniLibs/armeabi-v7a/libopentok.so
 /app/src/main/jniLibs/x86/libopentok.so
+/spotlight_module/libs/*.jar

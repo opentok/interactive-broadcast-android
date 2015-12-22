@@ -1,34 +1,4 @@
 <resources>
-    <string name="app_name">Spotlight</string>
-    <string name="title_activity_main">Spotlight</string>
-    <string name="title_activity_event_list">Spotlight</string>
-    <string name="connecting">Connecting...</string>
+    <string name="app_name">Spotlight-sample</string>
     <string name="action_settings">Settings</string>
-    <string name="notification">Ongoing call</string>
-    <string name="clearNotificationService">Clear Notification</string>
-    <string name="send">Send</string>
-    <string name="title_activity_fan">FanActivity</string>
-    <string name="get_inline">Get in line</string>
-    <string name="live_text">You are live</string>
-    <string name="leave_line">Leave the line</string>
-    <string name="enter_your_name_below">You may enter your name below.</string>
-    <string name="name_placeholder">Name (Optional)</string>
-    <string name="ok">OK</string>
-    <string name="cancel">CANCEL</string>
-    <string name="going_on_stage">Going On Stage</string>
-
-
-    <!-- User status -->
-    <string name="status_inline">You are now inline</string>
-    <string name="status_backstage">Going Backstage. You are sharing video.</string>
-    <string name="status_onstage">You are now on stage</string>
-    <string name="status_incall">InCall with Producer</string>
-    <string name="title_activity_select">SelectActivity</string>
-    <string name="new_backstage_fan">"A new FAN has been moved to backstage"</string>
-
-
-    <!-- Event list -->
-    <string name="join_event_btn">Join Event</string>
-
-
 </resources>

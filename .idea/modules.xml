@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/spotlight-android.iml" filepath="$PROJECT_DIR$/spotlight-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/spotlight_module/spotlight_module.iml" filepath="$PROJECT_DIR$/spotlight_module/spotlight_module.iml" />
     </modules>
   </component>
 </project>
