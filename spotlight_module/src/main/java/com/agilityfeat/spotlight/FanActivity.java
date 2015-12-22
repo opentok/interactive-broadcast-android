@@ -930,6 +930,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mTestingOnStage = true;
                 testStreamConnectionQuality(mCelebirtyStream);
             } else {
+                mTestingOnStage = false
                 testStreamConnectionQuality(stream);
             }
         } else {
