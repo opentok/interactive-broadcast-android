@@ -1115,7 +1115,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mBackstageSession != null && mProducerConnection != null) {
             String msg = "{\"connectionId\":\"" + connectionId + "\", \"quality\":\"" + quality + "\"}";
             mBackstageSession.sendSignal("qualityUpdate", msg);
-            Log.i(LOG_TAG, "qualityUpdate emitted");
         }
     }
 
