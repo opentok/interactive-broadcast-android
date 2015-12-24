@@ -595,7 +595,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }, 3000);
         } else {
             //Hide user status
+            mUserStatus.clearAnimation();
             mUserStatus.setVisibility(View.GONE);
+            
+
             //Going live on 3..2..1
             mGoLiveStatus.setVisibility(View.VISIBLE);
             mGoLiveNumber.setVisibility(View.VISIBLE);

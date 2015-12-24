@@ -211,7 +211,7 @@
         android:visibility="gone" />
 
     <TextView
-        android:layout_width="250dp"
+        android:layout_width="290dp"
         android:layout_height="200dp"
         android:id="@+id/go_live_status"
         android:background="@drawable/user_status_button"
