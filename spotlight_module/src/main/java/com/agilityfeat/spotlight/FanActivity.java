@@ -170,6 +170,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         initLayoutWidgets();
 
+        if(!InstanceApp.getInstance().getEnableGetInline()) {
+            setVisibilityGetInLine(View.GONE);
+        }
+
         setupFonts();
 
         //Get the event
@@ -590,6 +594,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }, 3000);
         } else {
+            //Hide user status
+            mUserStatus.setVisibility(View.GONE);
             //Going live on 3..2..1
             mGoLiveStatus.setVisibility(View.VISIBLE);
             mGoLiveNumber.setVisibility(View.VISIBLE);

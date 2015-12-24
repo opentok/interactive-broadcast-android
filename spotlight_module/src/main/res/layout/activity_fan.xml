@@ -142,7 +142,7 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:id="@+id/chat_button"
-        android:layout_alignParentBottom="false"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="false"
         android:layout_alignParentEnd="true"
         android:src="@drawable/icon_bubble"
@@ -150,27 +150,25 @@
         android:onClick="onChatButtonClicked"
         android:visibility="gone"
         android:layout_alignParentTop="false"
-        android:layout_below="@+id/event_list_top_bar"
         android:alpha="0.8"
         android:adjustViewBounds="false"
-        android:layout_marginTop="10dp"
-        android:layout_marginRight="10dp" />
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp" />
 
     <ImageButton
         android:layout_width="27dp"
         android:layout_height="27dp"
         android:id="@+id/unread_circle"
-        android:layout_alignParentBottom="false"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="false"
         android:layout_alignParentEnd="true"
         android:background="@drawable/unread_messages"
         android:visibility="gone"
         android:layout_alignParentTop="false"
-        android:layout_below="@+id/event_list_top_bar"
         android:alpha="0.8"
         android:adjustViewBounds="false"
-        android:layout_marginTop="15dp"
-        android:layout_marginRight="12dp" />
+        android:layout_marginRight="12dp"
+        android:layout_marginBottom="28dp" />
 
     <TextView
         android:layout_width="wrap_content"

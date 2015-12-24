@@ -41,6 +41,21 @@ public class InstanceApp {
         }
     }
 
+    public Boolean getEnableGetInline(){
+        try {
+            if(this.mData != null && this.mData.has("enable_getinline")) {
+                return this.mData.getBoolean("enable_getinline");
+            } else {
+                return false;
+            }
+        } catch(JSONException e) {
+            Log.e("InstanceApp", e.getMessage());
+            return false;
+        }
+    }
+
+
+
     public JSONObject getEventByIndex(int index){
         try {
             JSONArray events = this.mData.getJSONArray("events");
