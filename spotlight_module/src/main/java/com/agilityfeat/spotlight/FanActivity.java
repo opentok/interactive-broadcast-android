@@ -510,14 +510,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     if (mUserIsOnstage) {
                         //copy layoutparams from fan container
                         RelativeLayout.LayoutParams publisher_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                        publisher_head_params.width = screenWidth(FanActivity.this) / streams;
+                        publisher_head_params.width = screenWidth(FanActivity.this) / streams + 10;
                         mSubscriberFanViewContainer.setLayoutParams(publisher_head_params);
 
                         mPublisher.getView().setVisibility(View.VISIBLE);
                         mSubscriberFanViewContainer.setVisibility(View.VISIBLE);
                     } else {
                         RelativeLayout.LayoutParams fan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                        fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams : 1;
+                        fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams + 10 : 1;
                         mSubscriberFanViewContainer.setLayoutParams(fan_head_params);
                     }
 
@@ -990,7 +990,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mTestSubscriber.setSubscribeToAudio(false);
             mBackstageSession.subscribe(mTestSubscriber);
         } else {
-            if(stream.getConnection().getConnectionId() == mSubscriberHost.getStream().getConnection().getConnectionId()) {
+            if(mSubscriberHost != null && stream.getConnection().getConnectionId() == mSubscriberHost.getStream().getConnection().getConnectionId()) {
                 mTestSubscriber = mSubscriberHost;
             } else {
                 mTestSubscriber = mSubscriberCelebrity;
