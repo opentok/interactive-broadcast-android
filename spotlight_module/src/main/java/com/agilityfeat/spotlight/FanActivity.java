@@ -973,7 +973,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mPublisher.getView().setVisibility(View.GONE);
                     enableVideoAndAudio(false);
                 }
-            }, 2000);
+            }, 1000);
         }
 
     }
