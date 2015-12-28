@@ -5,11 +5,10 @@ public class SpotlightConfig {
     // *** Fill the following variables using your own Project info  ***
 
     // Replace with the backend URL
-    public static final String BACKEND_BASE_URL = "https://chatshow-tesla.herokuapp.com";
+    public static String BACKEND_BASE_URL = "https://chatshow-tesla.herokuapp.com";
 
     // Replace with the signaling URL
-    public static final String SIGNALING_URL = "https://chatshow-signaling.herokuapp.com";
-
+    public static String SIGNALING_URL = "";
     public static String FRONTEND_URL = "";
     public static String DEFAULT_EVENT_IMAGE = "";
     public static String INSTANCE_ID = "";

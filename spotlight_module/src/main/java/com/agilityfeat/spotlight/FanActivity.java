@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -23,6 +24,7 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -597,7 +599,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             //Hide user status
             mUserStatus.clearAnimation();
             mUserStatus.setVisibility(View.GONE);
-            
+
 
             //Going live on 3..2..1
             mGoLiveStatus.setVisibility(View.VISIBLE);
@@ -1373,7 +1375,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         updateViewsWidth();
         mLiveButton.setVisibility(View.GONE);
         mCircleLiveButton.setVisibility(View.GONE);
-        Toast.makeText(getApplicationContext(), "Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.", Toast.LENGTH_LONG).show();
+
+
+
+        Toast toast = Toast.makeText(getApplicationContext(), R.string.thanks_for_participating, Toast.LENGTH_LONG);
+        ViewGroup view = (ViewGroup) toast.getView();
+        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
+        TextView messageTextView = (TextView) view.getChildAt(0);
+        messageTextView.setTextSize(13);
+        toast.show();
 
     }
 

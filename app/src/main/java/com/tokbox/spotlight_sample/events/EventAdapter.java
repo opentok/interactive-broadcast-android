@@ -15,9 +15,10 @@ import android.widget.TextView;
 
 import com.agilityfeat.spotlight.CelebrityHostActivity;
 import com.agilityfeat.spotlight.FanActivity;
-import com.agilityfeat.spotlight.R;
+
 import com.agilityfeat.spotlight.config.SpotlightConfig;
 import com.agilityfeat.spotlight.events.EventUtils;
+import com.tokbox.spotlight_sample.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -96,16 +97,18 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
 
                     holder.date_status.setText(ft2.format(date).toString().toUpperCase());
                 }
+                holder.join_event.setText("Not started");
             } else {
-                holder.join_event.setVisibility(View.VISIBLE);
-            }
-            holder.join_event.setOnClickListener(new View.OnClickListener() {
+                holder.join_event.setText("Join event");
+                holder.join_event.setOnClickListener(new View.OnClickListener() {
 
-                @Override
-                public void onClick(View v) {
-                    showEvent(pos);
-                }
-            });
+                    @Override
+                    public void onClick(View v) {
+                        showEvent(pos);
+                    }
+                });
+            }
+
 
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception", e);

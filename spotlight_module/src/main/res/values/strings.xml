@@ -16,6 +16,7 @@
     <string name="ok">OK</string>
     <string name="cancel">CANCEL</string>
     <string name="going_on_stage">Going On Stage</string>
+    <string name="thanks_for_participating">Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.</string>
 
 
     <!-- User status -->

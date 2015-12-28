@@ -61,16 +61,18 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         Typeface font = EventUtils.getFont(this);
         mEventListTitle.setTypeface(font);
 
-        //Init socket
-        mSocket = new SocketCoordinator();
-        mSocket.connect();
-        mSocket.getSocket().on("change-event-status", onChangeStatus);
-
         //start the progress bar
         startLoadingAnimation();
 
         //
         getInstanceId();
+    }
+
+    private void initSocket() {
+        //Init socket
+        mSocket = new SocketCoordinator();
+        mSocket.connect();
+        mSocket.getSocket().on("change-event-status", onChangeStatus);
     }
 
     private Emitter.Listener onChangeStatus = new Emitter.Listener() {
@@ -167,7 +169,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     public void stopLoadingAnimation() {
-        if(mProgress.isShowing()){
+        if(mProgress != null && mProgress.isShowing()){
             mProgress.dismiss();
         }
     }
@@ -187,7 +189,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
             Log.e(LOG_TAG, ex.getMessage());
         }
 
-        mEventAdapter = new EventAdapter(this, com.agilityfeat.spotlight.R.layout.event_item, mEventList);
+        mEventAdapter = new EventAdapter(this, R.layout.event_item, mEventList);
 
         mListActivities.setAdapter(mEventAdapter);
     }
@@ -239,7 +241,12 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
 
             if(bSuccess) {
                 SpotlightConfig.FRONTEND_URL = (String)instanceAppData.get("frontend_url");
+                SpotlightConfig.SIGNALING_URL = (String)instanceAppData.get("signaling_url");
                 SpotlightConfig.DEFAULT_EVENT_IMAGE = (String)instanceAppData.get("default_event_image");
+
+                //init socket
+                initSocket();
+
                 //Check the count of events.
                 if(mArrEvents.length() > 1) {
                     showEventList();
