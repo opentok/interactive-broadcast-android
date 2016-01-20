@@ -1111,7 +1111,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void checkVideoQuality() {
 
         Session session = mTestingOnStage ? mSession : mBackstageSession;
-        if (session != null) {
+        if (session != null && mPublisher != null) {
 
             if (mVideoBw < 150000 || mVideoPLRatio > 0.03) {
                 mQuality = "Poor";
