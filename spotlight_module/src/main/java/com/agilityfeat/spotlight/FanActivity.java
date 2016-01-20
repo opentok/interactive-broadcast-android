@@ -934,10 +934,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         mLoadingSubPublisher.setVisibility(View.GONE);
         if (mQuality.equals("")) {
-            if(mHostStream != null) {
+            if(mHostStream != null && getEventStatus().equals("L")) {
                 mTestingOnStage = true;
                 testStreamConnectionQuality(mHostStream);
-            } else if(mCelebirtyStream != null) {
+            } else if(mCelebirtyStream != null  && getEventStatus().equals("L")) {
                 mTestingOnStage = true;
                 testStreamConnectionQuality(mCelebirtyStream);
             } else {
