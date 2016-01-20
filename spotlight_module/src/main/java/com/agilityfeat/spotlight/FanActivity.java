@@ -91,6 +91,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private boolean mNewFanSignalAckd = false;
     private int mUnreadMessages = 0;
     private boolean mTestingOnStage = false;
+    private boolean mOnstageMuted = false;
+
 
 
     private JSONObject mEvent;
@@ -700,7 +702,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberHost = new Subscriber(FanActivity.this, stream);
         mSubscriberHost.setVideoListener(this);
         mSession.subscribe(mSubscriberHost);
-
+        if(mOnstageMuted) mSubscriberHost.setSubscribeToAudio(false);
         if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubHost.setVisibility(View.VISIBLE);
@@ -712,7 +714,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberCelebrity = new Subscriber(FanActivity.this, stream);
         mSubscriberCelebrity.setVideoListener(this);
         mSession.subscribe(mSubscriberCelebrity);
-
+        if(mOnstageMuted) mSubscriberCelebrity.setSubscribeToAudio(false);
         if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubCelebrity.setVisibility(View.VISIBLE);
@@ -724,7 +726,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberFan = new Subscriber(FanActivity.this, stream);
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
-
+        if(mOnstageMuted) mSubscriberFan.setSubscribeToAudio(false);
         if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubFan.setVisibility(View.VISIBLE);
@@ -734,7 +736,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void subscribeProducer() {
         if(mProducerStream != null) {
             enableVideoAndAudio(true);
-
+            muteOnstage(true);
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
             mBackstageSession.subscribe(mSubscriberProducer);
             setUserStatus(R.string.status_incall);
@@ -745,11 +747,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mProducerStream!= null && mSubscriberProducer != null) {
 
             enableVideoAndAudio(false);
-
+            muteOnstage(false);
             mBackstageSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
             setUserStatus(R.string.status_inline);
         }
+    }
+
+    private void muteOnstage(Boolean mute){
+        mOnstageMuted = mute;
+        if(mSubscriberHost != null) mSubscriberHost.setSubscribeToAudio(!mute);
+        if(mSubscriberFan != null) mSubscriberFan.setSubscribeToAudio(!mute);
+        if(mSubscriberCelebrity != null) mSubscriberCelebrity.setSubscribeToAudio(!mute);
     }
 
     private void unsubscribeHostFromStream(Stream stream) {
