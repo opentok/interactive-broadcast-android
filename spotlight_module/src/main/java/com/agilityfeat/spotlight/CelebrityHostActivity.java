@@ -74,9 +74,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Publisher mPublisher;
     private Subscriber mSubscriber;
     private Subscriber mSubscriberFan;
+    private Subscriber mSubscriberProducer;
     private Stream mCelebirtyStream;
     private Stream mFanStream;
     private Stream mHostStream;
+    private Stream mProducerStream;
     private Connection mProducerConnection;
     private TextView mTextUnreadMessages;
     private TextView mEventName;
@@ -611,6 +613,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     updateViewsWidth();
                 }
                 break;
+            case "usertype=producer":
+                if(mProducerStream == null && session.getSessionId().equals(mSessionId)){
+                    Log.i(LOG_TAG, "producer stream in");
+                    mProducerStream = stream;
+                }
+                break;
         }
 
     }
@@ -639,6 +647,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     mHostStream = null;
                     updateViewsWidth();
                 }
+            case "usertype=producer":
+                if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    mProducerStream = null;
+                    Log.i(LOG_TAG, "producer stream out");
+                }
+                break;
         }
     }
 
@@ -747,11 +761,45 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 case "newBackstageFan":
                     newBackstageFan();
                     break;
+                case "privateCall":
+                    startPrivateCall(data);
+                    break;
+                case "endPrivateCall":
+                    endPrivateCall();
+                    break;
 
             }
         }
         //TODO: onChangeVolumen
 
+    }
+
+    private void startPrivateCall(String data) {
+        String connectionId = "";
+        try {
+            connectionId = new JSONObject(data).getString("callWith");
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+        }
+        if(mSubscriber != null) mSubscriber.setSubscribeToAudio(false);
+        if(mPublisher.getStream().getConnection().getConnectionId().equals(connectionId)) {
+            subscribeProducer();
+        }
+    }
+
+    private void endPrivateCall() {
+        if(mSubscriber != null) mSubscriber.setSubscribeToAudio(true);
+        if(mSubscriberProducer != null) {
+            mSession.unsubscribe(mSubscriberProducer);
+            mSubscriberProducer = null;
+        }
+    }
+
+    private void subscribeProducer() {
+        if(mProducerStream != null) {
+            mSubscriberProducer = new Subscriber(CelebrityHostActivity.this, mProducerStream);
+            mSession.subscribe(mSubscriberProducer);
+        }
     }
 
     private void newBackstageFan() {

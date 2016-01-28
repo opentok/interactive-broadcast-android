@@ -655,6 +655,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
 
+                stopTestingConnectionQuality();
 
                 if (mBackstageSession != null) {
                     mBackstageSession.unpublish(mPublisher);
@@ -887,7 +888,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=producer":
-                if(mProducerStream == null){
+                if(mProducerStream == null  && session.getSessionId().equals(mBackstageSessionId)){
                     Log.i(LOG_TAG, "producer stream in");
                     mProducerStream = stream;
                 }
@@ -988,6 +989,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void stopTestingConnectionQuality() {
+        if(mTestSubscriber == null) return;
         mTestSubscriber.setVideoStatsListener(null);
         mTestSubscriber.setAudioStatsListener(null);
         if(!mTestingOnStage) {
@@ -1278,6 +1280,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     break;
                 case "producerLeaving":
                     mNewFanSignalAckd = false;
+                    break;
+                case "privateCall":
+                    Log.i(LOG_TAG, "privateCall");
+                    break;
+                case "endPrivateCall":
+                    Log.i(LOG_TAG, "endPrivateCall");
                     break;
             }
         }

@@ -14,6 +14,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -100,7 +101,7 @@ public class TextChatFragment extends Fragment {
         setupFonts();
 
 
-        mMsgEditText.setOnKeyListener(new View.OnKeyListener() {
+        /*mMsgEditText.setOnKeyListener(new View.OnKeyListener() {
 
             public boolean onKey(View v, int keyCode, KeyEvent event) {
                 // If the event is a key-down event on the "enter" button
@@ -109,6 +110,15 @@ public class TextChatFragment extends Fragment {
                     sendMessage();
                     return true;
                 }
+                return false;
+            }
+        });*/
+
+        mMsgEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                Log.i(LOG_TAG, "Done pressed");
+                sendMessage();
                 return false;
             }
         });
