@@ -110,11 +110,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Subscriber mSubscriberCelebrity;
     private Subscriber mSubscriberFan;
     private Subscriber mSubscriberProducer;
+    private Subscriber mSubscriberProducerOnstage;
     private Subscriber mTestSubscriber;
     private Stream mCelebirtyStream;
     private Stream mFanStream;
     private Stream mHostStream;
     private Stream mProducerStream;
+    private Stream mProducerStreamOnstage;
     private Connection mProducerConnection;
 
     private TextView mEventName;
@@ -468,6 +470,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mIsBound = false;
             }
 
+            try {
+                mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+            }
+
             super.onBackPressed();
         }
     }
@@ -755,6 +763,26 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
+    private void startPrivateCall() {
+        if(mProducerStreamOnstage != null) {
+            enableVideoAndAudio(true);
+            muteOnstage(true);
+            mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
+            mSession.subscribe(mSubscriberProducerOnstage);
+            setUserStatus(R.string.status_incall);
+        }
+    }
+
+    private void endPrivateCall() {
+        if (mProducerStreamOnstage != null && mSubscriberProducerOnstage != null) {
+            enableVideoAndAudio(false);
+            muteOnstage(false);
+            mSession.unsubscribe(mSubscriberProducerOnstage);
+            mSubscriberProducerOnstage = null;
+            setUserStatus(R.string.status_inline);
+        }
+    }
+
     private void muteOnstage(Boolean mute){
         mOnstageMuted = mute;
         if(mSubscriberHost != null) mSubscriberHost.setSubscribeToAudio(!mute);
@@ -891,8 +919,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if(mProducerStream == null  && session.getSessionId().equals(mBackstageSessionId)){
                     Log.i(LOG_TAG, "producer stream in");
                     mProducerStream = stream;
+                } else if(mProducerStream == null  && session.getSessionId().equals(mSessionId)) {
+                    Log.i(LOG_TAG, "producer onstage stream in");
+                    mProducerStreamOnstage = stream;
                 }
                 break;
+
         }
 
     }
@@ -935,6 +967,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                     mProducerStream = null;
                     Log.i(LOG_TAG, "producer stream out");
+                } else if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId() == stream.getConnection().getConnectionId())  {
+                    mProducerStreamOnstage = null;
                 }
                 break;
         }
@@ -1282,10 +1316,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mNewFanSignalAckd = false;
                     break;
                 case "privateCall":
-                    Log.i(LOG_TAG, "privateCall");
+                    startPrivateCall();
                     break;
                 case "endPrivateCall":
-                    Log.i(LOG_TAG, "endPrivateCall");
+                    endPrivateCall();
                     break;
             }
         }
@@ -1613,6 +1647,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline() {
+        try {
+            mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+        }
+
         setVisibilityGetInLine(View.GONE);
         mPublisherViewContainer.setAlpha(1f);
         mPublisherViewContainer.setVisibility(View.VISIBLE);

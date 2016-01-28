@@ -1,6 +1,11 @@
 package com.agilityfeat.spotlight.ws;
 
 import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.provider.Settings;
+import android.text.format.Formatter;
 import android.util.Log;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -15,6 +20,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.agilityfeat.spotlight.config.SpotlightConfig;
+
+import java.nio.ByteOrder;
+import java.util.Set;
 
 public class WebServiceCoordinator {
 
@@ -52,8 +60,46 @@ public class WebServiceCoordinator {
     }
 
     public void createFanToken(String fan_url) throws JSONException {
-        String url = BACKEND_BASE_URL + "/create-token-fan/" + fan_url;
-        createToken(url);
+        String url = BACKEND_BASE_URL + "/create-token-fan";
+        String user_id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        WifiManager wm = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
+        WifiInfo wi = wm.getConnectionInfo();
+        int ipAddress = wi.getIpAddress();
+
+        ipAddress = (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) ?
+                Integer.reverseBytes(ipAddress) : ipAddress;
+
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("fan_url", fan_url);
+            jsonBody.put("ip", ipAddress);
+            jsonBody.put("user_id", user_id);
+            jsonBody.put("os", "Android " + Build.DEVICE + " " + Build.MODEL + " " + Build.VERSION.CODENAME);
+            jsonBody.put("is_mobile", "true");
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception", e);
+        }
+
+        RequestQueue reqQueue = Volley.newRequestQueue(context);
+
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.i(LOG_TAG, response.toString());
+                delegate.onDataReady(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                delegate.onWebServiceCoordinatorError(error);
+            }
+        });
+
+        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        reqQueue.add(jor);
+
+
     }
 
     public void createToken(String url) {
@@ -99,6 +145,72 @@ public class WebServiceCoordinator {
     }
 
     public void fetchEventData(JSONObject jsonBody, String url) {
+        RequestQueue reqQueue = Volley.newRequestQueue(context);
+
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.i(LOG_TAG, response.toString());
+                delegate.onDataReady(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                delegate.onWebServiceCoordinatorError(error);
+            }
+        });
+
+        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        reqQueue.add(jor);
+    }
+
+    public void sendGetInLine(String eventId) throws JSONException {
+        String url = BACKEND_BASE_URL + "/metrics/get-inline";
+        String user_id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("event_id", eventId);
+            jsonBody.put("user_id", user_id);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception", e);
+        }
+
+        RequestQueue reqQueue = Volley.newRequestQueue(context);
+
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.i(LOG_TAG, response.toString());
+                delegate.onDataReady(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                delegate.onWebServiceCoordinatorError(error);
+            }
+        });
+
+        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+
+        reqQueue.add(jor);
+    }
+
+    public void leaveEvent(String eventId) throws JSONException {
+        String url = BACKEND_BASE_URL + "/metrics/leave-event";
+        String user_id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+
+
+        JSONObject jsonBody = new JSONObject();
+        try {
+            jsonBody.put("event_id", eventId);
+            jsonBody.put("user_id", user_id);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception", e);
+        }
+
         RequestQueue reqQueue = Volley.newRequestQueue(context);
 
         JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
