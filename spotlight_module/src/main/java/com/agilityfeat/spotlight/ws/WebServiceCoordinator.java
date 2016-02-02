@@ -60,6 +60,11 @@ public class WebServiceCoordinator {
     }
 
     public void createFanToken(String fan_url) throws JSONException {
+        String url = BACKEND_BASE_URL + "/create-token-fan/" + fan_url;
+        createToken(url);
+    }
+
+    public void createFanTokenAnalytics(String fan_url) throws JSONException {
         String url = BACKEND_BASE_URL + "/create-token-fan";
         String user_id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
         WifiManager wm = (WifiManager) context.getSystemService(context.WIFI_SERVICE);

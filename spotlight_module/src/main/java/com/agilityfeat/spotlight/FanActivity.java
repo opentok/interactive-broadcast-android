@@ -268,7 +268,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
             EventUtils.loadEventImage(this, event.getString("event_image"), mEventImage);
             EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
-            mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
+            if(InstanceApp.getInstance().getEnableAnalytics()) {
+                mWebServiceCoordinator.createFanTokenAnalytics(event.getString("fan_url"));
+            } else {
+                mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
+            }
+
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -471,11 +476,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
 
 
-
-            try {
-                mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+            if(InstanceApp.getInstance().getEnableAnalytics()) {
+                try {
+                    mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+                }
             }
 
             super.onBackPressed();
@@ -1662,17 +1668,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline() {
-
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
-                } catch (JSONException e) {
-                    Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+        if(InstanceApp.getInstance().getEnableAnalytics()) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+                    }
                 }
-            }
-        });
+            });
+        }
+
 
         setVisibilityGetInLine(View.GONE);
         mPublisherViewContainer.setAlpha(1f);
