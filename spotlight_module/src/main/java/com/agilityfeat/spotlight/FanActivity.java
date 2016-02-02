@@ -594,6 +594,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void setUserStatus(int status) {
+        //Hide user status
+        mUserStatus.clearAnimation();
         if(status != R.string.status_onstage) {
             mUserStatus.setText(getResources().getString(status));
             mUserStatus.setVisibility(View.VISIBLE);
@@ -614,8 +616,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }, 3000);
         } else {
-            //Hide user status
-            mUserStatus.clearAnimation();
             mUserStatus.setVisibility(View.GONE);
 
 
@@ -1370,6 +1370,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     Log.e(LOG_TAG, ex.getMessage());
                 }
                 mSocket.SendSnapShot(obj);
+
+                //Send get in line
+                sendGetInLine();
             }
         });
 
@@ -1668,20 +1671,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline() {
-        if(InstanceApp.getInstance().getEnableAnalytics()) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-                    }
-                }
-            });
-        }
-
-
         setVisibilityGetInLine(View.GONE);
         mPublisherViewContainer.setAlpha(1f);
         mPublisherViewContainer.setVisibility(View.VISIBLE);
@@ -1704,6 +1693,21 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
         backstageSessionConnect();
+    }
+
+    private void sendGetInLine(){
+        if(InstanceApp.getInstance().getEnableAnalytics()) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+                    }
+                }
+            });
+        }
     }
 
     private void sendNewFanSignal() {
