@@ -470,6 +470,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mIsBound = false;
             }
 
+
+
             try {
                 mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
             } catch (JSONException e) {
@@ -763,24 +765,37 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    private void startPrivateCall() {
-        if(mProducerStreamOnstage != null) {
+    private void startPrivateCall(String data) {
+        String callWith = "";
+        try {
+            callWith = new JSONObject(data).getString("callWith");
+        } catch (Throwable t) {
+            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
+        }
+
+        if(mProducerStreamOnstage != null && mPublisher != null && mPublisher.getStream().getConnection().getConnectionId().equals(callWith)) {
             enableVideoAndAudio(true);
-            muteOnstage(true);
+
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
-            setUserStatus(R.string.status_incall);
+            setUserStatus(R.string.status_private_incall);
+        } else {
+            if(mUserIsOnstage) setUserStatus(R.string.temporarilly_muted);
         }
+        muteOnstage(true);
     }
 
     private void endPrivateCall() {
+        muteOnstage(false);
         if (mProducerStreamOnstage != null && mSubscriberProducerOnstage != null) {
             enableVideoAndAudio(false);
-            muteOnstage(false);
             mSession.unsubscribe(mSubscriberProducerOnstage);
             mSubscriberProducerOnstage = null;
             setUserStatus(R.string.status_inline);
+        } else {
+            if(mUserIsOnstage) setUserStatus(R.string.status_inline);
         }
+
     }
 
     private void muteOnstage(Boolean mute){
@@ -1316,7 +1331,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mNewFanSignalAckd = false;
                     break;
                 case "privateCall":
-                    startPrivateCall();
+                    startPrivateCall(data);
                     break;
                 case "endPrivateCall":
                     endPrivateCall();
@@ -1647,11 +1662,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline() {
-        try {
-            mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-        }
+
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+                }
+            }
+        });
 
         setVisibilityGetInLine(View.GONE);
         mPublisherViewContainer.setAlpha(1f);
