@@ -26,9 +26,8 @@
     <string name="status_incall">In call with Producer</string>
     <string name="title_activity_select">SelectActivity</string>
     <string name="new_backstage_fan">A new FAN has been moved to backstage</string>
-    <string name="temporarilly_muted">You Have Been Temporarilly Muted</string>
-    <string name="status_private_incall">You Are On Private Call With Producer</string>
-
+    <string name="temporarilly_muted">Other participants are in a private call. They may not be able to hear you.</string>
+    <string name="status_private_incall">You are in a private call with the producer</string>
 
     <!-- Event list -->
     <string name="join_event_btn">Join Event</string>

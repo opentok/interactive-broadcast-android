@@ -794,9 +794,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             enableVideoAndAudio(false);
             mSession.unsubscribe(mSubscriberProducerOnstage);
             mSubscriberProducerOnstage = null;
-            setUserStatus(R.string.status_inline);
-        } else {
-            if(mUserIsOnstage) setUserStatus(R.string.status_inline);
         }
 
     }
