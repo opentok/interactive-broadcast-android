@@ -1,11 +1,8 @@
 package com.agilityfeat.spotlight.ws;
 
 import android.content.Context;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.Settings;
-import android.text.format.Formatter;
 import android.util.Log;
 
 import com.android.volley.DefaultRetryPolicy;
@@ -21,8 +18,6 @@ import org.json.JSONObject;
 
 import com.agilityfeat.spotlight.config.SpotlightConfig;
 
-import java.nio.ByteOrder;
-import java.util.Set;
 
 public class WebServiceCoordinator {
 
@@ -66,20 +61,14 @@ public class WebServiceCoordinator {
 
     public void createFanTokenAnalytics(String fan_url) throws JSONException {
         String url = BACKEND_BASE_URL + "/create-token-fan";
-        String user_id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        WifiManager wm = (WifiManager) context.getSystemService(context.WIFI_SERVICE);
-        WifiInfo wi = wm.getConnectionInfo();
-        int ipAddress = wi.getIpAddress();
+        String user_id = getUserId();
 
-        ipAddress = (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) ?
-                Integer.reverseBytes(ipAddress) : ipAddress;
 
         JSONObject jsonBody = new JSONObject();
         try {
             jsonBody.put("fan_url", fan_url);
-            jsonBody.put("ip", ipAddress);
             jsonBody.put("user_id", user_id);
-            jsonBody.put("os", "Android " + Build.DEVICE + " " + Build.MODEL + " " + Build.VERSION.CODENAME);
+            jsonBody.put("os", "Android API " + android.os.Build.VERSION.SDK_INT);
             jsonBody.put("is_mobile", "true");
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception", e);
@@ -205,7 +194,7 @@ public class WebServiceCoordinator {
 
     public void leaveEvent(String eventId) throws JSONException {
         String url = BACKEND_BASE_URL + "/metrics/leave-event";
-        String user_id = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        String user_id = getUserId();
 
 
         JSONObject jsonBody = new JSONObject();
@@ -240,5 +229,10 @@ public class WebServiceCoordinator {
         void onDataReady(JSONObject jsonData);
         void onWebServiceCoordinatorError(Exception error);
     }
+
+    private String getUserId() {
+        return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+    }
+
 }
 

@@ -94,7 +94,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private boolean mOnstageMuted = false;
 
 
-
     private JSONObject mEvent;
     private String mApiKey;
     private String mSessionId;
@@ -604,7 +603,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             animation1.setFillAfter(true);
             mUserStatus.startAnimation(animation1);
 
-
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -612,7 +610,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     animation1.setDuration(1000);
                     animation1.setFillAfter(true);
                     mUserStatus.startAnimation(animation1);
-
                 }
             }, 3000);
         } else {
