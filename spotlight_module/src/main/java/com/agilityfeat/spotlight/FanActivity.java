@@ -753,7 +753,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             muteOnstage(true);
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
             mBackstageSession.subscribe(mSubscriberProducer);
-            setUserStatus(R.string.status_incall);
+            setUserStatus(R.string.status_private_call);
         }
     }
 
@@ -764,7 +764,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             muteOnstage(false);
             mBackstageSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
-            setUserStatus(R.string.status_inline);
+            setUserStatus(R.string.status_private_call_ended);
         }
     }
 
@@ -781,7 +781,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
-            setUserStatus(R.string.status_private_incall);
+            setUserStatus(R.string.status_private_call);
         } else {
             if(mUserIsOnstage) setUserStatus(R.string.temporarilly_muted);
         }
@@ -794,6 +794,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             enableVideoAndAudio(false);
             mSession.unsubscribe(mSubscriberProducerOnstage);
             mSubscriberProducerOnstage = null;
+            setUserStatus(R.string.status_private_call_ended);
         }
 
     }
@@ -1710,7 +1711,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if(!mQuality.equals("") && !mNewFanSignalAckd) {
                     mNewFanSignalAckd = true;
                     String userName = SpotlightConfig.USER_NAME;
-                    String msg = "{\"user\":{\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
+                    String msg = "{\"user\":{\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
                     mHandler.postDelayed(new Runnable() {
