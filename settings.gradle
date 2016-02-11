@@ -1,1 +1,1 @@
-include ':app', ':spotlight_module'
+include ':sample-app', ':spotlight'
