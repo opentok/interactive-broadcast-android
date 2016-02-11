@@ -263,6 +263,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
         try {
+
             updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
             EventUtils.loadEventImage(this, event.getString("event_image"), mEventImage);
             EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
@@ -1546,7 +1547,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void updateEventName() {
         try {
-            mEventName.setText(mEvent.getString("event_name"));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString("event_name"),20));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -1554,7 +1555,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void updateEventName(String event_name, String status) {
-        mEventName.setText(event_name);
+        mEventName.setText(EventUtils.ellipsize(event_name,20));
         mEventStatus.setText("(" + status +")");
     }
 

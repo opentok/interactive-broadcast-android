@@ -199,7 +199,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void updateEventName() {
         try {
-            mEventName.setText(mEvent.getString("event_name"));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString("event_name"), 40));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -211,7 +211,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     private void updateEventName(String event_name, String status) {
-        mEventName.setText(event_name);
+        mEventName.setText(EventUtils.ellipsize(event_name,40));
         mEventStatus.setText("(" + status + ")");
     }
 

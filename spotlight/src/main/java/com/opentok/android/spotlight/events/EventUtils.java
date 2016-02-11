@@ -11,6 +11,7 @@ import com.squareup.picasso.Picasso;
 public class EventUtils {
 
     private static final String LOG_TAG = EventUtils.class.getSimpleName();
+    private static final String NON_THIN = "[^iIl1\\.,']";
 
     public static String getStatusNameById(String statusId) {
         String statusName = "";
@@ -38,5 +39,37 @@ public class EventUtils {
 
     public static Typeface getFont(Context context) {
         return Typeface.createFromAsset(context.getAssets(), "fonts/Montserrat-Regular.ttf");
+    }
+
+    private static int textWidth(String str) {
+        return (int) (str.length() - str.replaceAll(NON_THIN, "").length() / 2);
+    }
+
+    public static String ellipsize(String text, int max) {
+
+        if (textWidth(text) <= max)
+            return text;
+
+        // Start by chopping off at the word before max
+        // This is an over-approximation due to thin-characters...
+        int end = text.lastIndexOf(' ', max - 3);
+
+        // Just one long word. Chop it off.
+        if (end == -1)
+            return text.substring(0, max-3) + "...";
+
+        // Step forward as long as textWidth allows.
+        int newEnd = end;
+        do {
+            end = newEnd;
+            newEnd = text.indexOf(' ', end + 1);
+
+            // No more spaces.
+            if (newEnd == -1)
+                newEnd = text.length();
+
+        } while (textWidth(text.substring(0, newEnd) + "...") < max);
+
+        return text.substring(0, end) + "...";
     }
 }
