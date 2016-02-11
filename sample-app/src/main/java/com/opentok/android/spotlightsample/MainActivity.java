@@ -1,6 +1,8 @@
 package com.opentok.android.spotlightsample;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -12,10 +14,18 @@ import com.opentok.android.spotlightsample.R;
 
 public class MainActivity extends AppCompatActivity {
 
+    private final String[] permissions = {"android.permission.RECORD_AUDIO", "android.permission.CAMERA"};
+    private final int permsRequestCode = 200;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //request Marshmallow camera permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(permissions, permsRequestCode);
+        }
     }
 
 
@@ -52,6 +62,19 @@ public class MainActivity extends AppCompatActivity {
         localIntent = new Intent(MainActivity.this, EventListActivity.class);
         startActivity(localIntent);
     }
+
+    @Override
+    public void onRequestPermissionsResult ( int permsRequestCode, String[] permissions,
+                                             int[] grantResults){
+        switch (permsRequestCode) {
+
+            case 200:
+                boolean video = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean audio = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+    }
+
 
 }
 
