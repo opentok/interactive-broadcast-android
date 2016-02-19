@@ -1711,7 +1711,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if(!mQuality.equals("") && !mNewFanSignalAckd) {
                     mNewFanSignalAckd = true;
                     String userName = SpotlightConfig.USER_NAME;
-                    String msg = "{\"user\":{\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
+                    String user_id = mWebServiceCoordinator.getUserId();
+                    String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
                     mHandler.postDelayed(new Runnable() {

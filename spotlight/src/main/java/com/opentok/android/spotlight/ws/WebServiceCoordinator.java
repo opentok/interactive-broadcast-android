@@ -229,7 +229,7 @@ public class WebServiceCoordinator {
         void onWebServiceCoordinatorError(Exception error);
     }
 
-    private String getUserId() {
+    public String getUserId() {
         return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
