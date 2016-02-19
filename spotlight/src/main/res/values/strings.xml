@@ -20,7 +20,7 @@
 
 
     <!-- User status -->
-    <string name="status_inline">You are now inline</string>
+    <string name="status_inline">You are now in line</string>
     <string name="status_backstage">Going Backstage. You are sharing video.</string>
     <string name="status_onstage">You are now on stage</string>
     <string name="status_incall">In call with Producer</string>
