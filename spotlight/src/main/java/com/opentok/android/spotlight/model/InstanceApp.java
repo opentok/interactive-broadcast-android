@@ -3,6 +3,8 @@ package com.opentok.android.spotlight.model;
 
 import android.util.Log;
 
+import com.opentok.android.spotlight.config.SpotlightConfig;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,6 +81,14 @@ public class InstanceApp {
     }
 
     public void setData(JSONObject value){
+
         mData = value;
+        try {
+            SpotlightConfig.FRONTEND_URL = (String)mData.get("frontend_url");
+            SpotlightConfig.SIGNALING_URL = (String)mData.get("signaling_url");
+            SpotlightConfig.DEFAULT_EVENT_IMAGE = (String)mData.get("default_event_image");
+        } catch(JSONException e) {
+            Log.e("instanceApp.setData", e.getMessage());
+        }
     }
 }

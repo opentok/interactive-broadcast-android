@@ -238,10 +238,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
             }
 
             if(bSuccess) {
-                SpotlightConfig.FRONTEND_URL = (String)instanceAppData.get("frontend_url");
-                SpotlightConfig.SIGNALING_URL = (String)instanceAppData.get("signaling_url");
-                SpotlightConfig.DEFAULT_EVENT_IMAGE = (String)instanceAppData.get("default_event_image");
-
                 //init socket
                 initSocket();
 
