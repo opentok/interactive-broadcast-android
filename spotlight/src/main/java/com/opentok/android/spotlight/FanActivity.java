@@ -902,9 +902,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamReceived(Session session, Stream stream) {
         String status = getEventStatus();
         Log.i(LOG_TAG, "onStreamReceived/" + status);
+        Boolean bIsOnStage = session.getSessionId().equals(mSessionId);
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
-                if (mFanStream == null && session.getSessionId().equals(mSessionId)) {
+                if (mFanStream == null && bIsOnStage) {
                     mFanStream = stream;
                     if(status.equals("L")) {
                         subscribeFanToStream(stream);
@@ -925,20 +926,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if (mHostStream == null) {
                     mHostStream = stream;
                     if(status.equals("L") || mUserIsOnstage) {
-
                         subscribeHostToStream(stream);
                         updateViewsWidth();
                     }
                 }
                 break;
             case "usertype=producer":
-                Log.i(LOG_TAG, "mProducerStream == null =>" + String.valueOf(mProducerStream == null));
-                if(mProducerStream == null  && session.getSessionId().equals(mBackstageSessionId)){
-                    Log.i(LOG_TAG, "producer stream in");
+                if(mProducerStream == null  && !bIsOnStage){
                     mProducerStream = stream;
                 }
-                if(mProducerStreamOnstage == null  && session.getSessionId().equals(mSessionId)) {
-                    Log.i(LOG_TAG, "producer onstage stream in");
+                if(mProducerStreamOnstage == null  && bIsOnStage) {
                     mProducerStreamOnstage = stream;
                 }
                 break;
@@ -950,10 +947,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onStreamDropped(Session session, Stream stream) {
         String status = getEventStatus();
-
+        String streamConnectionId = stream.getConnection().getConnectionId();
+        Boolean bIsOnStage = session.getSessionId().equals(mSessionId);
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
-                if(mFanStream != null && session.getSessionId().equals(mSessionId) && mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mFanStream != null && bIsOnStage && mFanStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     mFanStream = null;
                     if(status.equals("L") || status.equals("C")) {
                         unsubscribeFanFromStream(stream);
@@ -962,7 +960,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=celebrity":
-                if(mCelebirtyStream != null && mCelebirtyStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mCelebirtyStream != null && mCelebirtyStream.getConnection().getConnectionId().equals(streamConnectionId)) {
 
                     mCelebirtyStream = null;
                     if(status.equals("L") || status.equals("C")) {
@@ -972,9 +970,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=host":
-                Log.i(LOG_TAG, "drop host");
-                if(mHostStream != null && mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
-                    Log.i(LOG_TAG, "drop host ok ");
+                if(mHostStream != null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     mHostStream = null;
                     if(status.equals("L") || status.equals("C")) {
                         unsubscribeHostFromStream(stream);
@@ -982,21 +978,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     }
                 }
             case "usertype=producer":
-
-                if(session.getSessionId().equals(mBackstageSessionId)) {
-                    if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(stream.getConnection().getConnectionId())) {
+                if(!bIsOnStage) {
+                    if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                         unSubscribeProducer();
                         mProducerStream = null;
-                        Log.i(LOG_TAG, "producer stream out backstage");
                     }
-                }
-
-                if(session.getSessionId().equals(mSessionId)) {
-                    Log.i(LOG_TAG, "checking producer stream onstange");
-                    if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId().equals(stream.getConnection().getConnectionId())) {
+                } else {
+                    if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId().equals(streamConnectionId)) {
                         endPrivateCall();
                         mProducerStreamOnstage = null;
-                        Log.i(LOG_TAG, "producer stream out onstage");
                     }
                 }
                 break;
