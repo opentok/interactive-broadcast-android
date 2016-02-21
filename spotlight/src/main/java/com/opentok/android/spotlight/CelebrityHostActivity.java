@@ -270,8 +270,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         mNotifyBuilder = new NotificationCompat.Builder(this)
                 .setContentTitle(this.getTitle())
-                .setContentText(getResources().getString(R.string.notification))
-                .setSmallIcon(R.drawable.ic_launcher).setOngoing(true);
+                .setContentText(getResources().getString(R.string.notification));
 
         Intent notificationIntent = new Intent(this, CelebrityHostActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
