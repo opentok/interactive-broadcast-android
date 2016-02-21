@@ -980,11 +980,21 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     }
                 }
             case "usertype=producer":
-                if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
-                    mProducerStream = null;
-                    Log.i(LOG_TAG, "producer stream out");
-                } else if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId() == stream.getConnection().getConnectionId())  {
-                    mProducerStreamOnstage = null;
+
+                if(session.getSessionId().equals(mBackstageSessionId)) {
+                    if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                        unSubscribeProducer();
+                        mProducerStream = null;
+                        Log.i(LOG_TAG, "producer stream out backstage");
+                    }
+                }
+
+                if(session.getSessionId().equals(mSessionId)) {
+                    if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                        endPrivateCall();
+                        mProducerStreamOnstage = null;
+                        Log.i(LOG_TAG, "producer stream out onstage");
+                    }
                 }
                 break;
         }
