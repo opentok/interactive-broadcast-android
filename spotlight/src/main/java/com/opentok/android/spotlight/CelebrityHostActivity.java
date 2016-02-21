@@ -621,29 +621,30 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onStreamDropped(Session session, Stream stream) {
         Log.i(LOG_TAG, "New stream dropped:" + stream.getConnection().getData());
+        String streamConnectionId = stream.getConnection().getConnectionId();
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
-                if(mFanStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mFanStream != null && mFanStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     unsubscribeFanFromStream(stream);
                     mFanStream = null;
                     updateViewsWidth();
                 }
                 break;
             case "usertype=celebrity":
-                if(mCelebirtyStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mCelebirtyStream != null && mCelebirtyStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     unsubscribeFromStream(stream);
                     mCelebirtyStream = null;
                     updateViewsWidth();
                 }
                 break;
             case "usertype=host":
-                if(mHostStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mHostStream!= null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     unsubscribeFromStream(stream);
                     mHostStream = null;
                     updateViewsWidth();
                 }
             case "usertype=producer":
-                if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     mProducerStream = null;
                     Log.i(LOG_TAG, "producer stream out");
                 }
