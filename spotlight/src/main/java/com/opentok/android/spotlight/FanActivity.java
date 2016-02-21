@@ -984,20 +984,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             case "usertype=producer":
 
                 if(session.getSessionId().equals(mBackstageSessionId)) {
-                    Log.i(LOG_TAG, "checking producer stream");
-                    Log.i(LOG_TAG, "mProducerStream != null +>" + String.valueOf(mProducerStream != null));
-                    Log.i(LOG_TAG, "mProducerStream.getConnection().getConnectionId()" + mProducerStream.getConnection().getConnectionId());
-                    Log.i(LOG_TAG, "mProducerStream.getConnection().getConnectionId()" + stream.getConnection().getConnectionId());
-                    //if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(stream.getConnection().getConnectionId())) {
                         unSubscribeProducer();
                         mProducerStream = null;
                         Log.i(LOG_TAG, "producer stream out backstage");
-                    //}
+                    }
                 }
 
                 if(session.getSessionId().equals(mSessionId)) {
                     Log.i(LOG_TAG, "checking producer stream onstange");
-                    if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId().equals(stream.getConnection().getConnectionId())) {
                         endPrivateCall();
                         mProducerStreamOnstage = null;
                         Log.i(LOG_TAG, "producer stream out onstage");
