@@ -932,10 +932,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=producer":
+                Log.i(LOG_TAG, "mProducerStream == null =>" + String.valueOf(mProducerStream == null));
                 if(mProducerStream == null  && session.getSessionId().equals(mBackstageSessionId)){
                     Log.i(LOG_TAG, "producer stream in");
                     mProducerStream = stream;
-                } else if(mProducerStream == null  && session.getSessionId().equals(mSessionId)) {
+                }
+                if(mProducerStreamOnstage == null  && session.getSessionId().equals(mSessionId)) {
                     Log.i(LOG_TAG, "producer onstage stream in");
                     mProducerStreamOnstage = stream;
                 }
@@ -982,14 +984,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             case "usertype=producer":
 
                 if(session.getSessionId().equals(mBackstageSessionId)) {
-                    if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
+                    Log.i(LOG_TAG, "checking producer stream");
+                    Log.i(LOG_TAG, "mProducerStream != null +>" + String.valueOf(mProducerStream != null));
+                    Log.i(LOG_TAG, "mProducerStream.getConnection().getConnectionId()" + mProducerStream.getConnection().getConnectionId());
+                    Log.i(LOG_TAG, "mProducerStream.getConnection().getConnectionId()" + stream.getConnection().getConnectionId());
+                    //if(mProducerStream != null && mProducerStream.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                         unSubscribeProducer();
                         mProducerStream = null;
                         Log.i(LOG_TAG, "producer stream out backstage");
-                    }
+                    //}
                 }
 
                 if(session.getSessionId().equals(mSessionId)) {
+                    Log.i(LOG_TAG, "checking producer stream onstange");
                     if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId() == stream.getConnection().getConnectionId()) {
                         endPrivateCall();
                         mProducerStreamOnstage = null;
@@ -1632,7 +1639,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     /* Connection Listener methods */
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
-        if(connection.getData().equals("usertype=producer")) {
+        if(connection.getData().equals("usertype=producer") && session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = connection;
         }
     }
@@ -1640,9 +1647,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnectionDestroyed(Session session, Connection connection)
     {
-        if(connection.getData().equals("usertype=producer")) {
+        if(connection.getData().equals("usertype=producer") && session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = null;
-
+            mNewFanSignalAckd = false;
         }
     }
 
