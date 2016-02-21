@@ -1533,7 +1533,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void goLive(){
+
         try {
+            sendGoLiveMetrics();
             mEvent.put("status", "L");
             updateEventName();
             if(!mUserIsOnstage) {
@@ -1549,7 +1551,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void updateEventName() {
         try {
-            mEventName.setText(EventUtils.ellipsize(mEvent.getString("event_name"),20));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString("event_name"), 20));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -1653,9 +1655,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
+    private Boolean isInLine() {
+        return !mGetInLine.getText().equals(getResources().getString(R.string.get_inline));
+    }
+
     public void onGetInLineClicked(View v) {
         if(mGetInLine.getVisibility() == View.GONE) return;
-        if(mGetInLine.getText().equals(getResources().getString(R.string.get_inline))){
+        if(!isInLine()){
             initGetInline();
         } else {
             leaveLine();
@@ -1699,6 +1705,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 public void run() {
                     try {
                         mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+                    }
+                }
+            });
+        }
+    }
+
+    private void sendGoLiveMetrics(){
+        if(InstanceApp.getInstance().getEnableAnalytics()) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String is_on_stage = String.valueOf(mUserIsOnstage);
+                        String is_in_line = (mUserIsOnstage || isInLine()) ? "true" : "false";
+                        mWebServiceCoordinator.sendGoLiveMetrics(mEvent.getString("id"), is_on_stage, is_in_line);
                     } catch (JSONException e) {
                         Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
                     }
