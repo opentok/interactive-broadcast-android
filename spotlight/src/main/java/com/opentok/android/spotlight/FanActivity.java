@@ -578,6 +578,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
+
             //mPublisher.setAudioFallbackEnabled(false);
             mBackstageSession.publish(mPublisher);
             mGetInLine.setText(getResources().getString(R.string.leave_line));
@@ -1652,6 +1653,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mFragmentContainer.setVisibility(View.VISIBLE);
             mUnreadMessages = 0;
             refreshUnreadMessages();
+
         }
     }
 
@@ -1675,27 +1677,37 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     public void initGetInline() {
         setVisibilityGetInLine(View.GONE);
-        mPublisherViewContainer.setAlpha(1f);
-        mPublisherViewContainer.setVisibility(View.VISIBLE);
-        mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-        mLoadingSubPublisher.setVisibility(View.VISIBLE);
+        if(mBackstageSessionId != null) {
+            mPublisherViewContainer.setAlpha(1f);
+            mPublisherViewContainer.setVisibility(View.VISIBLE);
+            mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
+            mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
-        //Send socket signal
-        mSocket.emitJoinRoom(mBackstageSessionId);
+            //Send socket signal
+            mSocket.emitJoinRoom(mBackstageSessionId);
 
-        if (mPublisher == null) {
+            if (mPublisher == null) {
 
-            Log.i(LOG_TAG, "init publisher");
-            mPublisher = new Publisher(FanActivity.this, "publisher");
-            mPublisher.setPublisherListener(this);
-            // use an external custom video renderer
-            mCustomVideoRenderer = new CustomVideoRenderer(this);
-            mPublisher.setRenderer(mCustomVideoRenderer);
-            attachPublisherView(mPublisher);
+                Log.i(LOG_TAG, "init publisher");
+                mPublisher = new Publisher(FanActivity.this, "publisher");
+                mPublisher.setPublisherListener(this);
+                // use an external custom video renderer
+                mCustomVideoRenderer = new CustomVideoRenderer(this);
+                mPublisher.setRenderer(mCustomVideoRenderer);
+                attachPublisherView(mPublisher);
+            }
+
+            backstageSessionConnect();
+        } else {
+            //Recalling after 0.5 secs
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    initGetInline();
+                }
+            }, 500);
         }
 
-
-        backstageSessionConnect();
     }
 
     private void sendGetInLine(){

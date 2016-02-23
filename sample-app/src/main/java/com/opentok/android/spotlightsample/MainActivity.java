@@ -45,10 +45,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Replace with the instance ID
-        SpotlightConfig.INSTANCE_ID = "AAAA1";
+        SpotlightConfig.INSTANCE_ID = "spotlight-mlb-210216";
 
         //Replace with the BACKEND URL
-        SpotlightConfig.BACKEND_BASE_URL = "https://chatshow-tesla.herokuapp.com";
+        SpotlightConfig.BACKEND_BASE_URL = "https://spotlight-tesla-mlb.herokuapp.com";
 
         //Setting the userName
         if((!userName.getText().toString().equals(""))) {

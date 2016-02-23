@@ -997,6 +997,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             hideChat();
         } else {
+            Log.i(LOG_TAG, "Open chat!");
             mFragmentContainer.setVisibility(View.VISIBLE);
             mUnreadMessages = 0;
             refreshUnreadMessages();
