@@ -72,7 +72,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private static final int TIME_MAX_TEST = 20;
 
     //Test call vars
-    private String mQuality = "";
+    private String mQuality = "Good";
     private double mVideoPLRatio = 0.0;
     private long mVideoBw = 0;
     private double mAudioPLRatio = 0.0;
@@ -687,7 +687,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
-                mQuality = "";
+                mQuality = "Good";
             }
         });
 
@@ -996,7 +996,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         mLoadingSubPublisher.setVisibility(View.GONE);
-        if (mQuality.equals("")) {
+        if (stream.getSession().getSessionId().equals(mBackstageSessionId)) {
+
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Log.i(LOG_TAG, "Setting setSaveScreenshot true");
+                    mCustomVideoRenderer.setSaveScreenshot(true);
+                }
+            }, 5000);
+
             if(mHostStream != null && getEventStatus().equals("L")) {
                 mTestingOnStage = true;
                 testStreamConnectionQuality(mHostStream);
@@ -1007,20 +1016,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mTestingOnStage = false;
                 testStreamConnectionQuality(stream);
             }
-        } else {
-            if(stream.getSession().getSessionId() == mBackstageSessionId) {
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        hidePublisher();
-                    }
-                }, 10000);
-            }
+
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    hidePublisher();
+                }
+            }, 10000);
         }
     }
 
     private void hidePublisher() {
-        if(mPublisher != null) {
+        if(mPublisher != null && mPublisherSpinnerLayout.getVisibility() != View.GONE) {
 
             AlphaAnimation animation1 = new AlphaAnimation(1f, 0f);
             animation1.setDuration(2000);
@@ -1350,29 +1357,36 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void ackNewFanSignal() {
         mNewFanSignalAckd = true;
 
+        if(mCustomVideoRenderer.getSnapshot() != null) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    String connectionId = mPublisher.getStream().getConnection().getConnectionId();
+                    String sessionId = mBackstageSessionId;
+                    String snapshot = mCustomVideoRenderer.getSnapshot();
+                    Log.i(LOG_TAG, "sending snapshot : " + snapshot);
+                    JSONObject obj = new JSONObject();
+                    try {
+                        obj.put("connectionId", connectionId);
+                        obj.put("sessionId", sessionId);
+                        obj.put("snapshot", snapshot);
+                    } catch (JSONException ex) {
+                        Log.e(LOG_TAG, ex.getMessage());
+                    }
+                    mSocket.SendSnapShot(obj);
 
-
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                String connectionId = mPublisher.getStream().getConnection().getConnectionId();
-                String sessionId = mBackstageSessionId;
-                String snapshot = mCustomVideoRenderer.getSnapshot();
-                Log.i(LOG_TAG, "sending snapshot : " + snapshot);
-                JSONObject obj = new JSONObject();
-                try {
-                    obj.put("connectionId", connectionId);
-                    obj.put("sessionId", sessionId);
-                    obj.put("snapshot", snapshot);
-                } catch (JSONException ex) {
-                    Log.e(LOG_TAG, ex.getMessage());
+                    //Send get in line
+                    sendGetInLine();
                 }
-                mSocket.SendSnapShot(obj);
-
-                //Send get in line
-                sendGetInLine();
-            }
-        });
+            });
+        } else {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    ackNewFanSignal();
+                }
+            }, 1000);
+        }
 
 
     }
@@ -1384,7 +1398,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void enableVideoAndAudio(Boolean enable) {
         //If the fan is testing the quality from his own video, then the streaming should never stop.
-        if(mTestingOnStage) {
+        if (mTestingOnStage) {
             mPublisher.setPublishAudio(enable);
             mPublisher.setPublishVideo(enable);
         }
@@ -1693,6 +1707,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mPublisher.setPublisherListener(this);
                 // use an external custom video renderer
                 mCustomVideoRenderer = new CustomVideoRenderer(this);
+                mCustomVideoRenderer.setSaveScreenshot(false);
                 mPublisher.setRenderer(mCustomVideoRenderer);
                 attachPublisherView(mPublisher);
             }
@@ -1745,19 +1760,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void sendNewFanSignal() {
 
             if(mProducerConnection != null && mBackstageSession != null){
-                if(!mQuality.equals("") && !mNewFanSignalAckd) {
+                if(!mNewFanSignalAckd) {
                     mNewFanSignalAckd = true;
                     String userName = SpotlightConfig.USER_NAME;
                     String user_id = mWebServiceCoordinator.getUserId();
                     String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
-                    mHandler.postDelayed(new Runnable() {
+                    /*mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             sendNewFanSignal();
                         }
-                    }, 500);
+                    }, 500);*/
                 }
             }
     }

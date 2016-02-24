@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.text.BoringLayout;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -40,7 +41,7 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
         private ShortBuffer mDrawListBuffer;
 
 
-        private Boolean mSaveScreenshot = true;
+        private Boolean mSaveScreenshot = false;
 
         boolean mVideoFitEnabled = true;
         boolean mVideoDisabled = false;
@@ -310,6 +311,10 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
             mFrameLock.unlock();
         }
 
+        public void setSaveScreenshot(Boolean saveScreenshot){
+            mSaveScreenshot = saveScreenshot;
+        }
+
         public void displayFrame(Frame frame) {
             mFrameLock.lock();
             if (this.mCurrentFrame != null) {
@@ -447,6 +452,10 @@ public class CustomVideoRenderer extends BaseVideoRenderer {
 
     public String getSnapshot() {
         return mRenderer.mSnapshot;
+    }
+
+    public void setSaveScreenshot(Boolean saveScreenshot){
+        mRenderer.setSaveScreenshot(saveScreenshot);
     }
 
     @Override
