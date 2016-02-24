@@ -145,7 +145,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     @Override
     public void onDestroy() {
         super.onDestroy();
-        mSocket.disconnect();
+        //mSocket.disconnect();
         mSocket.getSocket().off("change-event-status", onChangeStatus);
 
     }

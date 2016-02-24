@@ -418,7 +418,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (isFinishing()) {
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
 
-            mSocket.disconnect();
+            //mSocket.disconnect();
 
             if (mSession != null) {
                 mSession.disconnect();
@@ -458,7 +458,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             toggleChat();
         }else {
-            mSocket.disconnect();
+            //mSocket.disconnect();
             if (mSession != null) {
                 mSession.disconnect();
             }

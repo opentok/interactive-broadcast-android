@@ -21,7 +21,7 @@ public class SocketCoordinator {
         try {
             mSocket = IO.socket(SpotlightConfig.SIGNALING_URL);
         } catch (URISyntaxException e) {
-
+            Log.i(LOG_TAG, e.getMessage());
         }
     }
 
@@ -44,23 +44,30 @@ public class SocketCoordinator {
         return mSocket;
     }
 
-    public void on(String sessionIdProducer) {
+    /*public void on(String sessionIdProducer) {
         if(mSocket.connected()) {
             mSocket.emit("joinRoom", sessionIdProducer);
             Log.i(LOG_TAG, "joinRoom emitted");
         } else {
             Log.i(LOG_TAG, "joinRoom not emitted");
         }
-    }
+    }*/
 
 
 
     public void SendSnapShot(JSONObject data) {
-        mSocket.emit("mySnapshot", data);
+        if(mSocket.connected()) {
+            mSocket.emit("mySnapshot", data);
+            Log.i(LOG_TAG, "mySnapshot emitted");
+        } else {
+            Log.i(LOG_TAG, "mySnapshot not emitted");
+        }
+
     }
 
     public void disconnect() {
         if(mSocket.connected()) {
+            Log.i(LOG_TAG, "socket disconnected");
             mSocket.disconnect();
             //mSocket.off("new message", onNewMessage);
         }
