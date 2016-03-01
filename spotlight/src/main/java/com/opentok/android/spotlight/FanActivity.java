@@ -688,6 +688,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
                 mQuality = "Good";
+                setVisibilityGetInLine(View.VISIBLE);
             }
         });
 
@@ -1361,6 +1362,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    if(mPublisher == null) return;
                     String connectionId = mPublisher.getStream().getConnection().getConnectionId();
                     String sessionId = mBackstageSessionId;
                     String snapshot = mCustomVideoRenderer.getSnapshot();
@@ -1437,8 +1439,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void disconnectFromOnstage() {
         mUserIsOnstage = false;
-        //Hide Get in line button
-        setVisibilityGetInLine(View.GONE);
 
         //Unpublish
         mSession.unpublish(mPublisher);
@@ -1472,8 +1472,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         messageTextView.setTextSize(13);
         toast.show();
 
-    }
+        mGoLiveStatus.clearAnimation();
+        mGoLiveNumber.clearAnimation();
+        mGoLiveStatus.setAlpha(1f);
+        mGoLiveNumber.setAlpha(1f);
+        mGoLiveStatus.setVisibility(View.GONE);
+        mGoLiveNumber.setVisibility(View.GONE);
 
+
+    }
 
 
     private void handleNewMessage(String data, Connection connection) {
