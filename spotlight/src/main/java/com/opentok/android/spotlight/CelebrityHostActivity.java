@@ -85,6 +85,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Button mLiveButton;
     private ImageView mEventImageEnd;
     private ImageButton mUnreadCircle;
+    private ImageView mAvatarHostCelebrity;
+    private ImageView mAvatarFan;
+    private ImageView mAvatarPublisher;
+
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
@@ -163,6 +167,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
+        mAvatarPublisher = (ImageView) findViewById(R.id.avatar_publisher);
+        mAvatarFan = (ImageView) findViewById(R.id.avatar_fan);
+        mAvatarHostCelebrity = (ImageView) findViewById(R.id.avatar_hostceleb);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -688,15 +695,46 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     }
 
+
+    private void showAvatar(String subscriberConnectionId) {
+
+        String hostCeleb = mSubscriber != null ? mSubscriber.getStream().getConnection().getConnectionId() : "";
+        String fan = mSubscriberFan != null ? mSubscriberFan.getStream().getConnection().getConnectionId() : "";
+        if(subscriberConnectionId.equals(hostCeleb)) {
+            mSubscriber.getView().setVisibility(View.GONE);
+            mAvatarHostCelebrity.setVisibility(View.VISIBLE);
+        }
+        if(subscriberConnectionId.equals(fan)) {
+            mSubscriberFan.getView().setVisibility(View.GONE);
+            mAvatarFan.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideAvatar(String subscriberConnectionId) {
+
+        String hostCeleb = mSubscriber != null ? mSubscriber.getStream().getConnection().getConnectionId() : "";
+        String fan = mSubscriberFan != null ? mSubscriberFan.getStream().getConnection().getConnectionId() : "";
+        if(subscriberConnectionId.equals(hostCeleb)) {
+            mSubscriber.getView().setVisibility(View.VISIBLE);
+            mAvatarHostCelebrity.setVisibility(View.GONE);
+        }
+        if(subscriberConnectionId.equals(fan)) {
+            mSubscriberFan.getView().setVisibility(View.VISIBLE);
+            mAvatarFan.setVisibility(View.GONE);
+        }
+    }
+
     @Override
     public void onVideoDisabled(SubscriberKit subscriber, String reason) {
         Log.i(LOG_TAG,
                 "Video disabled:" + reason);
+        showAvatar(subscriber.getStream().getConnection().getConnectionId());
     }
 
     @Override
     public void onVideoEnabled(SubscriberKit subscriber, String reason) {
         Log.i(LOG_TAG, "Video enabled:" + reason);
+        hideAvatar(subscriber.getStream().getConnection().getConnectionId());
     }
 
     @Override
@@ -708,6 +746,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onVideoDisableWarningLifted(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may no longer be disabled as stream quality improved. Add UI handling here.");
+        hideAvatar(subscriber.getStream().getConnection().getConnectionId());
     }
 
     /* Subscriber Listener methods */
@@ -866,7 +905,15 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
         mPublisher.setPublishVideo(video.equals("on"));
-        
+
+        if(video.equals("on")) {
+            mPublisher.getView().setVisibility(View.VISIBLE);
+            mAvatarPublisher.setVisibility(View.GONE);
+        } else {
+            mPublisher.getView().setVisibility(View.GONE);
+            mAvatarPublisher.setVisibility(View.VISIBLE);
+        }
+
     }
 
     public void muteAudio(String data){
@@ -933,6 +980,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         //Hide subscriber containters
         mSubscriberViewContainer.setVisibility(View.GONE);
         mSubscriberFanViewContainer.setVisibility(View.GONE);
+
+        //Hide avatars
+        mAvatarFan.setVisibility(View.GONE);
+        mAvatarHostCelebrity.setVisibility(View.GONE);
+        mAvatarPublisher.setVisibility(View.GONE);
 
         //Unpublish
         mSession.unpublish(mPublisher);

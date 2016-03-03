@@ -130,6 +130,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
     private ImageView mCircleLiveButton;
+    private ImageView mAvatarHost;
+    private ImageView mAvatarCelebrity;
+    private ImageView mAvatarFan;
     private Button mGetInLine;
     private ImageButton mUnreadCircle;
 
@@ -230,6 +233,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
+
+        mAvatarCelebrity = (ImageView) findViewById(R.id.avatar_celebrity);
+        mAvatarFan = (ImageView) findViewById(R.id.avatar_fan);
+        mAvatarHost = (ImageView) findViewById(R.id.avatar_host);
 
     }
 
@@ -667,7 +674,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mHandler.post(new Runnable() {
             @Override
             public void run() {
-
+                String status = getEventStatus();
                 stopTestingConnectionQuality();
 
                 if (mBackstageSession != null) {
@@ -688,7 +695,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
                 mQuality = "Good";
-                setVisibilityGetInLine(View.VISIBLE);
+
+                if (!status.equals("C")) {
+                    setVisibilityGetInLine(View.VISIBLE);
+                } else {
+                    setVisibilityGetInLine(View.GONE);
+                }
+
             }
         });
 
@@ -1243,11 +1256,51 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onVideoDisabled(SubscriberKit subscriber, String reason) {
         Log.i(LOG_TAG,
                 "Video disabled:" + reason);
+        showAvatar(subscriber.getStream().getConnection().getConnectionId());
+    }
+
+    private void showAvatar(String subscriberConnectionId) {
+
+        String host = mHostStream != null ? mHostStream.getConnection().getConnectionId() : "";
+        String celebrity = mCelebirtyStream != null ? mCelebirtyStream.getConnection().getConnectionId() : "";
+        String fan = mFanStream != null ? mFanStream.getConnection().getConnectionId() : "";
+        if(subscriberConnectionId.equals(host)) {
+            mSubscriberHost.getView().setVisibility(View.GONE);
+            mAvatarHost.setVisibility(View.VISIBLE);
+        }
+        if(subscriberConnectionId.equals(celebrity)) {
+            mSubscriberCelebrity.getView().setVisibility(View.GONE);
+            mAvatarCelebrity.setVisibility(View.VISIBLE);
+        }
+        if(subscriberConnectionId.equals(fan)) {
+            mSubscriberFan.getView().setVisibility(View.GONE);
+            mAvatarFan.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideAvatar(String subscriberConnectionId) {
+
+        String host = mHostStream != null ? mHostStream.getConnection().getConnectionId() : "";
+        String celebrity = mCelebirtyStream != null ? mCelebirtyStream.getConnection().getConnectionId() : "";
+        String fan = mFanStream != null ? mFanStream.getConnection().getConnectionId() : "";
+        if(subscriberConnectionId.equals(host)) {
+            mSubscriberHost.getView().setVisibility(View.VISIBLE);
+            mAvatarHost.setVisibility(View.GONE);
+        }
+        if(subscriberConnectionId.equals(celebrity)) {
+            mSubscriberCelebrity.getView().setVisibility(View.VISIBLE);
+            mAvatarCelebrity.setVisibility(View.GONE);
+        }
+        if(subscriberConnectionId.equals(fan)) {
+            mSubscriberFan.getView().setVisibility(View.VISIBLE);
+            mAvatarFan.setVisibility(View.GONE);
+        }
     }
 
     @Override
     public void onVideoEnabled(SubscriberKit subscriber, String reason) {
         Log.i(LOG_TAG, "Video enabled:" + reason);
+        hideAvatar(subscriber.getStream().getConnection().getConnectionId());
     }
 
     @Override
@@ -1258,6 +1311,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onVideoDisableWarningLifted(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may no longer be disabled as stream quality improved. Add UI handling here.");
+        hideAvatar(subscriber.getStream().getConnection().getConnectionId());
     }
 
     /* Subscriber Listener methods */
@@ -1439,6 +1493,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void disconnectFromOnstage() {
         mUserIsOnstage = false;
+        mAvatarFan.setVisibility(View.GONE);
 
         //Unpublish
         mSession.unpublish(mPublisher);
@@ -1537,6 +1592,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
         mPublisher.setPublishVideo(video.equals("on"));
+        if(mUserIsOnstage) {
+            if(video.equals("on")) {
+                mPublisher.getView().setVisibility(View.VISIBLE);
+                mAvatarFan.setVisibility(View.GONE);
+            } else {
+                mPublisher.getView().setVisibility(View.GONE);
+                mAvatarFan.setVisibility(View.VISIBLE);
+            }
+        }
+
     }
 
     private void muteAudio(String data){
@@ -1611,6 +1676,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberCelebrityViewContainer.setVisibility(View.GONE);
         mSubscriberFanViewContainer.setVisibility(View.GONE);
         mSubscriberHostViewContainer.setVisibility(View.GONE);
+        mAvatarFan.setVisibility(View.GONE);
+        mAvatarCelebrity.setVisibility(View.GONE);
+        mAvatarHost.setVisibility(View.GONE);
 
         //Hide chat
         mChatButton.setVisibility(View.GONE);
@@ -1648,7 +1716,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     /* Connection Listener methods */
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
-        if(connection.getData().equals("usertype=producer") && session.getSessionId().equals(mBackstageSessionId)) {
+        if(mProducerConnection == null && connection.getData().equals("usertype=producer") && session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = connection;
         }
     }
@@ -1656,7 +1724,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnectionDestroyed(Session session, Connection connection)
     {
-        if(connection.getData().equals("usertype=producer") && session.getSessionId().equals(mBackstageSessionId)) {
+        if(mProducerConnection != null &&
+                mProducerConnection.equals(connection.getConnectionId()) &&
+                connection.getData().equals("usertype=producer") &&
+                session.getSessionId().equals(mBackstageSessionId)) {
+
             mProducerConnection = null;
             mNewFanSignalAckd = false;
         }
