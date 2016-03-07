@@ -233,40 +233,50 @@
         android:padding="10dp"
         android:visibility="gone" />
 
-    <TextView
+    <RelativeLayout
+        android:id="@+id/goLiveView"
         android:layout_width="290dp"
         android:layout_height="200dp"
-        android:id="@+id/go_live_status"
-        android:background="@drawable/user_status_button"
-        android:textSize="30sp"
-        android:textColor="@color/user_status_text_color"
-        android:visibility="gone"
-        android:text="@string/going_on_stage"
-        android:textAlignment="center"
-        android:singleLine="false"
-        android:gravity="center_horizontal"
-        android:inputType="textMultiLine"
-        android:paddingTop="50dp"
-        android:layout_alignParentBottom="true"
+        android:keepScreenOn="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="30dp" />
+        android:background="@drawable/user_status_button"
+        android:textAlignment="center"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/go_live_number"
-        android:background="@drawable/user_status_button"
-        android:textSize="60sp"
-        android:textColor="@color/user_status_text_color"
-        android:visibility="gone"
-        android:text="3"
-        android:textAlignment="center"
-        android:singleLine="false"
-        android:gravity="center_horizontal"
-        android:inputType="textMultiLine"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="60dp" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/go_live_status"
+            android:background="@drawable/user_status_button"
+            android:textSize="30sp"
+            android:textColor="@color/user_status_text_color"
+            android:visibility="visible"
+            android:text="@string/going_on_stage"
+            android:textAlignment="center"
+            android:singleLine="false"
+            android:inputType="textMultiLine"
+            android:paddingTop="50dp"
+            android:layout_alignParentBottom="false"
+            android:layout_alignWithParentIfMissing="false"
+            android:layout_alignParentTop="false"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentLeft="false"
+            android:layout_centerHorizontal="true"
+            android:gravity="center_horizontal" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/loading_spinner_go_live"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="false"
+            android:visibility="visible"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="20dp" />
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"

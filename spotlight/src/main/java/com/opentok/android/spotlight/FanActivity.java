@@ -121,7 +121,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextView mEventStatus;
     private TextView mUserStatus;
     private TextView mGoLiveStatus;
-    private TextView mGoLiveNumber;
     private TextView mTextUnreadMessages;
     private TextView mLiveButton;
     private TextView mCameraPreview1;
@@ -143,6 +142,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private RelativeLayout mSubscriberCelebrityViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
     private RelativeLayout mPublisherSpinnerLayout;
+    private RelativeLayout mGoLiveView;
     private FrameLayout mFragmentContainer;
 
 
@@ -222,7 +222,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventStatus = (TextView) findViewById(R.id.event_status);
         mUserStatus = (TextView) findViewById(R.id.user_status);
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
-        mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
+        mGoLiveView = (RelativeLayout) findViewById(R.id.goLiveView);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mLiveButton = (TextView) findViewById(R.id.live_button);
         mCameraPreview1 = (TextView) findViewById(R.id.camera_preview_1);
@@ -242,7 +242,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void setupFonts() {
         Typeface font = EventUtils.getFont(this);
-        mGoLiveNumber.setTypeface(font);
         mEventName.setTypeface(font);
         mGoLiveStatus.setTypeface(font);
         mUserStatus.setTypeface(font);
@@ -621,42 +620,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }, 3000);
         } else {
             mUserStatus.setVisibility(View.GONE);
-
-
-            //Going live on 3..2..1
-            mGoLiveStatus.setVisibility(View.VISIBLE);
-            mGoLiveNumber.setVisibility(View.VISIBLE);
-            startCountDown(6);
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                    AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                    animation1.setDuration(500);
-                    animation1.setFillAfter(true);
-                    AlphaAnimation animation2 = new AlphaAnimation(0.8f, 0f);
-                    animation2.setDuration(500);
-                    animation2.setFillAfter(true);
-                    mGoLiveStatus.startAnimation(animation1);
-                    mGoLiveNumber.startAnimation(animation2);
-                    publishOnStage();
-                }
-            }, 5000);
+            mGoLiveView.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void startCountDown(final int number) {
-
-        mGoLiveNumber.setText(String.valueOf(number - 1));
-        if((number-1)>1) {
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    startCountDown(number - 1);
-                }
-            }, 1000);
-        }
-
     }
 
     @Override
@@ -664,6 +629,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Disconnected from the session.");
         if(session.getSessionId().equals(mSessionId)) {
             cleanViews();
+            mUserIsOnstage = false;
+            mLiveButton.setVisibility(View.GONE);
+            mCircleLiveButton.setVisibility(View.GONE);
+            
         } else {
             //TODO: Hide Get Inline button on forceDisconnect event
             leaveLine();
@@ -1380,7 +1349,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     hideChat();
                     mChatButton.setVisibility(View.GONE);
                     break;
-
+                case "joinHostNow":
+                    joinHostNow();
+                    break;
                 case "disconnect":
                     disconnectFromOnstage();
                     break;
@@ -1476,6 +1447,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         setUserStatus(R.string.status_onstage);
     }
 
+    private void joinHostNow() {
+        Log.i(LOG_TAG, "joinHostNow!");
+        publishOnStage();
+    }
+
     private void publishOnStage(){
         mLiveButton.setVisibility(View.VISIBLE);
         mCircleLiveButton.setVisibility(View.VISIBLE);
@@ -1487,8 +1463,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mHostStream != null && mSubscriberHost == null) subscribeHostToStream(mHostStream);
         if (mCelebirtyStream != null && mSubscriberCelebrity == null) subscribeCelebrityToStream(mCelebirtyStream);
         updateViewsWidth();
-
-
+        AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+        animation1.setDuration(500);
+        animation1.setFillAfter(true);
+        mGoLiveView.startAnimation(animation1);
     }
 
     private void disconnectFromOnstage() {
@@ -1527,12 +1505,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         messageTextView.setTextSize(13);
         toast.show();
 
-        mGoLiveStatus.clearAnimation();
-        mGoLiveNumber.clearAnimation();
-        mGoLiveStatus.setAlpha(1f);
-        mGoLiveNumber.setAlpha(1f);
-        mGoLiveStatus.setVisibility(View.GONE);
-        mGoLiveNumber.setVisibility(View.GONE);
+        mGoLiveView.clearAnimation();
+        mGoLiveView.setAlpha(1f);
+        mGoLiveView.setVisibility(View.GONE);
 
 
     }
@@ -1725,7 +1700,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onConnectionDestroyed(Session session, Connection connection)
     {
         if(mProducerConnection != null &&
-                mProducerConnection.equals(connection.getConnectionId()) &&
+                mProducerConnection.getConnectionId().equals(connection.getConnectionId()) &&
                 connection.getData().equals("usertype=producer") &&
                 session.getSessionId().equals(mBackstageSessionId)) {
 
