@@ -630,9 +630,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(session.getSessionId().equals(mSessionId)) {
             cleanViews();
             mUserIsOnstage = false;
-            mLiveButton.setVisibility(View.GONE);
-            mCircleLiveButton.setVisibility(View.GONE);
-            
+
         } else {
             //TODO: Hide Get Inline button on forceDisconnect event
             leaveLine();
@@ -879,6 +877,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onError(Session session, OpentokError exception) {
         Log.i(LOG_TAG, "Session exception: " + exception.getMessage());
+        if(session.getSessionId().equals(mSessionId)) {
+            if(mUserIsOnstage) {
+                mLiveButton.setVisibility(View.GONE);
+                mCircleLiveButton.setVisibility(View.GONE);
+            }
+            cleanViews();
+        }
+
     }
 
     @Override
@@ -1450,23 +1456,31 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void joinHostNow() {
         Log.i(LOG_TAG, "joinHostNow!");
         publishOnStage();
+
+
     }
 
     private void publishOnStage(){
-        mLiveButton.setVisibility(View.VISIBLE);
-        mCircleLiveButton.setVisibility(View.VISIBLE);
-        mUserIsOnstage = true;
-        mSession.publish(mPublisher);
         enableVideoAndAudio(true);
-        attachPublisherViewToFanView(mPublisher);
-
-        if (mHostStream != null && mSubscriberHost == null) subscribeHostToStream(mHostStream);
-        if (mCelebirtyStream != null && mSubscriberCelebrity == null) subscribeCelebrityToStream(mCelebirtyStream);
-        updateViewsWidth();
-        AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-        animation1.setDuration(500);
-        animation1.setFillAfter(true);
-        mGoLiveView.startAnimation(animation1);
+        mSession.publish(mPublisher);
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mLiveButton.setVisibility(View.VISIBLE);
+                mCircleLiveButton.setVisibility(View.VISIBLE);
+                mUserIsOnstage = true;
+                attachPublisherViewToFanView(mPublisher);
+                if (mHostStream != null && mSubscriberHost == null)
+                    subscribeHostToStream(mHostStream);
+                if (mCelebirtyStream != null && mSubscriberCelebrity == null)
+                    subscribeCelebrityToStream(mCelebirtyStream);
+                updateViewsWidth();
+                AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                animation1.setDuration(500);
+                animation1.setFillAfter(true);
+                mGoLiveView.startAnimation(animation1);
+            }
+        }, 4000);
     }
 
     private void disconnectFromOnstage() {
