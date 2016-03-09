@@ -110,6 +110,12 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         }
     };
 
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(LOG_TAG, "Back from the event");
+        Intent localIntent;
+        localIntent = new Intent(EventListActivity.this, MainActivity.class);
+        startActivity(localIntent);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -203,7 +209,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         Bundle localBundle = new Bundle();
         localBundle.putString("event_index", "0");
         localIntent.putExtras(localBundle);
-        startActivity(localIntent);
+        startActivityForResult(localIntent, 0);
     }
 
     public void showEvent(int event_index) {
