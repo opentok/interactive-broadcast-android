@@ -316,7 +316,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if(!mConnectionError) showConnectionLost();
         mGetInLine.setVisibility(View.GONE);
-        initReconnection();
+        //initReconnection();
     }
 
 
@@ -609,8 +609,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void setUserStatus(int status) {
+
         //Hide user status
         mUserStatus.clearAnimation();
+        mUserStatus.setVisibility(View.GONE);
         if(status != R.string.status_onstage) {
             mUserStatus.setText(getResources().getString(status));
             mUserStatus.setVisibility(View.VISIBLE);
@@ -622,10 +624,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                    animation1.setDuration(1000);
-                    animation1.setFillAfter(true);
-                    mUserStatus.startAnimation(animation1);
+                    if (mUserStatus.getVisibility() == View.VISIBLE) {
+                        AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                        animation1.setDuration(1000);
+                        animation1.setFillAfter(true);
+                        mUserStatus.startAnimation(animation1);
+                    }
                 }
             }, 3000);
         } else {
@@ -904,7 +908,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mEventImage.setVisibility(View.VISIBLE);
             mConnectionError = true;
             restartOpentokObjects();
-            initReconnection();
+            //initReconnection();
         }
 
 
@@ -935,7 +939,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Log.i(LOG_TAG, "Attemping to reconnect");
+                Log.i(LOG_TAG, "Attempting to reconnect");
                 sessionConnect();
             }
         }, 10000);
