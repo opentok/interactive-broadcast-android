@@ -91,6 +91,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private int mUnreadMessages = 0;
     private boolean mTestingOnStage = false;
     private boolean mOnstageMuted = false;
+    private boolean mConnectionError = false;
 
 
     private JSONObject mEvent;
@@ -291,6 +292,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
      */
     @Override
     public void onDataReady(JSONObject results) {
+        mConnectionError = false;
         try {
             mEvent = results.getJSONObject("event");
             mApiKey = results.getString("apiKey");
@@ -311,7 +313,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onWebServiceCoordinatorError(Exception error) {
         Log.e(LOG_TAG, "Web Service error: " + error.getMessage());
-        Toast.makeText(getApplicationContext(), "Unable to connect to the server. Please try in a few minutes.", Toast.LENGTH_LONG).show();
+
+        if(!mConnectionError) showConnectionLost();
+        mGetInLine.setVisibility(View.GONE);
+        initReconnection();
     }
 
 
@@ -479,14 +484,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mIsBound = false;
             }
 
-
-            if(InstanceApp.getInstance().getEnableAnalytics()) {
-                try {
-                    mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
-                } catch (JSONException e) {
-                    Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+            if(mWebServiceCoordinator.isConnected()) {
+                if(InstanceApp.getInstance().getEnableAnalytics()) {
+                    try {
+                        mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+                    }
                 }
             }
+
 
             super.onBackPressed();
         }
@@ -578,6 +585,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnected(Session session) {
         Log.i(LOG_TAG, "Connected to the session");
+        mConnectionError = false;
 
         // stop loading spinning
         //mPublisherSpinnerLayout.setVisibility(View.GONE);
@@ -594,6 +602,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             //loading text-chat ui component
             loadTextChatFragment();
 
+        } else {
+            mGetInLine.setVisibility(View.VISIBLE);
         }
 
     }
@@ -681,6 +691,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if (mSubscriberFan != null) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
+        }
+
+        if (mUserIsOnstage) {
+            mSubscriberFanViewContainer.removeView(mPublisher.getView());
         }
 
         if (mSubscriberHost != null) {
@@ -876,15 +890,65 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onError(Session session, OpentokError exception) {
-        Log.i(LOG_TAG, "Session exception: " + exception.getMessage());
-        if(session.getSessionId().equals(mSessionId)) {
+
+        Log.i(LOG_TAG, "Session exception: " + exception.getMessage() + " Code: " + exception.getErrorCode());
+        String error = exception.getErrorCode().toString();
+        if(error.equals("ConnectionDropped") || error.equals("ConnectionFailed")) {
             if(mUserIsOnstage) {
                 mLiveButton.setVisibility(View.GONE);
                 mCircleLiveButton.setVisibility(View.GONE);
             }
             cleanViews();
+            if(!mConnectionError) showConnectionLost();
+            mGetInLine.setVisibility(View.GONE);
+            mEventImage.setVisibility(View.VISIBLE);
+            mConnectionError = true;
+            restartOpentokObjects();
+            initReconnection();
         }
 
+
+    }
+
+    private void restartOpentokObjects() {
+        if (mSession != null) mSession.disconnect();
+        if (mBackstageSession != null) mBackstageSession.disconnect();
+        mUserIsOnstage = false;
+        mSession = null;
+        mBackstageSession  = null;
+        mPublisher  = null;
+        mSubscriberHost  = null;
+        mSubscriberCelebrity  = null;
+        mSubscriberFan  = null;
+        mSubscriberProducer  = null;
+        mSubscriberProducerOnstage  = null;
+        mTestSubscriber  = null;
+        mCelebirtyStream  = null;
+        mFanStream  = null;
+        mHostStream  = null;
+        mProducerStream  = null;
+        mProducerStreamOnstage  = null;
+        mProducerConnection = null;
+    }
+
+    private void initReconnection() {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(LOG_TAG, "Attemping to reconnect");
+                sessionConnect();
+            }
+        }, 10000);
+
+    }
+
+    private void  showConnectionLost(){
+        Toast toast = Toast.makeText(getApplicationContext(), R.string.connection_lost, Toast.LENGTH_LONG);
+        ViewGroup view = (ViewGroup) toast.getView();
+        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
+        TextView messageTextView = (TextView) view.getChildAt(0);
+        messageTextView.setTextSize(13);
+        toast.show();
     }
 
     @Override
@@ -1461,8 +1525,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void publishOnStage(){
-        enableVideoAndAudio(true);
         mSession.publish(mPublisher);
+        enableVideoAndAudio(true);
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -1480,7 +1544,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 animation1.setFillAfter(true);
                 mGoLiveView.startAnimation(animation1);
             }
-        }, 4000);
+        }, 2000);
     }
 
     private void disconnectFromOnstage() {

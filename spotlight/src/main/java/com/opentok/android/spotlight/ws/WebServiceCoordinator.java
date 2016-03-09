@@ -25,10 +25,15 @@ public class WebServiceCoordinator {
 
     private final Context context;
     private Listener delegate;
+    private Boolean mConnected = false;
 
     public WebServiceCoordinator(Context context, Listener delegate) {
         this.context = context;
         this.delegate = delegate;
+    }
+
+    public Boolean isConnected() {
+        return mConnected;
     }
 
     public void getInstanceById() throws JSONException {
@@ -69,6 +74,7 @@ public class WebServiceCoordinator {
             @Override
             public void onResponse(JSONObject response) {
                 Log.i(LOG_TAG, response.toString());
+                mConnected = true;
                 delegate.onDataReady(response);
             }
         }, new Response.ErrorListener() {

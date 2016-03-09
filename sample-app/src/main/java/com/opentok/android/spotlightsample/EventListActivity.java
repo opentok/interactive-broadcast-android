@@ -271,7 +271,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
             public void run() {
                 getInstanceId();
             }
-        }, 500);
+        }, 5000);
     }
 
 }
