@@ -1489,6 +1489,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinBackstage() {
+        hidePublisher();
         enableVideoAndAudio(true);
         setUserStatus(R.string.status_backstage);
     }
