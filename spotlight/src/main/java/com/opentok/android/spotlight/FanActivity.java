@@ -92,6 +92,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private boolean mTestingOnStage = false;
     private boolean mOnstageMuted = false;
     private boolean mConnectionError = false;
+    private boolean mDisplayingUserStatus = false;
 
 
     private JSONObject mEvent;
@@ -100,8 +101,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mToken;
     private String mBackstageSessionId;
     private String mBackstageToken;
+    private String mBackstageConnectionId;
     private Session mSession;
     private Session mBackstageSession;
+
     private WebServiceCoordinator mWebServiceCoordinator;
     private SocketCoordinator mSocket;
     private Publisher mPublisher;
@@ -613,6 +616,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Hide user status
         mUserStatus.clearAnimation();
         mUserStatus.setVisibility(View.GONE);
+        mDisplayingUserStatus = false;
         if(status != R.string.status_onstage) {
             mUserStatus.setText(getResources().getString(status));
             mUserStatus.setVisibility(View.VISIBLE);
@@ -620,11 +624,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             animation1.setDuration(1000);
             animation1.setFillAfter(true);
             mUserStatus.startAnimation(animation1);
+            mDisplayingUserStatus = true;
 
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if (mUserStatus.getVisibility() == View.VISIBLE) {
+                    if (mDisplayingUserStatus) {
                         AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
                         animation1.setDuration(1000);
                         animation1.setFillAfter(true);
@@ -1054,7 +1059,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         mLoadingSubPublisher.setVisibility(View.GONE);
         if (stream.getSession().getSessionId().equals(mBackstageSessionId)) {
-
+            mBackstageConnectionId = mPublisher.getStream().getConnection().getConnectionId();
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -1141,6 +1146,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 checkVideoStats(stats);
 
                 //check quality of the video call after TIME_VIDEO_TEST seconds
+                //Log.i(LOG_TAG, "checkquality = " + String.valueOf(System.currentTimeMillis() / 1000 - mStartTestTime));
                 if (((System.currentTimeMillis() / 1000 - mStartTestTime) > TIME_VIDEO_TEST) && !audioOnly) {
                     checkVideoQuality();
                 }
@@ -1246,6 +1252,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.i(LOG_TAG, "mVideoPLRatio is " + mVideoPLRatio);
             sendQualityUpdate(mPublisher.getStream().getConnection().getConnectionId(), mQuality);
             //Current time + 45 sec = 1 minute
+            //Log.i(LOG_TAG, "mStartTestTime = " + String.valueOf(mStartTestTime));
             mStartTestTime = System.currentTimeMillis() / 1000 + 45;
         }
     }
@@ -1462,7 +1469,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 @Override
                 public void run() {
                     if(mPublisher == null) return;
-                    String connectionId = mPublisher.getStream().getConnection().getConnectionId();
+
+                    String connectionId = mBackstageConnectionId;
                     String sessionId = mBackstageSessionId;
                     String snapshot = mCustomVideoRenderer.getSnapshot();
                     Log.i(LOG_TAG, "sending snapshot : " + snapshot);
