@@ -544,14 +544,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     if (mUserIsOnstage) {
                         //copy layoutparams from fan container
                         RelativeLayout.LayoutParams publisher_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                        publisher_head_params.width = screenWidth(FanActivity.this) / streams + 10;
+                        publisher_head_params.width = screenWidth(FanActivity.this) / streams;
                         mSubscriberFanViewContainer.setLayoutParams(publisher_head_params);
 
                         mPublisher.getView().setVisibility(View.VISIBLE);
                         mSubscriberFanViewContainer.setVisibility(View.VISIBLE);
                     } else {
                         RelativeLayout.LayoutParams fan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                        fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams + 10 : 1;
+                        fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams : 1;
                         mSubscriberFanViewContainer.setLayoutParams(fan_head_params);
                     }
 
@@ -845,7 +845,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mSubscriberHost.getView()).setZOrderMediaOverlay(false);
         mSubscriberHostViewContainer.addView(mSubscriberHost.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachSubscriberCelebrityView(Subscriber subscriber) {
@@ -856,7 +856,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mSubscriberCelebrity.getView()).setZOrderMediaOverlay(false);
         mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachSubscriberFanView(Subscriber subscriber) {
@@ -867,7 +867,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mSubscriberFan.getView()).setZOrderMediaOverlay(false);
         mSubscriberFanViewContainer.addView(mSubscriberFan.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachPublisherView(Publisher publisher) {
@@ -894,7 +894,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mPublisher.getView()).setZOrderMediaOverlay(false);
         mSubscriberFanViewContainer.addView(mPublisher.getView(), layoutParams);
         publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     @Override
@@ -1268,7 +1268,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private static int screenWidth(Context ctx) {
         DisplayMetrics displaymetrics = new DisplayMetrics();
         ((Activity) ctx).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-        return displaymetrics.widthPixels;
+        return displaymetrics.widthPixels + 1;
     }
 
     @Override
