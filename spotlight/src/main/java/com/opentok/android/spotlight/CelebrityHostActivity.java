@@ -556,7 +556,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mSubscriberViewContainer.removeView(mSubscriber.getView());
         mSubscriberViewContainer.addView(mSubscriber.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachSubscriberFanView(Subscriber subscriber) {
@@ -566,13 +566,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
         mSubscriberFanViewContainer.addView(mSubscriberFan.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachPublisherView(Publisher publisher) {
 
         mPublisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                 getResources().getDisplayMetrics().widthPixels, getResources()
                 .getDisplayMetrics().heightPixels);

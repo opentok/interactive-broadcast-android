@@ -34,5 +34,7 @@
     <!-- Event list -->
     <string name="join_event_btn">Join Event</string>
 
+    <string name="connection_lost">No internet connection. Please check your data or wifi connection and try again.</string>
+
 
 </resources>

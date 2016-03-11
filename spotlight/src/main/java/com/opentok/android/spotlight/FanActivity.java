@@ -91,6 +91,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private int mUnreadMessages = 0;
     private boolean mTestingOnStage = false;
     private boolean mOnstageMuted = false;
+    private boolean mConnectionError = false;
+    private boolean mDisplayingUserStatus = false;
 
 
     private JSONObject mEvent;
@@ -99,8 +101,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mToken;
     private String mBackstageSessionId;
     private String mBackstageToken;
+    private String mBackstageConnectionId;
     private Session mSession;
     private Session mBackstageSession;
+
     private WebServiceCoordinator mWebServiceCoordinator;
     private SocketCoordinator mSocket;
     private Publisher mPublisher;
@@ -121,7 +125,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextView mEventStatus;
     private TextView mUserStatus;
     private TextView mGoLiveStatus;
-    private TextView mGoLiveNumber;
     private TextView mTextUnreadMessages;
     private TextView mLiveButton;
     private TextView mCameraPreview1;
@@ -143,6 +146,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private RelativeLayout mSubscriberCelebrityViewContainer;
     private RelativeLayout mSubscriberFanViewContainer;
     private RelativeLayout mPublisherSpinnerLayout;
+    private RelativeLayout mGoLiveView;
     private FrameLayout mFragmentContainer;
 
 
@@ -222,7 +226,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEventStatus = (TextView) findViewById(R.id.event_status);
         mUserStatus = (TextView) findViewById(R.id.user_status);
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
-        mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
+        mGoLiveView = (RelativeLayout) findViewById(R.id.goLiveView);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mLiveButton = (TextView) findViewById(R.id.live_button);
         mCameraPreview1 = (TextView) findViewById(R.id.camera_preview_1);
@@ -242,7 +246,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void setupFonts() {
         Typeface font = EventUtils.getFont(this);
-        mGoLiveNumber.setTypeface(font);
         mEventName.setTypeface(font);
         mGoLiveStatus.setTypeface(font);
         mUserStatus.setTypeface(font);
@@ -292,6 +295,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
      */
     @Override
     public void onDataReady(JSONObject results) {
+        mConnectionError = false;
         try {
             mEvent = results.getJSONObject("event");
             mApiKey = results.getString("apiKey");
@@ -312,7 +316,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onWebServiceCoordinatorError(Exception error) {
         Log.e(LOG_TAG, "Web Service error: " + error.getMessage());
-        Toast.makeText(getApplicationContext(), "Unable to connect to the server. Please try in a few minutes.", Toast.LENGTH_LONG).show();
+
+        if(!mConnectionError) showConnectionLost();
+        mGetInLine.setVisibility(View.GONE);
+        //initReconnection();
     }
 
 
@@ -480,14 +487,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mIsBound = false;
             }
 
-
-            if(InstanceApp.getInstance().getEnableAnalytics()) {
-                try {
-                    mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
-                } catch (JSONException e) {
-                    Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+            if(mWebServiceCoordinator.isConnected()) {
+                if(InstanceApp.getInstance().getEnableAnalytics()) {
+                    try {
+                        mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+                    }
                 }
             }
+
 
             super.onBackPressed();
         }
@@ -535,14 +544,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     if (mUserIsOnstage) {
                         //copy layoutparams from fan container
                         RelativeLayout.LayoutParams publisher_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                        publisher_head_params.width = screenWidth(FanActivity.this) / streams + 10;
+                        publisher_head_params.width = screenWidth(FanActivity.this) / streams;
                         mSubscriberFanViewContainer.setLayoutParams(publisher_head_params);
 
                         mPublisher.getView().setVisibility(View.VISIBLE);
                         mSubscriberFanViewContainer.setVisibility(View.VISIBLE);
                     } else {
                         RelativeLayout.LayoutParams fan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
-                        fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams + 10 : 1;
+                        fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams : 1;
                         mSubscriberFanViewContainer.setLayoutParams(fan_head_params);
                     }
 
@@ -579,6 +588,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnected(Session session) {
         Log.i(LOG_TAG, "Connected to the session");
+        mConnectionError = false;
 
         // stop loading spinning
         //mPublisherSpinnerLayout.setVisibility(View.GONE);
@@ -595,13 +605,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             //loading text-chat ui component
             loadTextChatFragment();
 
+        } else {
+            mGetInLine.setVisibility(View.VISIBLE);
         }
 
     }
 
     private void setUserStatus(int status) {
+
         //Hide user status
         mUserStatus.clearAnimation();
+        mUserStatus.setVisibility(View.GONE);
+        mDisplayingUserStatus = false;
         if(status != R.string.status_onstage) {
             mUserStatus.setText(getResources().getString(status));
             mUserStatus.setVisibility(View.VISIBLE);
@@ -609,54 +624,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             animation1.setDuration(1000);
             animation1.setFillAfter(true);
             mUserStatus.startAnimation(animation1);
+            mDisplayingUserStatus = true;
 
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                    animation1.setDuration(1000);
-                    animation1.setFillAfter(true);
-                    mUserStatus.startAnimation(animation1);
+                    if (mDisplayingUserStatus) {
+                        AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                        animation1.setDuration(1000);
+                        animation1.setFillAfter(true);
+                        mUserStatus.startAnimation(animation1);
+                    }
                 }
             }, 3000);
         } else {
             mUserStatus.setVisibility(View.GONE);
-
-
-            //Going live on 3..2..1
-            mGoLiveStatus.setVisibility(View.VISIBLE);
-            mGoLiveNumber.setVisibility(View.VISIBLE);
-            startCountDown(6);
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-
-                    AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                    animation1.setDuration(500);
-                    animation1.setFillAfter(true);
-                    AlphaAnimation animation2 = new AlphaAnimation(0.8f, 0f);
-                    animation2.setDuration(500);
-                    animation2.setFillAfter(true);
-                    mGoLiveStatus.startAnimation(animation1);
-                    mGoLiveNumber.startAnimation(animation2);
-                    publishOnStage();
-                }
-            }, 5000);
+            mGoLiveView.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void startCountDown(final int number) {
-
-        mGoLiveNumber.setText(String.valueOf(number - 1));
-        if((number-1)>1) {
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    startCountDown(number - 1);
-                }
-            }, 1000);
-        }
-
     }
 
     @Override
@@ -664,6 +648,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Disconnected from the session.");
         if(session.getSessionId().equals(mSessionId)) {
             cleanViews();
+            mUserIsOnstage = false;
+
         } else {
             //TODO: Hide Get Inline button on forceDisconnect event
             leaveLine();
@@ -714,6 +700,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if (mSubscriberFan != null) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
+        }
+
+        if (mUserIsOnstage) {
+            mSubscriberFanViewContainer.removeView(mPublisher.getView());
         }
 
         if (mSubscriberHost != null) {
@@ -855,7 +845,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mSubscriberHost.getView()).setZOrderMediaOverlay(false);
         mSubscriberHostViewContainer.addView(mSubscriberHost.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachSubscriberCelebrityView(Subscriber subscriber) {
@@ -866,7 +856,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mSubscriberCelebrity.getView()).setZOrderMediaOverlay(false);
         mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachSubscriberFanView(Subscriber subscriber) {
@@ -877,7 +867,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mSubscriberFan.getView()).setZOrderMediaOverlay(false);
         mSubscriberFanViewContainer.addView(mSubscriberFan.getView(), layoutParams);
         subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     private void attachPublisherView(Publisher publisher) {
@@ -904,12 +894,70 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ((GLSurfaceView)mPublisher.getView()).setZOrderMediaOverlay(false);
         mSubscriberFanViewContainer.addView(mPublisher.getView(), layoutParams);
         publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FILL);
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
     }
 
     @Override
     public void onError(Session session, OpentokError exception) {
-        Log.i(LOG_TAG, "Session exception: " + exception.getMessage());
+
+        Log.i(LOG_TAG, "Session exception: " + exception.getMessage() + " Code: " + exception.getErrorCode());
+        String error = exception.getErrorCode().toString();
+        if(error.equals("ConnectionDropped") || error.equals("ConnectionFailed")) {
+            if(mUserIsOnstage) {
+                mLiveButton.setVisibility(View.GONE);
+                mCircleLiveButton.setVisibility(View.GONE);
+            }
+            cleanViews();
+            if(!mConnectionError) showConnectionLost();
+            mGetInLine.setVisibility(View.GONE);
+            mEventImage.setVisibility(View.VISIBLE);
+            mConnectionError = true;
+            restartOpentokObjects();
+            //initReconnection();
+        }
+
+
+    }
+
+    private void restartOpentokObjects() {
+        if (mSession != null) mSession.disconnect();
+        if (mBackstageSession != null) mBackstageSession.disconnect();
+        mUserIsOnstage = false;
+        mSession = null;
+        mBackstageSession  = null;
+        mPublisher  = null;
+        mSubscriberHost  = null;
+        mSubscriberCelebrity  = null;
+        mSubscriberFan  = null;
+        mSubscriberProducer  = null;
+        mSubscriberProducerOnstage  = null;
+        mTestSubscriber  = null;
+        mCelebirtyStream  = null;
+        mFanStream  = null;
+        mHostStream  = null;
+        mProducerStream  = null;
+        mProducerStreamOnstage  = null;
+        mProducerConnection = null;
+    }
+
+    private void initReconnection() {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(LOG_TAG, "Attempting to reconnect");
+                sessionConnect();
+            }
+        }, 10000);
+
+    }
+
+    private void  showConnectionLost(){
+        Toast toast = Toast.makeText(getApplicationContext(), R.string.connection_lost, Toast.LENGTH_LONG);
+        ViewGroup view = (ViewGroup) toast.getView();
+        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
+        TextView messageTextView = (TextView) view.getChildAt(0);
+        messageTextView.setTextSize(13);
+        toast.show();
     }
 
     @Override
@@ -1011,7 +1059,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         mLoadingSubPublisher.setVisibility(View.GONE);
         if (stream.getSession().getSessionId().equals(mBackstageSessionId)) {
-
+            mBackstageConnectionId = mPublisher.getStream().getConnection().getConnectionId();
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -1098,6 +1146,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 checkVideoStats(stats);
 
                 //check quality of the video call after TIME_VIDEO_TEST seconds
+                //Log.i(LOG_TAG, "checkquality = " + String.valueOf(System.currentTimeMillis() / 1000 - mStartTestTime));
                 if (((System.currentTimeMillis() / 1000 - mStartTestTime) > TIME_VIDEO_TEST) && !audioOnly) {
                     checkVideoQuality();
                 }
@@ -1203,6 +1252,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.i(LOG_TAG, "mVideoPLRatio is " + mVideoPLRatio);
             sendQualityUpdate(mPublisher.getStream().getConnection().getConnectionId(), mQuality);
             //Current time + 45 sec = 1 minute
+            //Log.i(LOG_TAG, "mStartTestTime = " + String.valueOf(mStartTestTime));
             mStartTestTime = System.currentTimeMillis() / 1000 + 45;
         }
     }
@@ -1218,7 +1268,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private static int screenWidth(Context ctx) {
         DisplayMetrics displaymetrics = new DisplayMetrics();
         ((Activity) ctx).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-        return displaymetrics.widthPixels;
+        return displaymetrics.widthPixels + 1;
     }
 
     @Override
@@ -1380,7 +1430,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     hideChat();
                     mChatButton.setVisibility(View.GONE);
                     break;
-
+                case "joinHostNow":
+                    joinHostNow();
+                    break;
                 case "disconnect":
                     disconnectFromOnstage();
                     break;
@@ -1417,7 +1469,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 @Override
                 public void run() {
                     if(mPublisher == null) return;
-                    String connectionId = mPublisher.getStream().getConnection().getConnectionId();
+
+                    String connectionId = mBackstageConnectionId;
                     String sessionId = mBackstageSessionId;
                     String snapshot = mCustomVideoRenderer.getSnapshot();
                     Log.i(LOG_TAG, "sending snapshot : " + snapshot);
@@ -1448,6 +1501,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinBackstage() {
+        hidePublisher();
         enableVideoAndAudio(true);
         setUserStatus(R.string.status_backstage);
     }
@@ -1476,19 +1530,34 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         setUserStatus(R.string.status_onstage);
     }
 
+    private void joinHostNow() {
+        Log.i(LOG_TAG, "joinHostNow!");
+        publishOnStage();
+
+
+    }
+
     private void publishOnStage(){
-        mLiveButton.setVisibility(View.VISIBLE);
-        mCircleLiveButton.setVisibility(View.VISIBLE);
-        mUserIsOnstage = true;
         mSession.publish(mPublisher);
         enableVideoAndAudio(true);
-        attachPublisherViewToFanView(mPublisher);
-
-        if (mHostStream != null && mSubscriberHost == null) subscribeHostToStream(mHostStream);
-        if (mCelebirtyStream != null && mSubscriberCelebrity == null) subscribeCelebrityToStream(mCelebirtyStream);
-        updateViewsWidth();
-
-
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mLiveButton.setVisibility(View.VISIBLE);
+                mCircleLiveButton.setVisibility(View.VISIBLE);
+                mUserIsOnstage = true;
+                attachPublisherViewToFanView(mPublisher);
+                if (mHostStream != null && mSubscriberHost == null)
+                    subscribeHostToStream(mHostStream);
+                if (mCelebirtyStream != null && mSubscriberCelebrity == null)
+                    subscribeCelebrityToStream(mCelebirtyStream);
+                updateViewsWidth();
+                AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                animation1.setDuration(500);
+                animation1.setFillAfter(true);
+                mGoLiveView.startAnimation(animation1);
+            }
+        }, 2000);
     }
 
     private void disconnectFromOnstage() {
@@ -1527,12 +1596,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         messageTextView.setTextSize(13);
         toast.show();
 
-        mGoLiveStatus.clearAnimation();
-        mGoLiveNumber.clearAnimation();
-        mGoLiveStatus.setAlpha(1f);
-        mGoLiveNumber.setAlpha(1f);
-        mGoLiveStatus.setVisibility(View.GONE);
-        mGoLiveNumber.setVisibility(View.GONE);
+        mGoLiveView.clearAnimation();
+        mGoLiveView.setAlpha(1f);
+        mGoLiveView.setVisibility(View.GONE);
 
 
     }
@@ -1725,7 +1791,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onConnectionDestroyed(Session session, Connection connection)
     {
         if(mProducerConnection != null &&
-                mProducerConnection.equals(connection.getConnectionId()) &&
+                mProducerConnection.getConnectionId().equals(connection.getConnectionId()) &&
                 connection.getData().equals("usertype=producer") &&
                 session.getSessionId().equals(mBackstageSessionId)) {
 
