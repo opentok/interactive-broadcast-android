@@ -76,7 +76,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
             if(holder.name.getText().equals("")) {
                 EventUtils.loadEventImage(getContext(), event.getString("event_image"), holder.event_img);
             }
-            holder.name.setText(EventUtils.ellipsize(event.getString("event_name"), 17));
+            holder.name.setText(EventUtils.ellipsize(event.getString("event_name"), 15));
             holder.date_status.setText(EventUtils.getStatusNameById(event.getString("status")));
             if(event.getString("status").equals("N")) {
                 //holder.join_event.setVisibility(View.GONE);

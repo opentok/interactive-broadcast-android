@@ -965,6 +965,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         String status = getEventStatus();
         Log.i(LOG_TAG, "onStreamReceived/" + status);
         Boolean bIsOnStage = session.getSessionId().equals(mSessionId);
+        Log.i(LOG_TAG, "Video height:" + String.valueOf(stream.getVideoHeight()));
+        Log.i(LOG_TAG, "Video width:" + String.valueOf(stream.getVideoWidth()));
+        Log.i(LOG_TAG, "Video type:" + String.valueOf(stream.getStreamVideoType().name()));
+
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
                 if (mFanStream == null && bIsOnStage) {
@@ -1025,7 +1029,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if(mCelebirtyStream != null && mCelebirtyStream.getConnection().getConnectionId().equals(streamConnectionId)) {
 
                     mCelebirtyStream = null;
-                    if(status.equals("L") || status.equals("C")) {
+                    if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
                         unsubscribeCelebrityFromStream(stream);
                         updateViewsWidth();
                     }
@@ -1034,7 +1038,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             case "usertype=host":
                 if(mHostStream != null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     mHostStream = null;
-                    if(status.equals("L") || status.equals("C")) {
+                    if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
                         unsubscribeHostFromStream(stream);
                         updateViewsWidth();
                     }
@@ -1059,6 +1063,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         mLoadingSubPublisher.setVisibility(View.GONE);
         if (stream.getSession().getSessionId().equals(mBackstageSessionId)) {
+            Log.i(LOG_TAG, "publisher Video height:" + String.valueOf(stream.getVideoHeight()));
+            Log.i(LOG_TAG, "publisher Video width:" + String.valueOf(stream.getVideoWidth()));
+            Log.i(LOG_TAG, "publisher Video type:" + String.valueOf(stream.getStreamVideoType().name()));
             mBackstageConnectionId = mPublisher.getStream().getConnection().getConnectionId();
             mHandler.postDelayed(new Runnable() {
                 @Override
@@ -1068,10 +1075,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }, 5000);
 
-            if(mHostStream != null && getEventStatus().equals("L")) {
+            if(mHostStream != null && (getEventStatus().equals("L") || mUserIsOnstage)) {
                 mTestingOnStage = true;
                 testStreamConnectionQuality(mHostStream);
-            } else if(mCelebirtyStream != null  && getEventStatus().equals("L")) {
+            } else if(mCelebirtyStream != null  && (getEventStatus().equals("L") || mUserIsOnstage)) {
                 mTestingOnStage = true;
                 testStreamConnectionQuality(mCelebirtyStream);
             } else {
@@ -1520,6 +1527,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void connectWithOnstage() {
+        //End the private call
+        if (mProducerStream!= null && mSubscriberProducer != null) {
+            muteOnstage(false);
+            mBackstageSession.unsubscribe(mSubscriberProducer);
+            mSubscriberProducer = null;
+        }
 
         //stop testing quality
         stopTestingConnectionQuality();
@@ -1538,26 +1551,31 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void publishOnStage(){
-        mSession.publish(mPublisher);
-        enableVideoAndAudio(true);
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                mLiveButton.setVisibility(View.VISIBLE);
-                mCircleLiveButton.setVisibility(View.VISIBLE);
-                mUserIsOnstage = true;
-                attachPublisherViewToFanView(mPublisher);
-                if (mHostStream != null && mSubscriberHost == null)
-                    subscribeHostToStream(mHostStream);
-                if (mCelebirtyStream != null && mSubscriberCelebrity == null)
-                    subscribeCelebrityToStream(mCelebirtyStream);
-                updateViewsWidth();
-                AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                animation1.setDuration(500);
-                animation1.setFillAfter(true);
-                mGoLiveView.startAnimation(animation1);
-            }
-        }, 2000);
+        if(mSession != null && mPublisher != null) {
+            mSession.publish(mPublisher);
+            enableVideoAndAudio(true);
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mLiveButton.setVisibility(View.VISIBLE);
+                    mCircleLiveButton.setVisibility(View.VISIBLE);
+                    mUserIsOnstage = true;
+                    attachPublisherViewToFanView(mPublisher);
+                    if (mHostStream != null && mSubscriberHost == null)
+                        subscribeHostToStream(mHostStream);
+                    if (mCelebirtyStream != null && mSubscriberCelebrity == null)
+                        subscribeCelebrityToStream(mCelebirtyStream);
+                    updateViewsWidth();
+                    AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
+                    animation1.setDuration(500);
+                    animation1.setFillAfter(true);
+                    mGoLiveView.startAnimation(animation1);
+                }
+            }, 2000);
+        } else {
+            mGoLiveView.setVisibility(View.GONE);
+        }
+
     }
 
     private void disconnectFromOnstage() {
