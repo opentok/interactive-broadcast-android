@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     public void onStartClicked(View v) {
         RadioButton rdFan = (RadioButton) findViewById(R.id.radioButton);
         RadioButton rdCeleb = (RadioButton) findViewById(R.id.radioButton2);
@@ -46,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Replace with the instance ID
-        SpotlightConfig.INSTANCE_ID = "spotlight-mlb-210216";
+        //SpotlightConfig.INSTANCE_ID = "spotlight-mlb-210216";
         SpotlightConfig.INSTANCE_ID = "AAAA1";
 
 
