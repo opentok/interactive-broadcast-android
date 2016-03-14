@@ -1541,6 +1541,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         setVisibilityGetInLine(View.GONE);
         mBackstageSession.unpublish(mPublisher);
         setUserStatus(R.string.status_onstage);
+
+        mPublisherViewContainer.removeView(mPublisher.getView());
+        mPublisher.destroy();
+
+        mPublisher = new Publisher(FanActivity.this, "publisher");
+        mPublisher.setPublisherListener(this);
     }
 
     private void joinHostNow() {
