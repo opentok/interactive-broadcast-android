@@ -46,6 +46,7 @@ import com.opentok.android.spotlight.chat.TextChatFragment;
 import com.opentok.android.spotlight.config.SpotlightConfig;
 import com.opentok.android.spotlight.events.EventUtils;
 import com.opentok.android.spotlight.model.InstanceApp;
+import com.opentok.android.spotlight.network.NetworkTest;
 import com.opentok.android.spotlight.services.ClearNotificationService;
 import com.opentok.android.spotlight.socket.SocketCoordinator;
 import com.opentok.android.spotlight.video.CustomVideoRenderer;
@@ -67,25 +68,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         TextChatFragment.TextChatListener{
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
-    private static final int TIME_WINDOW = 3; //3 seconds
-    private static final int TIME_VIDEO_TEST = 15; //time interval to check the video quality in seconds
-    private static final int TIME_MAX_TEST = 20;
 
-    //Test call vars
-    private String mQuality = "Good";
-    private double mVideoPLRatio = 0.0;
-    private long mVideoBw = 0;
-    private double mAudioPLRatio = 0.0;
-    private long mAudioBw = 0;
-    private long mPrevVideoPacketsLost = 0;
-    private long mPrevVideoPacketsRcvd = 0;
-    private double mPrevVideoTimestamp = 0;
-    private long mPrevVideoBytes = 0;
-    private long mPrevAudioPacketsLost = 0;
-    private long mPrevAudioPacketsRcvd = 0;
-    private double mPrevAudioTimestamp = 0;
-    private long mPrevAudioBytes = 0;
-    private long mStartTestTime = 0;
     private boolean audioOnly = false;
     private boolean mNewFanSignalAckd = false;
     private int mUnreadMessages = 0;
@@ -104,6 +87,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mBackstageConnectionId;
     private Session mSession;
     private Session mBackstageSession;
+    private NetworkTest.MOSQuality mVideoQuality;
 
     private WebServiceCoordinator mWebServiceCoordinator;
     private SocketCoordinator mSocket;
@@ -178,6 +162,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSocket = new SocketCoordinator();
         mSocket.connect();
 
+        mVideoQuality = NetworkTest.MOSQuality.Good;
 
         initLayoutWidgets();
 
@@ -680,7 +665,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
-                mQuality = "Good";
+                mVideoQuality = NetworkTest.MOSQuality.Good;
 
                 if (!status.equals("C")) {
                     setVisibilityGetInLine(View.VISIBLE);
@@ -1126,7 +1111,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
         mTestSubscriber = null;
     }
-
     private void testStreamConnectionQuality(Stream stream) {
 
         if(!mTestingOnStage) {
@@ -1142,126 +1126,24 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }
 
+        final NetworkTest mTest = new NetworkTest();
+
         mTestSubscriber.setVideoStatsListener(new SubscriberKit.VideoStatsListener() {
 
             @Override
             public void onVideoStats(SubscriberKit subscriber,
                                      SubscriberKit.SubscriberVideoStats stats) {
-                if (mStartTestTime == 0) {
-                    mStartTestTime = System.currentTimeMillis() / 1000;
-                }
-                checkVideoStats(stats);
+
+                //check video quality
+                mTest.checkVideoQuality(stats);
 
                 //check quality of the video call after TIME_VIDEO_TEST seconds
-                //Log.i(LOG_TAG, "checkquality = " + String.valueOf(System.currentTimeMillis() / 1000 - mStartTestTime));
-                if (((System.currentTimeMillis() / 1000 - mStartTestTime) > TIME_VIDEO_TEST) && !audioOnly) {
-                    checkVideoQuality();
+                if (((System.currentTimeMillis() / 1000 - mTest.getStartTestTime()) > mTest.TIME_VIDEO_TEST)) {
+                    NetworkTest.MOSQuality quality = mTest.getMOSQuality();
+                    sendQualityUpdate(mTestSubscriber.getStream().getConnection().getConnectionId(), quality.toString());
                 }
-            }
-
-        });
-
-        mTestSubscriber.setAudioStatsListener(new SubscriberKit.AudioStatsListener() {
-            @Override
-            public void onAudioStats(SubscriberKit subscriber, SubscriberKit.SubscriberAudioStats stats) {
-                Log.i(LOG_TAG, "onAudioStats");
-                checkAudioStats(stats);
             }
         });
-    }
-
-    private void checkVideoStats(SubscriberKit.SubscriberVideoStats stats) {
-        double videoTimestamp = stats.timeStamp / 1000;
-
-        //initialize values
-        if (mPrevVideoTimestamp == 0) {
-            mPrevVideoTimestamp = videoTimestamp;
-            mPrevVideoBytes = stats.videoBytesReceived;
-        }
-
-        if (videoTimestamp - mPrevVideoTimestamp >= TIME_WINDOW) {
-            //calculate video packets lost ratio
-            if (mPrevVideoPacketsRcvd != 0) {
-                long pl = stats.videoPacketsLost - mPrevVideoPacketsLost;
-                long pr = stats.videoPacketsReceived - mPrevVideoPacketsRcvd;
-                long pt = pl + pr;
-
-                if (pt > 0) {
-                    mVideoPLRatio = (double) pl / (double) pt;
-                }
-            }
-
-            mPrevVideoPacketsLost = stats.videoPacketsLost;
-            mPrevVideoPacketsRcvd = stats.videoPacketsReceived;
-
-            //calculate video bandwidth
-            mVideoBw = (long) ((8 * (stats.videoBytesReceived - mPrevVideoBytes)) / (videoTimestamp - mPrevVideoTimestamp));
-
-            mPrevVideoTimestamp = videoTimestamp;
-            mPrevVideoBytes = stats.videoBytesReceived;
-
-            Log.i(LOG_TAG, "Video bandwidth (bps): " + mVideoBw + " Video Bytes received: " + stats.videoBytesReceived + " Video packet lost: " + stats.videoPacketsLost + " Video packet loss ratio: " + mVideoPLRatio);
-
-        }
-    }
-
-    private void checkAudioStats(SubscriberKit.SubscriberAudioStats stats) {
-        double audioTimestamp = stats.timeStamp / 1000;
-
-        //initialize values
-        if (mPrevAudioTimestamp == 0) {
-            mPrevAudioTimestamp = audioTimestamp;
-            mPrevAudioBytes = stats.audioBytesReceived;
-        }
-
-        if (audioTimestamp - mPrevAudioTimestamp >= TIME_WINDOW) {
-            //calculate audio packets lost ratio
-            if (mPrevAudioPacketsRcvd != 0) {
-                long pl = stats.audioPacketsLost - mPrevAudioPacketsLost;
-                long pr = stats.audioPacketsReceived - mPrevAudioPacketsRcvd;
-                long pt = pl + pr;
-
-                if (pt > 0) {
-                    mAudioPLRatio = (double) pl / (double) pt;
-                }
-            }
-            mPrevAudioPacketsLost = stats.audioPacketsLost;
-            mPrevAudioPacketsRcvd = stats.audioPacketsReceived;
-
-            //calculate audio bandwidth
-            mAudioBw = (long) ((8 * (stats.audioBytesReceived - mPrevAudioBytes)) / (audioTimestamp - mPrevAudioTimestamp));
-
-            mPrevAudioTimestamp = audioTimestamp;
-            mPrevAudioBytes = stats.audioBytesReceived;
-
-            Log.i(LOG_TAG, "Audio bandwidth (bps): " + mAudioBw + " Audio Bytes received: " + stats.audioBytesReceived + " Audio packet lost: " + stats.audioPacketsLost + " Audio packet loss ratio: " + mAudioPLRatio);
-
-        }
-
-    }
-
-    private void checkVideoQuality() {
-
-        Session session = mTestingOnStage ? mSession : mBackstageSession;
-        if (session != null && mPublisher != null) {
-
-            if (mVideoBw < 150000 || mVideoPLRatio > 0.03) {
-                mQuality = "Poor";
-            } else if (mVideoBw > 350 * 1000) {
-                mQuality = "Great";
-            } else {
-                mQuality = "Good";
-            }
-
-            if(mPublisherSpinnerLayout.getVisibility() != View.GONE) hidePublisher();
-            Log.i(LOG_TAG, "Publisher quality is " + mQuality);
-            Log.i(LOG_TAG, "mVideoBw is " + mVideoBw);
-            Log.i(LOG_TAG, "mVideoPLRatio is " + mVideoPLRatio);
-            sendQualityUpdate(mPublisher.getStream().getConnection().getConnectionId(), mQuality);
-            //Current time + 45 sec = 1 minute
-            //Log.i(LOG_TAG, "mStartTestTime = " + String.valueOf(mStartTestTime));
-            mStartTestTime = System.currentTimeMillis() / 1000 + 45;
-        }
     }
 
     public void sendQualityUpdate(String connectionId, String quality) {
@@ -1270,7 +1152,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSession.sendSignal("qualityUpdate", msg);
         }
     }
-
 
     private static int screenWidth(Context ctx) {
         DisplayMetrics displaymetrics = new DisplayMetrics();
@@ -1927,7 +1808,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mNewFanSignalAckd = true;
                     String userName = SpotlightConfig.USER_NAME;
                     String user_id = mWebServiceCoordinator.getUserId();
-                    String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mQuality + "\"}}";
+
+                    String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mVideoQuality.toString() + "\"}}";
                     mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
                 } else {
                     /*mHandler.postDelayed(new Runnable() {

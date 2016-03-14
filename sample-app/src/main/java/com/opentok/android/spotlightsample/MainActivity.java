@@ -1,5 +1,6 @@
 package com.opentok.android.spotlightsample;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -14,7 +15,7 @@ import com.opentok.android.spotlightsample.R;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String[] permissions = {"android.permission.RECORD_AUDIO", "android.permission.CAMERA"};
+    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
     private final int permsRequestCode = 200;
 
     @Override
@@ -27,7 +28,6 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(permissions, permsRequestCode);
         }
     }
-
 
     public void onStartClicked(View v) {
         RadioButton rdFan = (RadioButton) findViewById(R.id.radioButton);
