@@ -1119,7 +1119,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mTestSubscriber.setSubscribeToAudio(false);
             mBackstageSession.subscribe(mTestSubscriber);
         } else {
-            if(mSubscriberHost != null && stream.getConnection().getConnectionId() == mSubscriberHost.getStream().getConnection().getConnectionId()) {
+            if(mSubscriberHost != null && stream.getConnection().getConnectionId().equals(mSubscriberHost.getStream().getConnection().getConnectionId())) {
                 mTestSubscriber = mSubscriberHost;
             } else {
                 mTestSubscriber = mSubscriberCelebrity;
