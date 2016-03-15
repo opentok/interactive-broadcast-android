@@ -349,6 +349,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         mNotifyBuilder = new NotificationCompat.Builder(this)
                 .setContentTitle(this.getTitle())
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentText(getResources().getString(R.string.notification));
 
         Intent notificationIntent = new Intent(this, FanActivity.class);
@@ -419,11 +420,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onStop() {
         super.onStop();
-
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
 
         if (mIsBound) {
             unbindService(mConnection);
@@ -507,13 +503,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
                 if (mSubscriberHost != null) {
-                    attachSubscriberHostView(mSubscriberHost);
+                    attachSubscriberHostView();
                 }
                 if (mSubscriberCelebrity != null) {
-                    attachSubscriberCelebrityView(mSubscriberCelebrity);
+                    attachSubscriberCelebrityView();
                 }
                 if (mSubscriberFan != null) {
-                    attachSubscriberFanView(mSubscriberFan);
+                    attachSubscriberFanView();
                 }
             }
         }, 500);
@@ -554,8 +550,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         fan_head_params.width = (mFanStream != null) ? screenWidth(FanActivity.this) / streams : 1;
                         mSubscriberFanViewContainer.setLayoutParams(fan_head_params);
                     }
-
-
                 } else {
                     mEventImage.setVisibility(View.VISIBLE);
                 }
@@ -612,7 +606,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void setUserStatus(int status) {
-
         //Hide user status
         mUserStatus.clearAnimation();
         mUserStatus.setVisibility(View.GONE);
@@ -716,7 +709,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void subscribeHostToStream(Stream stream) {
-
         mSubscriberHost = new Subscriber(FanActivity.this, stream);
         mSubscriberHost.setVideoListener(this);
         mSession.subscribe(mSubscriberHost);
@@ -728,7 +720,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void subscribeCelebrityToStream(Stream stream) {
-
         mSubscriberCelebrity = new Subscriber(FanActivity.this, stream);
         mSubscriberCelebrity.setVideoListener(this);
         mSession.subscribe(mSubscriberCelebrity);
@@ -837,64 +828,43 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    private void attachSubscriberHostView(Subscriber subscriber) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
+    private void attachSubscriberHostView() {
         mSubscriberHostViewContainer.removeView(mSubscriberHost.getView());
+        mSubscriberHost.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
         ((GLSurfaceView)mSubscriberHost.getView()).setZOrderMediaOverlay(false);
-        mSubscriberHostViewContainer.addView(mSubscriberHost.getView(), layoutParams);
-        subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FIT);
+        mSubscriberHostViewContainer.addView(mSubscriberHost.getView());
     }
 
-    private void attachSubscriberCelebrityView(Subscriber subscriber) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
+    private void attachSubscriberCelebrityView() {
         mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
+        mSubscriberCelebrity.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
         ((GLSurfaceView)mSubscriberCelebrity.getView()).setZOrderMediaOverlay(false);
-        mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView(), layoutParams);
-        subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FIT);
+        mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
     }
 
-    private void attachSubscriberFanView(Subscriber subscriber) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
+    private void attachSubscriberFanView() {
         mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
+        mSubscriberFan.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+                BaseVideoRenderer.STYLE_VIDEO_FIT);
         ((GLSurfaceView)mSubscriberFan.getView()).setZOrderMediaOverlay(false);
-        mSubscriberFanViewContainer.addView(mSubscriberFan.getView(), layoutParams);
-        subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
-                BaseVideoRenderer.STYLE_VIDEO_FIT);
+        mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
+
     }
 
-    private void attachPublisherView(Publisher publisher) {
-
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
-                RelativeLayout.TRUE);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT,
-                RelativeLayout.TRUE);
+    private void attachPublisherView() {
         mPublisherViewContainer.removeView(mPublisher.getView());
-        mPublisherViewContainer.addView(mPublisher.getView(), layoutParams);
-        publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+        mPublisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
                 BaseVideoRenderer.STYLE_VIDEO_FILL);
+        mPublisherViewContainer.addView(mPublisher.getView());
     }
 
-
-    private void attachPublisherViewToFanView(Publisher publisher) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
+    private void attachPublisherViewToFanView() {
         mPublisherViewContainer.removeView(mPublisher.getView());
-        ((GLSurfaceView)mPublisher.getView()).setZOrderMediaOverlay(false);
-        mSubscriberFanViewContainer.addView(mPublisher.getView(), layoutParams);
-        publisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+        mPublisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
                 BaseVideoRenderer.STYLE_VIDEO_FIT);
+        mSubscriberFanViewContainer.addView(mPublisher.getView());
     }
 
     @Override
@@ -1280,7 +1250,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
-        //mPublisher = null;
         Log.i(LOG_TAG, "Publisher destroyed");
     }
 
@@ -1296,17 +1265,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
             // stop loading spinning
             mLoadingSubFan.setVisibility(View.GONE);
-            attachSubscriberFanView(mSubscriberFan);
+            attachSubscriberFanView();
         } else if(subscriber.getStream().getConnection().getData().equals("usertype=host")) {
             // stop loading spinning
             mLoadingSubHost.setVisibility(View.GONE);
-            attachSubscriberHostView(mSubscriberHost);
+            attachSubscriberHostView();
         } else if(subscriber.getStream().getConnection().getData().equals("usertype=celebrity")) {
             // stop loading spinning
             mLoadingSubCelebrity.setVisibility(View.GONE);
-            attachSubscriberCelebrityView(mSubscriberCelebrity);
+            attachSubscriberCelebrityView();
         }
-
     }
 
     @Override
@@ -1336,7 +1304,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void hideAvatar(String subscriberConnectionId) {
-
         String host = mHostStream != null ? mHostStream.getConnection().getConnectionId() : "";
         String celebrity = mCelebirtyStream != null ? mCelebirtyStream.getConnection().getConnectionId() : "";
         String fan = mFanStream != null ? mFanStream.getConnection().getConnectionId() : "";
@@ -1552,8 +1519,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void joinHostNow() {
         Log.i(LOG_TAG, "joinHostNow!");
         publishOnStage();
-
-
     }
 
     private void publishOnStage(){
@@ -1566,7 +1531,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mLiveButton.setVisibility(View.VISIBLE);
                     mCircleLiveButton.setVisibility(View.VISIBLE);
                     mUserIsOnstage = true;
-                    attachPublisherViewToFanView(mPublisher);
+                    attachPublisherViewToFanView();
                     if (mHostStream != null && mSubscriberHost == null)
                         subscribeHostToStream(mHostStream);
                     if (mCelebirtyStream != null && mSubscriberCelebrity == null)
@@ -1611,8 +1576,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLiveButton.setVisibility(View.GONE);
         mCircleLiveButton.setVisibility(View.GONE);
 
-
-
         Toast toast = Toast.makeText(getApplicationContext(), R.string.thanks_for_participating, Toast.LENGTH_LONG);
         ViewGroup view = (ViewGroup) toast.getView();
         view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
@@ -1623,8 +1586,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mGoLiveView.clearAnimation();
         mGoLiveView.setAlpha(1f);
         mGoLiveView.setVisibility(View.GONE);
-
-
     }
 
 
@@ -1647,9 +1608,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             refreshUnreadMessages();
             mChatButton.setVisibility(View.VISIBLE);
         }
-
-
-
     }
 
     private void refreshUnreadMessages() {
@@ -1878,7 +1836,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mCustomVideoRenderer = new CustomVideoRenderer(this);
                 mCustomVideoRenderer.setSaveScreenshot(false);
                 mPublisher.setRenderer(mCustomVideoRenderer);
-                attachPublisherView(mPublisher);
+                attachPublisherView();
             }
 
             backstageSessionConnect();
