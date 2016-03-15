@@ -277,6 +277,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         mNotifyBuilder = new NotificationCompat.Builder(this)
                 .setContentTitle(this.getTitle())
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentText(getResources().getString(R.string.notification));
 
         Intent notificationIntent = new Intent(this, CelebrityHostActivity.class);
@@ -344,10 +345,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mIsBound = false;
         }
 
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
         if (isFinishing()) {
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             if (mSession != null) {
@@ -382,6 +379,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 mSession.disconnect();
             }
 
+            if (mIsBound) {
+                unbindService(mConnection);
+                mIsBound = false;
+            }
+            mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
+
             super.onBackPressed();
         }
     }
@@ -391,10 +394,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             @Override
             public void run() {
                 if (mSubscriber != null) {
-                    attachSubscriberView(mSubscriber);
+                    attachSubscriberView();
                 }
                 if (mSubscriberFan != null) {
-                    attachSubscriberFanView(mSubscriberFan);
+                    attachSubscriberFanView();
                 }
             }
         }, 500);
@@ -420,8 +423,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 RelativeLayout.LayoutParams subscriberfan_head_params = (RelativeLayout.LayoutParams) mSubscriberFanViewContainer.getLayoutParams();
                 subscriberfan_head_params.width = (mFanStream != null) ? screenWidth(CelebrityHostActivity.this) / streams : 1;
                 mSubscriberFanViewContainer.setLayoutParams(subscriberfan_head_params);
-
-
             }
         });
     }
@@ -445,7 +446,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         if (mPublisher == null) {
             mPublisher = new Publisher(CelebrityHostActivity.this, "publisher");
             mPublisher.setPublisherListener(this);
-            attachPublisherView(mPublisher);
+            attachPublisherView();
             mSession.publish(mPublisher);
         }
         //loading text-chat ui component
@@ -549,38 +550,24 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
     }
 
-    private void attachSubscriberView(Subscriber subscriber) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
+    private void attachSubscriberView() {
         mSubscriberViewContainer.removeView(mSubscriber.getView());
-        mSubscriberViewContainer.addView(mSubscriber.getView(), layoutParams);
-        subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+        mSubscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
                 BaseVideoRenderer.STYLE_VIDEO_FIT);
+        mSubscriberViewContainer.addView(mSubscriber.getView());
     }
 
-    private void attachSubscriberFanView(Subscriber subscriber) {
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
+    private void attachSubscriberFanView() {
         mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
-        mSubscriberFanViewContainer.addView(mSubscriberFan.getView(), layoutParams);
-        subscriber.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
+        mSubscriberFan.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
                 BaseVideoRenderer.STYLE_VIDEO_FIT);
+        mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
     }
 
-    private void attachPublisherView(Publisher publisher) {
-
+    private void attachPublisherView() {
         mPublisher.setStyle(BaseVideoRenderer.STYLE_VIDEO_SCALE,
                 BaseVideoRenderer.STYLE_VIDEO_FIT);
-        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                getResources().getDisplayMetrics().widthPixels, getResources()
-                .getDisplayMetrics().heightPixels);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM,
-                RelativeLayout.TRUE);
-        layoutParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT,
-                RelativeLayout.TRUE);
-        mPublisherViewContainer.addView(mPublisher.getView(), layoutParams);
+        mPublisherViewContainer.addView(mPublisher.getView());
     }
 
     @Override
@@ -686,11 +673,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
             // stop loading spinning
             mLoadingSubFan.setVisibility(View.GONE);
-            attachSubscriberFanView(mSubscriberFan);
+            attachSubscriberFanView();
         } else {
             // stop loading spinning
             mLoadingSub.setVisibility(View.GONE);
-            attachSubscriberView(mSubscriber);
+            attachSubscriberView();
         }
 
     }
