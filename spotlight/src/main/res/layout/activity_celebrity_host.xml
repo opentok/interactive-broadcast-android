@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 android:id="@+id/mainlayout"
-android:layout_width="fill_parent"
-android:layout_height="fill_parent"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
 android:background="#000000" >
 
 <RelativeLayout
     android:id="@+id/subscriberview"
-    android:layout_width="200dp"
-    android:layout_height="fill_parent"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:gravity="center_horizontal"
     android:keepScreenOn="true"
     android:layout_toRightOf="@+id/publisherview"
@@ -35,8 +35,8 @@ android:background="#000000" >
 
     <RelativeLayout
         android:id="@+id/publisherview"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:keepScreenOn="true"
         android:layout_alignParentBottom="true"
         android:gravity="center_horizontal"
@@ -63,8 +63,8 @@ android:background="#000000" >
 
     <RelativeLayout
         android:id="@+id/subscriberviewfan"
-        android:layout_width="200dp"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:keepScreenOn="true"
         android:gravity="center_horizontal"
         android:layout_toRightOf="@+id/subscriberview"
@@ -256,16 +256,16 @@ android:background="#000000" >
         android:layout_marginBottom="22dp" />
 
     <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/event_image_end"
         android:layout_below="@+id/top_bar"
         android:visibility="gone" />
 
     <FrameLayout
         android:id="@+id/fragment_textchat_container"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/event_list_top_bar"
