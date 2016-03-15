@@ -24,5 +24,7 @@
 
     <!-- others -->
     <color name="bckg">#000000</color>
+    <color name="gradientAudioOnlyStart">#343434</color>
+    <color name="gradientAudioOnlyEnd">#6e6e6e</color>
 </resources>
     

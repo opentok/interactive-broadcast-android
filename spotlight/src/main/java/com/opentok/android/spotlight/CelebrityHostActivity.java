@@ -85,9 +85,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Button mLiveButton;
     private ImageView mEventImageEnd;
     private ImageButton mUnreadCircle;
-    private ImageView mAvatarHostCelebrity;
-    private ImageView mAvatarFan;
-    private ImageView mAvatarPublisher;
+    private RelativeLayout mAvatarHostCelebrity;
+    private RelativeLayout mAvatarFan;
+    private RelativeLayout mAvatarPublisher;
 
 
     private Handler mHandler = new Handler();
@@ -167,9 +167,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
-        mAvatarPublisher = (ImageView) findViewById(R.id.avatar_publisher);
-        mAvatarFan = (ImageView) findViewById(R.id.avatar_fan);
-        mAvatarHostCelebrity = (ImageView) findViewById(R.id.avatar_hostceleb);
+        mAvatarPublisher = (RelativeLayout) findViewById(R.id.avatar_publisher);
+        mAvatarFan = (RelativeLayout) findViewById(R.id.avatar_fan);
+        mAvatarHostCelebrity = (RelativeLayout) findViewById(R.id.avatar_hostceleb);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
