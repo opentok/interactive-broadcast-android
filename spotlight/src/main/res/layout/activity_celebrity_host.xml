@@ -24,13 +24,24 @@ android:background="#000000" >
         android:indeterminate="false"
         android:visibility="gone" />
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <RelativeLayout
         android:id="@+id/avatar_hostceleb"
-        android:src="@drawable/avatar"
-        android:visibility="gone"
-        android:contentDescription="avatar" />
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:background="@drawable/gradient_audio_only"
+        android:visibility="gone" >
+
+        <ImageView
+            android:id="@+id/avatar_img_hostceleb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="30dp"
+            android:src="@drawable/avatar" />
+    </RelativeLayout>
 </RelativeLayout>
 
     <RelativeLayout
@@ -51,14 +62,24 @@ android:background="#000000" >
             android:indeterminate="false"
             android:visibility="gone" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <RelativeLayout
             android:id="@+id/avatar_publisher"
-            android:src="@drawable/avatar"
-            android:visibility="gone"
-            android:contentDescription="avatar" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/gradient_audio_only"
+            android:visibility="gone" >
 
+            <ImageView
+                android:id="@+id/avatar_img_publisher"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="30dp"
+                android:src="@drawable/avatar" />
+        </RelativeLayout>
     </RelativeLayout>
 
     <RelativeLayout
@@ -81,13 +102,24 @@ android:background="#000000" >
             android:indeterminate="false"
             android:visibility="gone" />
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <RelativeLayout
             android:id="@+id/avatar_fan"
-            android:src="@drawable/avatar"
-            android:visibility="gone"
-            android:contentDescription="avatar" />
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/gradient_audio_only"
+            android:visibility="gone" >
+
+            <ImageView
+                android:id="@+id/avatar_img_fan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="30dp"
+                android:src="@drawable/avatar" />
+        </RelativeLayout>
     </RelativeLayout>
 
     <TextView
