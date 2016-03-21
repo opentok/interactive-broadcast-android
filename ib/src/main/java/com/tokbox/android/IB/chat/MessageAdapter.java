@@ -1,4 +1,4 @@
-package com.opentok.android.ib.chat;
+package com.tokbox.android.IB.chat;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -8,8 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 
-import com.opentok.android.ib.R;
-import com.opentok.android.ib.events.EventUtils;
+import com.tokbox.android.IB.R;
+import com.tokbox.android.IB.events.EventUtils;
 
 import java.util.ArrayList;
 import java.util.List;

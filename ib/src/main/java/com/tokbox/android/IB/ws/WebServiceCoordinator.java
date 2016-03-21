@@ -1,4 +1,4 @@
-package com.opentok.android.ib.ws;
+package com.tokbox.android.IB.ws;
 
 import android.content.Context;
 import android.os.Build;
@@ -12,7 +12,7 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.opentok.android.ib.config.IBConfig;
+import com.tokbox.android.IB.config.IBConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;

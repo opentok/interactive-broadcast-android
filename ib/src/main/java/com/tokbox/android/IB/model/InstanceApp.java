@@ -1,9 +1,9 @@
-package com.opentok.android.ib.model;
+package com.tokbox.android.IB.model;
 
 
 import android.util.Log;
 
-import com.opentok.android.ib.config.IBConfig;
+import com.tokbox.android.IB.config.IBConfig;
 
 import org.json.JSONArray;
 import org.json.JSONException;

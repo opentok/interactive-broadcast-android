@@ -1,11 +1,11 @@
-package com.opentok.android.ib.events;
+package com.tokbox.android.IB.events;
 
 import android.content.Context;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.opentok.android.ib.config.IBConfig;
+import com.tokbox.android.IB.config.IBConfig;
 import com.squareup.picasso.Picasso;
 
 public class EventUtils {

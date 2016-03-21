@@ -5,7 +5,7 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "com.tokbox.ib_sample"
+        applicationId "com.tokbox.IBSample"
         minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
@@ -27,5 +27,5 @@ dependencies {
     compile 'com.github.nkzawa:socket.io-client:0.4.1'
     compile 'com.mcxiaoke.volley:library:1.0.19'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    compile project(':ib')
+    compile project(':IB')
 }

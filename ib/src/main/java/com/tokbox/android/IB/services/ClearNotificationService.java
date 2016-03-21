@@ -1,4 +1,4 @@
-package com.opentok.android.ib.services;
+package com.tokbox.android.IB.services;
 
 import android.app.NotificationManager;
 import android.app.Service;

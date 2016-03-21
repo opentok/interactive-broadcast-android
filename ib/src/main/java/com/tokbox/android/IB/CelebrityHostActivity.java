@@ -1,4 +1,4 @@
-package com.opentok.android.ib;
+package com.tokbox.android.IB;
 
 
 import android.app.Activity;
@@ -40,13 +40,13 @@ import com.opentok.android.Session;
 import com.opentok.android.Stream;
 import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
-import com.opentok.android.ib.chat.ChatMessage;
-import com.opentok.android.ib.chat.TextChatFragment;
-import com.opentok.android.ib.config.IBConfig;
-import com.opentok.android.ib.events.EventUtils;
-import com.opentok.android.ib.model.InstanceApp;
-import com.opentok.android.ib.services.ClearNotificationService;
-import com.opentok.android.ib.ws.WebServiceCoordinator;
+import com.tokbox.android.IB.chat.ChatMessage;
+import com.tokbox.android.IB.chat.TextChatFragment;
+import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventUtils;
+import com.tokbox.android.IB.model.InstanceApp;
+import com.tokbox.android.IB.services.ClearNotificationService;
+import com.tokbox.android.IB.ws.WebServiceCoordinator;
 
 import org.json.JSONException;
 import org.json.JSONObject;

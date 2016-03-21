@@ -1,4 +1,4 @@
-package com.opentok.android.ib.video;
+package com.tokbox.android.IB.video;
 
 import android.content.Context;
 import android.graphics.Bitmap;

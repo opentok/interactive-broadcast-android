@@ -1,4 +1,4 @@
-package com.opentok.android.ib.chat;
+package com.tokbox.android.IB.chat;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -17,8 +17,8 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.opentok.android.ib.R;
-import com.opentok.android.ib.events.EventUtils;
+import com.tokbox.android.IB.R;
+import com.tokbox.android.IB.events.EventUtils;
 
 import java.util.ArrayList;
 import java.util.Date;

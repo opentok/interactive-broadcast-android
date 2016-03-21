@@ -1,4 +1,4 @@
-package com.opentok.android.ib.config;
+package com.tokbox.android.IB.config;
 
 public class IBConfig {
 

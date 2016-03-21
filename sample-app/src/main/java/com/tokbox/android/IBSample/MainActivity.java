@@ -1,4 +1,4 @@
-package com.opentok.android.ibsample;
+package com.tokbox.android.IBSample;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
 
-import com.opentok.android.ib.config.IBConfig;
+import com.tokbox.android.IB.config.IBConfig;
 
 public class MainActivity extends AppCompatActivity {
 

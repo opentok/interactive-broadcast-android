@@ -1,4 +1,4 @@
-package com.opentok.android.ib.chat;
+package com.tokbox.android.IB.chat;
 
 import java.util.UUID;
 

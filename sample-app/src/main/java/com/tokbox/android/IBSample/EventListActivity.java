@@ -1,4 +1,4 @@
-package com.opentok.android.ibsample;
+package com.tokbox.android.IBSample;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -13,14 +13,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
-import com.opentok.android.ib.CelebrityHostActivity;
-import com.opentok.android.ib.FanActivity;
-import com.opentok.android.ib.config.IBConfig;
-import com.opentok.android.ib.events.EventUtils;
-import com.opentok.android.ib.model.InstanceApp;
-import com.opentok.android.ib.socket.SocketCoordinator;
-import com.opentok.android.ib.ws.WebServiceCoordinator;
-import com.opentok.android.ibsample.events.EventAdapter;
+import com.tokbox.android.IB.CelebrityHostActivity;
+import com.tokbox.android.IB.FanActivity;
+import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventUtils;
+import com.tokbox.android.IB.model.InstanceApp;
+import com.tokbox.android.IB.socket.SocketCoordinator;
+import com.tokbox.android.IB.ws.WebServiceCoordinator;
+import com.tokbox.android.IBSample.events.EventAdapter;
 
 import org.json.JSONArray;
 import org.json.JSONException;

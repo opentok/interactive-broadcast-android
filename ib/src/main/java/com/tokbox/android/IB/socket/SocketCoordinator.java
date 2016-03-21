@@ -1,10 +1,10 @@
-package com.opentok.android.ib.socket;
+package com.tokbox.android.IB.socket;
 
 import android.util.Log;
 
 import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
-import com.opentok.android.ib.config.IBConfig;
+import com.tokbox.android.IB.config.IBConfig;
 
 import org.json.JSONObject;
 

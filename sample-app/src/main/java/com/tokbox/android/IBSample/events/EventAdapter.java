@@ -1,4 +1,4 @@
-package com.opentok.android.ibsample.events;
+package com.tokbox.android.IBSample.events;
 
 import android.content.Context;
 import android.content.Intent;
@@ -13,11 +13,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.opentok.android.ib.CelebrityHostActivity;
-import com.opentok.android.ib.FanActivity;
-import com.opentok.android.ib.config.IBConfig;
-import com.opentok.android.ib.events.EventUtils;
-import com.opentok.android.ibsample.R;
+import com.tokbox.android.IB.CelebrityHostActivity;
+import com.tokbox.android.IB.FanActivity;
+import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventUtils;
+import com.tokbox.android.IBSample.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
