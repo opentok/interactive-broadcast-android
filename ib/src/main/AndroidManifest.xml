@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.opentok.android.ib" >
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <service
+            android:name="com.opentok.android.ib.services.ClearNotificationService"
+            android:exported="false" >
+            <intent-filter android:label="@string/clearNotificationService" >
+                <action android:name="com.opentok.android.ib.services.ClearNotificationService" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name="com.opentok.android.ib.CelebrityHostActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/app_name"
+            android:screenOrientation="landscape" >
+        </activity>
+        <activity
+            android:name="com.opentok.android.ib.FanActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="@string/title_activity_fan"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.NoActionBar" >
+        </activity>
+    </application>
+
+</manifest>

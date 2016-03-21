@@ -18,9 +18,9 @@ android:background="#F5F5F5" >
     android:id="@+id/event_list_top_bar" >
 
     <TextView
-        android:layout_width="170dp"
+        android:layout_width="wrap_content"
         android:layout_height="fill_parent"
-        android:text="Spotlight Demo"
+        android:text="@string/title_bar"
         android:id="@+id/event_list_title"
         android:textSize="20sp"
         android:textColor="#5F6062"
