@@ -1,5 +1,6 @@
 package com.tokbox.android.IBSample;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -13,7 +14,7 @@ import com.tokbox.android.IB.config.IBConfig;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String[] permissions = {"android.permission.RECORD_AUDIO", "android.permission.CAMERA"};
+    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
     private final int permsRequestCode = 200;
 
     @Override
