@@ -49,6 +49,10 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        if(IBConfig.INSTANCE_ID == null || IBConfig.INSTANCE_ID.equals("")) {
+            goToMainActivity();
+        }
         setContentView(R.layout.event_list_activity);
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
@@ -111,6 +115,10 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.i(LOG_TAG, "Back from the event");
+        goToMainActivity();
+    }
+
+    private void goToMainActivity() {
         Intent localIntent;
         localIntent = new Intent(EventListActivity.this, MainActivity.class);
         startActivity(localIntent);
