@@ -1,1 +1,1 @@
-include ':sample-app', ':spotlight'
+include ':sample-app', ':IB'
