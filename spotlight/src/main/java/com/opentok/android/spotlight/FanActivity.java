@@ -65,7 +65,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         Session.SessionListener, Session.ConnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
         Session.SignalListener,Subscriber.VideoListener,
-        TextChatFragment.TextChatListener{
+        TextChatFragment.TextChatListener, NetworkTest.NetworkTestListener{
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
 
@@ -88,6 +88,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Session mSession;
     private Session mBackstageSession;
     private NetworkTest.MOSQuality mVideoQuality;
+    private NetworkTest mTest;
 
     private WebServiceCoordinator mWebServiceCoordinator;
     private SocketCoordinator mSocket;
@@ -1126,25 +1127,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }
 
-        final NetworkTest mTest = new NetworkTest();
+        mTest = new NetworkTest();
 
-        mTestSubscriber.setVideoStatsListener(new SubscriberKit.VideoStatsListener() {
+        mTest.startNetworkTest(mTestSubscriber, this);
 
-            @Override
-            public void onVideoStats(SubscriberKit subscriber,
-                                     SubscriberKit.SubscriberVideoStats stats) {
-
-                //check video quality
-                mTest.checkVideoQuality(stats);
-
-                //check quality of the video call after TIME_VIDEO_TEST seconds
-                if (((System.currentTimeMillis() / 1000 - mTest.getStartTestTime()) > mTest.TIME_VIDEO_TEST)) {
-                    NetworkTest.MOSQuality quality = mTest.getMOSQuality();
-                    sendQualityUpdate(mTestSubscriber.getStream().getConnection().getConnectionId(), quality.toString());
-                }
-            }
-        });
     }
+
+
 
     public void sendQualityUpdate(String connectionId, String quality) {
         if (mBackstageSession != null && mProducerConnection != null) {
@@ -1195,6 +1184,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG,
                 "Video disabled:" + reason);
         showAvatar(subscriber.getStream().getConnection().getConnectionId());
+
+        mTest.updateTest(true);
     }
 
     private void showAvatar(String subscriberConnectionId) {
@@ -1239,6 +1230,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onVideoEnabled(SubscriberKit subscriber, String reason) {
         Log.i(LOG_TAG, "Video enabled:" + reason);
         hideAvatar(subscriber.getStream().getConnection().getConnectionId());
+
+        mTest.updateTest(false);
     }
 
     @Override
@@ -1856,6 +1849,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mBackstageSession == null) {
             mChatButton.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    public void onVideoQualityUpdated(String connectionId, NetworkTest.MOSQuality quality) {
+        sendQualityUpdate(mTestSubscriber.getStream().getConnection().getConnectionId(), quality.toString());
+    }
+
+    @Override
+    public void onAudioQualityUpdated(String connectionId, NetworkTest.MOSQuality quality) {
+        //to send quality update to the producer
     }
 }
 
