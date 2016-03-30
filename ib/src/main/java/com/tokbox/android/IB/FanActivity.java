@@ -52,7 +52,6 @@ import com.tokbox.android.IB.socket.SocketCoordinator;
 import com.tokbox.android.IB.video.CustomVideoRenderer;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
 
-
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -1103,6 +1102,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
         mTestSubscriber = null;
     }
+
     private void testStreamConnectionQuality(Stream stream) {
 
         if(!mTestingOnStage) {
@@ -1111,7 +1111,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mTestSubscriber.setSubscribeToAudio(false);
             mBackstageSession.subscribe(mTestSubscriber);
         } else {
-            if(mSubscriberHost != null && stream.getConnection().getConnectionId().equals(mSubscriberHost.getStream().getConnection().getConnectionId())) {
+            if(mSubscriberHost != null && stream.getConnection().getConnectionId() == mSubscriberHost.getStream().getConnection().getConnectionId()) {
                 mTestSubscriber = mSubscriberHost;
             } else {
                 mTestSubscriber = mSubscriberCelebrity;
@@ -1134,6 +1134,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     sendQualityUpdate(mTestSubscriber.getStream().getConnection().getConnectionId(), quality.toString());
                 }
             }
+
         });
     }
 
@@ -1143,6 +1144,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSession.sendSignal("qualityUpdate", msg);
         }
     }
+
 
     private static int screenWidth(Context ctx) {
         DisplayMetrics displaymetrics = new DisplayMetrics();
@@ -1795,15 +1797,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void sendNewFanSignal() {
 
-            if(mProducerConnection != null && mBackstageSession != null){
-                if(!mNewFanSignalAckd) {
-                    mNewFanSignalAckd = true;
-                    String userName = IBConfig.USER_NAME;
-                    String user_id = mWebServiceCoordinator.getUserId();
-                    String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mVideoQuality.toString() + "\"}}";
-                    mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
-                }
+        if(mProducerConnection != null && mBackstageSession != null){
+            if(!mNewFanSignalAckd) {
+                mNewFanSignalAckd = true;
+                String userName = IBConfig.USER_NAME;
+                String user_id = mWebServiceCoordinator.getUserId();
+                String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mVideoQuality.toString() + "\"}}";
+                mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
             }
+        }
     }
 
     // Initialize a TextChatFragment instance and add it to the UI
