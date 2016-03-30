@@ -1,4 +1,4 @@
-package com.tokbox.spotlight;
+package com.tokbox.android.IB;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
