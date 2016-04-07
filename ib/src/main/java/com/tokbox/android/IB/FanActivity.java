@@ -1802,7 +1802,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mNewFanSignalAckd = true;
                 String userName = IBConfig.USER_NAME;
                 String user_id = mWebServiceCoordinator.getUserId();
-                String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"username\":\"" + userName + "\", \"quality\":\"" + mVideoQuality.toString() + "\"}}";
+                String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"os\":\"Android\",\"username\":\"" + userName + "\", \"quality\":\"" + mVideoQuality.toString() + "\"}}";
                 mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
             }
         }
