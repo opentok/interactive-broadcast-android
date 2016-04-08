@@ -34,6 +34,7 @@ import android.widget.Toast;
 
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
+import com.opentok.android.OpenTokConfig;
 import com.opentok.android.OpentokError;
 import com.opentok.android.Publisher;
 import com.opentok.android.PublisherKit;
@@ -178,6 +179,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Get the event
         requestEventData(savedInstanceState);
+
+        //Disable HWDEC
+        OpenTokConfig.enableVP8HWDecoder(false);
     }
 
 
