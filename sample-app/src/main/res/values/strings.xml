@@ -1,4 +1,5 @@
 <resources>
-    <string name="app_name">Spotlight-sample</string>
+    <string name="app_name">Interactive Broadcast Solution-sample</string>
+    <string name="title_bar">Interactive Broadcast Solution</string>
     <string name="action_settings">Settings</string>
 </resources>

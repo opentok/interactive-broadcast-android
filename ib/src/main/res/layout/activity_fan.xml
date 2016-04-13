@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainlayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bckg" >
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/event_image"
+        android:layout_below="@+id/event_list_top_bar"
+        android:visibility="visible" />
+
+    <RelativeLayout
+        android:id="@+id/subscriberHostView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_below="@+id/event_list_top_bar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
+
+        <ProgressBar
+            android:id="@+id/loadingSpinnerHost"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/avatar_host"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/gradient_audio_only"
+            android:visibility="gone" >
+
+            <ImageView
+                android:id="@+id/avatar_img_host"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="30dp"
+                android:src="@drawable/avatar" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/subscriberCelebrityView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true"
+        android:gravity="center_horizontal"
+        android:foregroundGravity="center"
+        android:layout_toLeftOf="@+id/subscriberFanView"
+        android:layout_toRightOf="@+id/subscriberHostView"
+        android:layout_toEndOf="@+id/subscriberHostView"
+        android:layout_below="@+id/event_list_top_bar"
+        android:layout_alignParentBottom="true">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/loadingSpinnerCelebrity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/avatar_celebrity"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/gradient_audio_only"
+            android:visibility="gone" >
+
+            <ImageView
+                android:id="@+id/avatar_img_celebrity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="30dp"
+                android:src="@drawable/avatar" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/subscriberFanView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:keepScreenOn="true"
+        android:gravity="center_horizontal"
+        android:layout_below="@+id/event_list_top_bar"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/loadingSpinnerFan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="gone" />
+
+        <RelativeLayout
+            android:id="@+id/avatar_fan"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/gradient_audio_only"
+            android:visibility="gone" >
+
+            <ImageView
+                android:id="@+id/avatar_img_fan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="30dp"
+                android:src="@drawable/avatar" />
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/publisher_spinner_layout"
+        android:layout_width="160dp"
+        android:layout_height="200dp"
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_alignParentBottom="false"
+        android:visibility="gone"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/event_list_top_bar"
+        android:background="@drawable/publisher_bg"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/camera_preview_1"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="5dp"
+            android:text="Camera preview:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/camera_preview_2"
+            android:textColor="@color/get_in_line_background_color"
+            android:text="ON"
+            android:layout_marginTop="10dp"
+            android:layout_toRightOf="@+id/camera_preview_1"
+            android:textStyle="bold"
+            android:layout_marginLeft="3dp" />
+
+        <RelativeLayout
+            android:id="@+id/publisherView"
+            android:layout_width="150dp"
+            android:layout_height="160dp"
+            android:keepScreenOn="true"
+            android:layout_alignParentBottom="true"
+            android:visibility="visible"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentRight="false"
+            android:background="@drawable/publisher_bg"
+            android:gravity="center"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="5dp"
+            android:layout_marginRight="5dp">
+
+        </RelativeLayout>
+
+        <ProgressBar
+            android:id="@+id/loadingSpinnerPublisher"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="visible"
+            android:layout_marginTop="50dp" />
+    </RelativeLayout>
+
+    <ImageButton
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/chat_button"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/icon_bubble"
+        android:background="@drawable/chat_button_bg"
+        android:onClick="onChatButtonClicked"
+        android:visibility="gone"
+        android:layout_alignParentTop="false"
+        android:alpha="0.8"
+        android:adjustViewBounds="false"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="10dp" />
+
+    <ImageButton
+        android:layout_width="27dp"
+        android:layout_height="27dp"
+        android:id="@+id/unread_circle"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/unread_messages"
+        android:visibility="gone"
+        android:layout_alignParentTop="false"
+        android:alpha="0.8"
+        android:adjustViewBounds="false"
+        android:layout_marginRight="12dp"
+        android:layout_marginBottom="28dp"
+        android:onClick="onChatButtonClicked" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="0"
+        android:id="@+id/unread_messages"
+        android:textColor="#FFFFFF"
+        android:textSize="15dp"
+        android:visibility="gone"
+        android:textAlignment="center"
+        android:gravity="center"
+        android:foreground="#ee0f0f"
+        android:foregroundGravity="fill_vertical"
+        android:layout_alignBottom="@+id/chat_button"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="21dp"
+        android:layout_marginBottom="22dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="45dp"
+        android:id="@+id/user_status"
+        android:layout_alignParentBottom="false"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/user_status_button"
+        android:textSize="20sp"
+        android:textColor="@color/user_status_text_color"
+        android:layout_alignParentTop="false"
+        android:layout_below="@+id/event_list_top_bar"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:alpha="0.8"
+        android:padding="10dp"
+        android:visibility="gone" />
+
+    <RelativeLayout
+        android:id="@+id/goLiveView"
+        android:layout_width="290dp"
+        android:layout_height="200dp"
+        android:keepScreenOn="true"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/user_status_button"
+        android:textAlignment="center"
+        android:visibility="gone"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="30dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/go_live_status"
+            android:background="@drawable/user_status_button"
+            android:textSize="30sp"
+            android:textColor="@color/user_status_text_color"
+            android:visibility="visible"
+            android:text="@string/going_on_stage"
+            android:textAlignment="center"
+            android:singleLine="false"
+            android:inputType="textMultiLine"
+            android:paddingTop="50dp"
+            android:layout_alignParentBottom="false"
+            android:layout_alignWithParentIfMissing="false"
+            android:layout_alignParentTop="false"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentLeft="false"
+            android:layout_centerHorizontal="true"
+            android:gravity="center_horizontal" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/loading_spinner_go_live"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="false"
+            android:visibility="visible"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="20dp" />
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@color/top_bar_background_color"
+        android:id="@+id/event_list_top_bar">
+
+        <Button
+            style="?android:attr/buttonStyleSmall"
+            android:layout_width="160dp"
+            android:layout_height="35dp"
+            android:text="@string/get_inline"
+            android:id="@+id/btn_getinline"
+            android:onClick="onGetInLineClicked"
+            android:visibility="visible"
+            android:background="@drawable/get_in_line_button"
+            android:textColor="@color/get_inline_text_color"
+            android:textSize="15sp"
+            android:typeface="normal"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_marginRight="20dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="35dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/live_button"
+            android:textColor="@color/live_color"
+            android:textSize="15sp"
+            android:paddingLeft="10dp"
+            android:background="@color/top_bar_background_color"
+            android:gravity="center_vertical"
+            android:typeface="normal"
+            android:layout_marginRight="20dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:paddingRight="5dp"
+            android:text="@string/live_text"
+            android:visibility="gone"
+            android:layout_centerVertical="true" />
+
+        <ImageView
+            android:layout_width="12dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/circle_live_button"
+            android:src="@drawable/circle_green"
+            android:layout_alignParentBottom="false"
+            android:layout_alignWithParentIfMissing="false"
+            android:layout_alignParentRight="false"
+            android:layout_alignParentEnd="false"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentStart="false"
+            android:layout_toLeftOf="@+id/live_button"
+            android:layout_marginRight="-5dp"
+            android:visibility="gone"
+            android:layout_centerInParent="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/event_name"
+            android:textColor="@color/top_bar_text_color"
+            android:textSize="20sp"
+            android:paddingLeft="15dp"
+            android:background="@color/top_bar_background_color"
+            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:typeface="normal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/event_status"
+            android:textColor="@color/top_bar_text_color"
+            android:textSize="20sp"
+            android:background="@color/top_bar_background_color"
+            android:textStyle="bold"
+            android:gravity="center_vertical"
+            android:typeface="normal"
+            android:layout_alignParentTop="true"
+            android:layout_toRightOf="@+id/event_name"
+            android:layout_toEndOf="@+id/event_name"
+            android:paddingLeft="4dp" />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/event_image_end"
+        android:layout_below="@+id/event_list_top_bar"
+        android:visibility="gone" />
+
+    <FrameLayout
+        android:id="@+id/fragment_textchat_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/event_list_top_bar"
+        android:visibility="gone">
+    </FrameLayout>
+
+</RelativeLayout>
