@@ -5,16 +5,17 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.opentok.android.OpenTokConfig;
+import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
 import com.opentok.android.VideoUtils;
 
 public class NetworkTest {
-    private static final String LOG_TAG = "network-test";
+    private static final String LOG_TAG = NetworkTest.class.getName();
 
     private static final int TIME_WINDOW = 3; //3 seconds
     public static final int TIME_VIDEO_TEST = 15; //time interval to check the video quality in seconds
 
-    private MOSQuality mQuality = MOSQuality.Good;
+    private MOSQuality mVideoQuality = MOSQuality.Good;
     private double mVideoPLRatio = 0.0;
     private long mVideoBw = 0;
     private long mPrevVideoPacketsLost = 0;
@@ -23,9 +24,15 @@ public class NetworkTest {
     private long mPrevVideoBytes = 0;
     private long mStartTestTime = 0;
 
-    private long mPacketsReceivedAudio = 0;
-    private long mPacketsLostAudio = 0;
+    private long mPrevAudioPacketsLost = 0;
+    private long mPrevAudioPacketsRcvd = 0;
+    private double mPrevAudioTimestamp = 0;
+    private long mPrevAudioBytes = 0;
 
+
+    private double mAudioPLRatio = 0.0;
+    private long mAudioBw = 0;
+    private MOSQuality mAudioQuality = MOSQuality.Good;
 
     private SubscriberKit mTestSubscriber;
     private NetworkTestListener mListener;
@@ -35,7 +42,7 @@ public class NetworkTest {
 
     private boolean mAudioOnly = false;
 
-    public static enum MOSQuality {
+    public enum MOSQuality {
 
         Excellent(5),
 
@@ -67,31 +74,16 @@ public class NetworkTest {
         }
     };
 
-    public static interface NetworkTestListener {
+    public interface NetworkTestListener {
         void onVideoQualityUpdated(String connectionId, MOSQuality quality);
         void onAudioQualityUpdated(String connectionId, MOSQuality quality);
     }
 
-    /*public void setNetworkTestListener (NetworkTestListener listener){
-        mListener = listener;
-    }*/
-
-    public void startNetworkTest(SubscriberKit subscriber, NetworkTestListener listener){
+    public void startNetworkTest(SubscriberKit subscriber){
         mTestSubscriber = subscriber;
-        mListener = listener;
+        Log.i(LOG_TAG, "Start network test "+mTestSubscriber.getStream().getConnection().getConnectionId());
 
         if(subscriber.getSubscribeToVideo()) {
-            startVideoNetworkTest();
-        }
-        else {
-            startAudioNetworkTest();
-        }
-    }
-
-    public void updateTest(boolean video){
-
-        if (video) {
-            mAudioOnly = false;
             startVideoNetworkTest();
         }
         else {
@@ -100,14 +92,53 @@ public class NetworkTest {
         }
     }
 
-    private void startVideoNetworkTest(){
+    public void stopNetworkTest(){
+        Log.i(LOG_TAG, "Stop network test");
+        mVideoQuality = MOSQuality.Good;
+        mVideoPLRatio = 0.0;
+        mVideoBw = 0;
+        mPrevVideoPacketsLost = 0;
+        mPrevVideoPacketsRcvd = 0;
+        mPrevVideoTimestamp = 0;
+        mPrevVideoBytes = 0;
+        mStartTestTime = 0;
 
+        mAudioQuality = MOSQuality.Good;
+
+        mAudioPLRatio = 0.0;
+        mAudioBw = 0;
+        mPrevAudioPacketsLost = 0;
+        mPrevAudioPacketsRcvd = 0;
+        mAudioOnly = false;
+
+        /*TODO: review at platform level:
+        mTestSubscriber.setVideoStatsListener(null);
+        mTestSubscriber.setAudioStatsListener(null);
+        mTestSubscriber = null;*/
+    }
+
+    public void setNetworkTestListener (NetworkTestListener listener){
+      mListener = listener;
+    }
+
+    public void updateTest(boolean video){
+        if (video) {
+            mAudioOnly = false;
+            startVideoNetworkTest();
+        } else {
+            mAudioOnly = true;
+            startAudioNetworkTest();
+        }
+    }
+
+    private void startVideoNetworkTest(){
+        Log.i(LOG_TAG, "Start video network test");
+        mTestSubscriber.setAudioStatsListener(null);
         mTestSubscriber.setVideoStatsListener(new SubscriberKit.VideoStatsListener() {
 
             @Override
             public void onVideoStats(SubscriberKit subscriber,
                                      SubscriberKit.SubscriberVideoStats stats) {
-
                 //check video quality
                 checkVideoQuality(stats);
 
@@ -118,11 +149,10 @@ public class NetworkTest {
                 }
             }
         });
-
-        mTestSubscriber.setAudioStatsListener(null);
     }
 
     private void startAudioNetworkTest() {
+        Log.i(LOG_TAG, "Start audio network test");
         mTestSubscriber.setVideoStatsListener(null);
 
         mTestSubscriber.setAudioStatsListener(new SubscriberKit.AudioStatsListener() {
@@ -141,42 +171,35 @@ public class NetworkTest {
     }
 
     private void checkVideoQuality(SubscriberKit.SubscriberVideoStats stats) {
-
         if (mStartTestTime == 0) {
             mStartTestTime = System.currentTimeMillis() / 1000;
         }
-
         checkVideoStats(stats);
-
     }
 
     private void checkAudioQuality(SubscriberKit.SubscriberAudioStats stats) {
-
         if (mStartTestTime == 0) {
             mStartTestTime = System.currentTimeMillis() / 1000;
         }
-
         checkAudioStats(stats);
-
     }
 
     public MOSQuality getMOSQuality () {
-
         if (!mAudioOnly) {
             //get resolution and frameRate
             this.getPCStats();
 
             //check values
             if (videoResolution.equals(1280,720)){
-                if (videoFrameRate == 30) { //aprox
+                if (videoFrameRate <= 30 && videoFrameRate >=23) {
                     checkHDand30fps();
                 }
                 else {
-                    if(videoFrameRate == 15) {
+                    if(videoFrameRate <= 15 && videoFrameRate >=11) {
                         checkHDand15fps();
                     }
                     else {
-                        if(videoFrameRate == 7) {
+                        if(videoFrameRate <= 7 && videoFrameRate >=4) {
                             checkHDand7fps();
                         }
                     }
@@ -184,15 +207,15 @@ public class NetworkTest {
             }
             else {
                 if (videoResolution.equals(640,480)){
-                    if (videoFrameRate == 30) { //aprox
+                    if (videoFrameRate <= 30 && videoFrameRate >=23) {
                         checkVGAand30fps();
                     }
                     else {
-                        if(videoFrameRate == 15) {
+                        if(videoFrameRate <= 15 && videoFrameRate >=11) {
                             checkVGAand15fps();
                         }
                         else {
-                            if(videoFrameRate == 7) {
+                            if(videoFrameRate <= 7 && videoFrameRate >=4) {
                                 checkVGAand7fps();
                             }
                         }
@@ -200,15 +223,15 @@ public class NetworkTest {
                 }
                 else {
                     if (videoResolution.equals(320,240)){
-                        if (videoFrameRate == 30) { //aprox
+                        if (videoFrameRate <= 30 && videoFrameRate >=23) {
                             checkQVGAand30fps();
                         }
                         else {
-                            if(videoFrameRate == 15) {
+                            if(videoFrameRate <= 15 && videoFrameRate >=11) {
                                 checkQVGAand15fps();
                             }
                             else {
-                                if(videoFrameRate == 7) {
+                                if(videoFrameRate <= 7 && videoFrameRate >=4) {
                                     checkQVGAand7fps();
                                 }
                             }
@@ -216,17 +239,18 @@ public class NetworkTest {
                     }
                 }
             }
+            Log.i(LOG_TAG, "Video quality: "+mVideoQuality);
         }
-
         else {
             //audio quality
-
+            checkAudioQuality();
+            Log.i(LOG_TAG, "Audio quality: "+mAudioQuality);
         }
 
-        Log.i(LOG_TAG, "MOS QUALITY: "+mQuality.toString());
+        //restart time
         mStartTestTime = System.currentTimeMillis() / 1000;
 
-        return mQuality;
+        return mVideoQuality;
     }
 
     private void checkVideoStats(SubscriberKit.SubscriberVideoStats stats) {
@@ -259,29 +283,49 @@ public class NetworkTest {
             mPrevVideoTimestamp = videoTimestamp;
             mPrevVideoBytes = stats.videoBytesReceived;
 
-            Log.i(LOG_TAG, "RESOLUTION: " + mTestSubscriber.getStream().getVideoWidth() + "x" + mTestSubscriber.getStream().getVideoHeight());
-
             Log.i(LOG_TAG, "Video bandwidth (bps): " + mVideoBw + " Video Bytes received: " + stats.videoBytesReceived + " Video packet lost: " + stats.videoPacketsLost + " Video packet loss ratio: " + mVideoPLRatio);
 
         }
     }
 
     private void checkAudioStats(SubscriberKit.SubscriberAudioStats stats) {
-        if (mPacketsReceivedAudio != 0) {
-            long pl = stats.audioPacketsLost - mPacketsLostAudio;
-            long pr = stats.audioPacketsReceived - mPacketsReceivedAudio;
-            long pt = pl + pr;
-            if (pt > 0) {
-                double ratio = (double) pl / (double) pt;
-                Log.d("QualityStatsSampleApp", "Packet loss ratio = " + ratio);
-            }
+        Log.i(LOG_TAG, "Check audio stats");
+
+        double audioTimestamp = stats.timeStamp / 1000;
+
+        //initialize values
+        if (mPrevAudioTimestamp == 0) {
+            mPrevAudioTimestamp = audioTimestamp;
+            mPrevAudioBytes = stats.audioBytesReceived;
         }
-        mPacketsLostAudio = stats.audioPacketsLost;
-        mPacketsReceivedAudio = stats.audioPacketsReceived;
+
+        if (audioTimestamp - mPrevAudioTimestamp >= TIME_WINDOW) {
+            //calculate audio packets lost ratio
+            if (mPrevAudioPacketsRcvd != 0) {
+                long pl = stats.audioPacketsLost - mPrevAudioPacketsLost;
+                long pr = stats.audioPacketsReceived - mPrevAudioPacketsRcvd;
+                long pt = pl + pr;
+
+                if (pt > 0) {
+                    mAudioPLRatio = (double) pl / (double) pt;
+                }
+            }
+            mPrevAudioPacketsLost = stats.audioPacketsLost;
+            mPrevAudioPacketsRcvd = stats.audioPacketsReceived;
+
+            //calculate audio bandwidth
+            mAudioBw = (long) ((8 * (stats.audioBytesReceived - mPrevAudioBytes)) / (audioTimestamp - mPrevAudioTimestamp));
+
+            mPrevAudioTimestamp = audioTimestamp;
+            mPrevAudioBytes = stats.audioBytesReceived;
+
+            Log.i(LOG_TAG, "Audio bandwidth (bps): " + mAudioBw + " Audio Bytes received: " + stats.audioBytesReceived + " Audio packet lost: " + stats.audioPacketsLost + " Audio packet loss ratio: " + mAudioPLRatio);
+
+        }
+
     }
 
     private void getPCStats() {
-
         //getting PC stats from Google
         long[] videoStreams = OpenTokConfig.getSubscriberVideoStreams(mTestSubscriber);
 
@@ -300,31 +344,33 @@ public class NetworkTest {
     }
 
     private void checkQVGAand30fps(){
+        Log.i(LOG_TAG, "Check QVGA and 30fps");
+
         if (mVideoBw <= 100000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 100000 && mVideoBw <= 120000 && mVideoPLRatio < 0.1) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 120000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
                     if (mVideoBw > 120000 && mVideoBw <= 200000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
                         if (mVideoBw > 200000 && mVideoBw <= 300000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 200000 && mVideoBw <= 300000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 300000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 300000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -336,31 +382,33 @@ public class NetworkTest {
     }
 
     private void checkQVGAand15fps(){
+        Log.i(LOG_TAG, "Check QVGA and 15fps");
+
         if (mVideoBw <= 100000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 100000 && mVideoBw <= 120000 && mVideoPLRatio < 0.1) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 120000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
-                    if (mVideoBw > 120000 && mVideoBw <= 200000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                    if (mVideoBw > 120000 && mVideoBw <= 150000 && mVideoPLRatio < 0.1) {
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
-                        if (mVideoBw > 200000 && mVideoBw <= 200000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                        if (mVideoBw > 200000 && mVideoBw <= 150000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 200000 && mVideoBw <= 150000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 200000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 200000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -371,35 +419,71 @@ public class NetworkTest {
         }
     }
     private void checkQVGAand7fps(){
+        Log.i(LOG_TAG, "Check QVGA and 7fps");
 
+        if (mVideoBw <= 50000) {
+            mVideoQuality = MOSQuality.Bad;
+        }
+        else {
+            if (mVideoBw > 50000 && mVideoBw <= 75000 && mVideoPLRatio < 0.1) {
+                mVideoQuality = MOSQuality.Poor;
+            }
+            else {
+                if (mVideoBw <= 75000 || mVideoPLRatio > 0.1) {
+                    mVideoQuality = MOSQuality.Poor;
+                } else {
+                    if (mVideoBw > 75000 && mVideoBw <= 150000 && mVideoPLRatio < 0.1) {
+                        mVideoQuality = MOSQuality.Fair;
+                    } else {
+                        if (mVideoBw > 150000 && mVideoBw <= 100000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
+                            mVideoQuality = MOSQuality.Fair;
+                        } else {
+                            if (mVideoBw > 150000 && mVideoBw <= 100000 && mVideoPLRatio < 0.02) {
+                                mVideoQuality = MOSQuality.Good;
+                            } else {
+                                if (mVideoBw > 150000 && mVideoPLRatio > 0.005) {
+                                    mVideoQuality = MOSQuality.Good;
+                                } else {
+                                    if (mVideoBw > 150000 && mVideoPLRatio < 0.005) {
+                                        mVideoQuality = MOSQuality.Excellent;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private void checkVGAand30fps(){
+        Log.i(LOG_TAG, "Check VGA and 30fps");
+
         if (mVideoBw <= 120000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 120000 && mVideoBw <= 250000 && mVideoPLRatio < 0.1) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 150000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
                     if (mVideoBw > 150000 && mVideoBw <= 250000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
                         if (mVideoBw > 250000 && mVideoBw <= 600000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 250000 && mVideoBw <= 600000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 600000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 600000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -411,31 +495,32 @@ public class NetworkTest {
     }
 
     private void checkVGAand15fps(){
+        Log.i(LOG_TAG, "Check VGA and 15fps");
         if (mVideoBw <= 75000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 75000 && mVideoBw <= 120000 && mVideoPLRatio < 0.1) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 120000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
                     if (mVideoBw > 120000 && mVideoBw <= 200000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
                         if (mVideoBw > 200000 && mVideoBw <= 400000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 200000 && mVideoBw <= 400000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 400000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 400000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -447,31 +532,32 @@ public class NetworkTest {
     }
 
     private void checkVGAand7fps(){
+        Log.i(LOG_TAG, "Check VGA and 7fps");
         if (mVideoBw <= 50000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 50000 && mVideoBw <= 100000 && mVideoPLRatio < 0.1) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 100000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
                     if (mVideoBw > 100000 && mVideoBw <= 150000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
                         if (mVideoBw > 150000 && mVideoBw <= 200000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 150000 && mVideoBw <= 200000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 200000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 200000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -483,31 +569,32 @@ public class NetworkTest {
     }
 
     private void checkHDand30fps(){
+        Log.i(LOG_TAG, "Check HD and 30fps");
         if (mVideoBw <= 250000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 250000 && mVideoBw <= 350000 && mVideoPLRatio < 0.1 ) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 350000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
                     if (mVideoBw > 350000 && mVideoBw <= 600000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
                         if (mVideoBw > 600000 && mVideoBw <= 1000000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 600000 && mVideoBw <= 1000000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 1000000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 1000000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -520,31 +607,33 @@ public class NetworkTest {
     }
 
     private void checkHDand15fps(){
+        Log.i(LOG_TAG, "Check HD and 15fps");
+
         if (mVideoBw <= 150000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 150000 && mVideoBw <= 250000 && mVideoPLRatio < 0.1 ) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 250000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
                     if (mVideoBw > 250000 && mVideoBw <= 350000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
                         if (mVideoBw > 350000 && mVideoBw <= 800000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 350000 && mVideoBw <= 800000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 800000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 800000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -556,31 +645,32 @@ public class NetworkTest {
     }
 
     private void checkHDand7fps(){
+        Log.i(LOG_TAG, "Check HD and 7fps");
         if (mVideoBw <= 120000) {
-            mQuality = MOSQuality.Bad;
+            mVideoQuality = MOSQuality.Bad;
         }
         else {
             if (mVideoBw > 120000 && mVideoBw <= 150000 && mVideoPLRatio < 0.1 ) {
-                mQuality = MOSQuality.Poor;
+                mVideoQuality = MOSQuality.Poor;
             }
             else {
                 if (mVideoBw <= 150000 || mVideoPLRatio > 0.1) {
-                    mQuality = MOSQuality.Poor;
+                    mVideoQuality = MOSQuality.Poor;
                 } else {
                     if (mVideoBw > 150000 && mVideoBw <= 250000 && mVideoPLRatio < 0.1) {
-                        mQuality = MOSQuality.Fair;
+                        mVideoQuality = MOSQuality.Fair;
                     } else {
                         if (mVideoBw > 250000 && mVideoBw <= 400000 && mVideoPLRatio < 0.1 && mVideoPLRatio > 0.02) {
-                            mQuality = MOSQuality.Fair;
+                            mVideoQuality = MOSQuality.Fair;
                         } else {
                             if (mVideoBw > 250000 && mVideoBw <= 400000 && mVideoPLRatio < 0.02) {
-                                mQuality = MOSQuality.Good;
+                                mVideoQuality = MOSQuality.Good;
                             } else {
                                 if (mVideoBw > 400000 && mVideoPLRatio > 0.005) {
-                                    mQuality = MOSQuality.Good;
+                                    mVideoQuality = MOSQuality.Good;
                                 } else {
                                     if (mVideoBw > 400000 && mVideoPLRatio < 0.005) {
-                                        mQuality = MOSQuality.Excellent;
+                                        mVideoQuality = MOSQuality.Excellent;
                                     }
                                 }
                             }
@@ -591,4 +681,19 @@ public class NetworkTest {
         }
     }
 
+    private void checkAudioQuality(){
+        if (mAudioBw <= 25000 && mVideoPLRatio > 0.05) {
+            mAudioQuality = MOSQuality.Bad;
+        }
+        else {
+            if(mAudioBw > 25000 && mAudioBw <= 30000 && mVideoPLRatio < 0.05) {
+                mAudioQuality = MOSQuality.Good;
+            }
+            else {
+                if(mAudioBw > 30000 && mAudioBw < 0.005) {
+                    mAudioQuality = MOSQuality.Excellent;
+                }
+            }
+        }
+    }
 }

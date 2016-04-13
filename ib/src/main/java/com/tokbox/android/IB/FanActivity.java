@@ -85,8 +85,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mBackstageConnectionId;
     private Session mSession;
     private Session mBackstageSession;
-    private NetworkTest.MOSQuality mVideoQuality;
+
     private NetworkTest mTest;
+    private String mTestQuality = "";
 
     private WebServiceCoordinator mWebServiceCoordinator;
     private SocketCoordinator mSocket;
@@ -97,7 +98,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Subscriber mSubscriberProducer;
     private Subscriber mSubscriberProducerOnstage;
     private Subscriber mTestSubscriber;
-    private Stream mCelebirtyStream;
+    private Stream mCelebrityStream;
     private Stream mFanStream;
     private Stream mHostStream;
     private Stream mProducerStream;
@@ -146,8 +147,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ServiceConnection mConnection;
     private CustomVideoRenderer mCustomVideoRenderer;
     private boolean mAudioOnlyFan;
-    private boolean mAudioOnlyCelebrity;
-    private boolean mAudioOnlyHost;
 
     private TextChatFragment mTextChatFragment;
     private FragmentTransaction mFragmentTransaction;
@@ -165,10 +164,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSocket.connect();
 
         mAudioOnlyFan = false;
-        mAudioOnlyCelebrity = false;
-        mAudioOnlyHost = false;
-
-        mVideoQuality = NetworkTest.MOSQuality.Good;
 
         initLayoutWidgets();
 
@@ -516,14 +511,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
                 int streams = 0;
                 if (mFanStream != null || mUserIsOnstage) streams++;
-                if (mCelebirtyStream != null) streams++;
+                if (mCelebrityStream != null) streams++;
                 if (mHostStream != null) streams++;
 
                 if (streams > 0) {
                     mEventImage.setVisibility(View.GONE);
 
                     RelativeLayout.LayoutParams celebrity_head_params = (RelativeLayout.LayoutParams) mSubscriberCelebrityViewContainer.getLayoutParams();
-                    celebrity_head_params.width = (mCelebirtyStream != null) ? screenWidth(FanActivity.this) / streams : 1;
+                    celebrity_head_params.width = (mCelebrityStream != null) ? screenWidth(FanActivity.this) / streams : 1;
                     mSubscriberCelebrityViewContainer.setLayoutParams(celebrity_head_params);
 
                     RelativeLayout.LayoutParams host_head_params = (RelativeLayout.LayoutParams) mSubscriberHostViewContainer.getLayoutParams();
@@ -672,7 +667,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
-                mVideoQuality = NetworkTest.MOSQuality.Good;
 
                 if (!status.equals("C")) {
                     setVisibilityGetInLine(View.VISIBLE);
@@ -716,6 +710,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             // start loading spinning
             mLoadingSubHost.setVisibility(View.VISIBLE);
         }
+        else {
+            enableAudioOnlyView( mSubscriberHost.getStream().getConnection().getConnectionId(), true);
+        }
     }
 
     private void subscribeCelebrityToStream(Stream stream) {
@@ -726,6 +723,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubCelebrity.setVisibility(View.VISIBLE);
+        }
+        else {
+            enableAudioOnlyView( mSubscriberCelebrity.getStream().getConnection().getConnectionId(), true);
         }
     }
 
@@ -738,6 +738,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (stream.hasVideo()) {
             // start loading spinning
             mLoadingSubFan.setVisibility(View.VISIBLE);
+        }
+        else {
+            enableAudioOnlyView( mSubscriberFan.getStream().getConnection().getConnectionId(), true);
         }
     }
 
@@ -849,7 +852,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 BaseVideoRenderer.STYLE_VIDEO_FIT);
         ((GLSurfaceView)mSubscriberFan.getView()).setZOrderMediaOverlay(false);
         mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
-
     }
 
     private void attachPublisherView() {
@@ -901,7 +903,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberProducer  = null;
         mSubscriberProducerOnstage  = null;
         mTestSubscriber  = null;
-        mCelebirtyStream  = null;
+        mCelebrityStream  = null;
         mFanStream  = null;
         mHostStream  = null;
         mProducerStream  = null;
@@ -909,9 +911,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mProducerConnection = null;
 
         mAudioOnlyFan = false;
-        mAudioOnlyCelebrity = false;
-        mAudioOnlyHost = false;
-
     }
 
     private void initReconnection() {
@@ -954,8 +953,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=celebrity":
-                if (mCelebirtyStream == null) {
-                    mCelebirtyStream = stream;
+                if (mCelebrityStream == null) {
+                    mCelebrityStream = stream;
                     if(status.equals("L") || mUserIsOnstage) {
                         subscribeCelebrityToStream(stream);
                         updateViewsWidth();
@@ -981,11 +980,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 break;
 
         }
-
-        if(!stream.hasVideo()) {
-            enableAudioOnlyView(stream.getConnection().getConnectionId(), true);
-        }
-
     }
 
     @Override
@@ -1004,9 +998,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
                 break;
             case "usertype=celebrity":
-                if(mCelebirtyStream != null && mCelebirtyStream.getConnection().getConnectionId().equals(streamConnectionId)) {
-
-                    mCelebirtyStream = null;
+                if(mCelebrityStream != null && mCelebrityStream.getConnection().getConnectionId().equals(streamConnectionId)) {
+                    mCelebrityStream = null;
                     if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
                         unsubscribeCelebrityFromStream(stream);
                         updateViewsWidth();
@@ -1057,12 +1050,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }, 5000);
 
             if(mHostStream != null && (getEventStatus().equals("L") || mUserIsOnstage)) {
+                Log.i("NetworkTest", "mtestinghost");
                 mTestingOnStage = true;
                 testStreamConnectionQuality(mHostStream);
-            } else if(mCelebirtyStream != null  && (getEventStatus().equals("L") || mUserIsOnstage)) {
+            } else if(mCelebrityStream != null  && (getEventStatus().equals("L") || mUserIsOnstage)) {
+                Log.i("NetworkTest", "mCelebritytest");
                 mTestingOnStage = true;
-                testStreamConnectionQuality(mCelebirtyStream);
+                testStreamConnectionQuality(mCelebrityStream);
             } else {
+                Log.i("NetworkTest", "mFanTest");
                 mTestingOnStage = false;
                 testStreamConnectionQuality(stream);
             }
@@ -1099,11 +1095,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void stopTestingConnectionQuality() {
+
         if(mTestSubscriber == null) return;
-        mTestSubscriber.setVideoStatsListener(null);
-        mTestSubscriber.setAudioStatsListener(null);
-        if(!mTestingOnStage) {
+        if(!mTestingOnStage) { //if autoselfsubscribe
             mBackstageSession.unsubscribe(mTestSubscriber);
+        }
+        if ( mTest!= null ) {
+            mTest.stopNetworkTest();
+            mTest = null;
         }
         mTestSubscriber = null;
     }
@@ -1111,25 +1110,32 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void testStreamConnectionQuality(Stream stream) {
 
         if(!mTestingOnStage) {
-            mTestSubscriber = new Subscriber(FanActivity.this, stream);
-            mTestSubscriber.setSubscriberListener(this);
-            mTestSubscriber.setSubscribeToAudio(false);
+            autoselfSubscribe(stream);
             mBackstageSession.subscribe(mTestSubscriber);
         } else {
-            if(mSubscriberHost != null && stream.getConnection().getConnectionId() == mSubscriberHost.getStream().getConnection().getConnectionId()) {
+            if(mSubscriberHost != null && stream.getConnection().getConnectionId() == mSubscriberHost.getStream().getConnection().getConnectionId() && mSubscriberHost.getStream().hasVideo()) {
                 mTestSubscriber = mSubscriberHost;
             } else {
-                mTestSubscriber = mSubscriberCelebrity;
+                if (mSubscriberCelebrity != null && stream.getConnection().getConnectionId() == mSubscriberCelebrity.getStream().getConnection().getConnectionId() && mSubscriberCelebrity.getStream().hasVideo()) {
+                    mTestSubscriber = mSubscriberCelebrity;
+                }
+                else{
+                    autoselfSubscribe(stream);
+                }
             }
         }
 
         mTest = new NetworkTest();
-
-        mTest.startNetworkTest(mTestSubscriber, this);
-
+        mTest.setNetworkTestListener(this);
+        mTest.startNetworkTest(mTestSubscriber);
     }
 
 
+    private void autoselfSubscribe(Stream stream){
+        mTestSubscriber = new Subscriber(FanActivity.this, stream);
+        mTestSubscriber.setSubscriberListener(this);
+        mTestSubscriber.setSubscribeToAudio(false);
+    }
 
     public void sendQualityUpdate(String connectionId, String quality) {
         if (mBackstageSession != null && mProducerConnection != null) {
@@ -1180,36 +1186,33 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 "Video disabled:" + reason);
         enableAudioOnlyView(subscriber.getStream().getConnection().getConnectionId(), true);
 
-        mTest.updateTest(true);
+        if (mTestSubscriber != null && mTestSubscriber.getStream().getConnection().getConnectionId() == subscriber.getStream().getConnection().getConnectionId()) {
+            mTest.updateTest(true);
+        }
     }
 
     private void enableAudioOnlyView(String subscriberConnectionId, boolean show) {
-
         String host = mHostStream != null ? mHostStream.getConnection().getConnectionId() : "";
-        String celebrity = mCelebirtyStream != null ? mCelebirtyStream.getConnection().getConnectionId() : "";
+        String celebrity = mCelebrityStream != null ? mCelebrityStream.getConnection().getConnectionId() : "";
         String fan = mFanStream != null ? mFanStream.getConnection().getConnectionId() : "";
         if(subscriberConnectionId.equals(host)) {
             if (show) {
                 mSubscriberHost.getView().setVisibility(View.GONE);
                 mAvatarHost.setVisibility(View.VISIBLE);
-                mAudioOnlyHost = true;
             }
             else {
                 mSubscriberHost.getView().setVisibility(View.VISIBLE);
                 mAvatarHost.setVisibility(View.GONE);
-                mAudioOnlyHost = false;
             }
         }
         if(subscriberConnectionId.equals(celebrity)) {
             if (show) {
                 mSubscriberCelebrity.getView().setVisibility(View.GONE);
                 mAvatarCelebrity.setVisibility(View.VISIBLE);
-                mAudioOnlyCelebrity = true;
             }
             else {
                 mSubscriberCelebrity.getView().setVisibility(View.VISIBLE);
                 mAvatarCelebrity.setVisibility(View.GONE);
-                mAudioOnlyCelebrity = false;
             }
         }
         if(subscriberConnectionId.equals(fan)) {
@@ -1231,7 +1234,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Video enabled:" + reason);
         enableAudioOnlyView(subscriber.getStream().getConnection().getConnectionId(), false);
 
-        mTest.updateTest(false);
+        if (mTestSubscriber != null && mTestSubscriber.getStream().getConnection().getConnectionId() == subscriber.getStream().getConnection().getConnectionId()) {
+            mTest.updateTest(false);
+        }
     }
 
     @Override
@@ -1256,6 +1261,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         } else if(subscriberKit.getStream().getConnection().getData() == "usertype=celebrity") {
             mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
         }
+
+
+        if(!subscriberKit.getStream().hasVideo()) {
+            enableAudioOnlyView(subscriberKit.getStream().getConnection().getConnectionId(), true);
+        }
+
     }
 
     @Override
@@ -1440,8 +1451,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     attachPublisherViewToFanView();
                     if (mHostStream != null && mSubscriberHost == null)
                         subscribeHostToStream(mHostStream);
-                    if (mCelebirtyStream != null && mSubscriberCelebrity == null)
-                        subscribeCelebrityToStream(mCelebirtyStream);
+                    if (mCelebrityStream != null && mSubscriberCelebrity == null)
+                        subscribeCelebrityToStream(mCelebrityStream);
                     updateViewsWidth();
                     AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
                     animation1.setDuration(500);
@@ -1584,7 +1595,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if(!mUserIsOnstage) {
                 if (mFanStream != null) subscribeFanToStream(mFanStream);
                 if (mHostStream != null) subscribeHostToStream(mHostStream);
-                if (mCelebirtyStream != null) subscribeCelebrityToStream(mCelebirtyStream);
+                if (mCelebrityStream != null) subscribeCelebrityToStream(mCelebrityStream);
                 updateViewsWidth();
             }
         } catch (JSONException ex) {
@@ -1799,7 +1810,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mNewFanSignalAckd = true;
                 String userName = IBConfig.USER_NAME;
                 String user_id = mWebServiceCoordinator.getUserId();
-                String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"os\":\"Android\",\"username\":\"" + userName + "\", \"quality\":\"" + mVideoQuality.toString() + "\"}}";
+                String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"os\":\"Android\",\"username\":\"" + userName + "\", \"quality\":\"" + mTestQuality + "\"}}";
                 mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
             }
         }
@@ -1843,12 +1854,39 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onVideoQualityUpdated(String connectionId, NetworkTest.MOSQuality quality) {
-        sendQualityUpdate(mTestSubscriber.getStream().getConnection().getConnectionId(), quality.toString());
+        if ( mTestSubscriber != null ) {
+            Log.i(LOG_TAG, "Video quality sent to the producer: " + getIBQuality(quality));
+            sendQualityUpdate(mPublisher.getStream().getConnection().getConnectionId(), getIBQuality(quality));
+        }
     }
 
     @Override
     public void onAudioQualityUpdated(String connectionId, NetworkTest.MOSQuality quality) {
-        //to send quality update to the producer
+        if (mTestSubscriber != null) {
+            //to send quality update to the producer
+            Log.i(LOG_TAG, "Audio quality sent to the producer: " + quality.toString());
+            //TODO: audio quality to the producer
+            //sendQualityUpdate(mTestSubscriber.getStream().getConnection().getConnectionId(), quality.toString());
+        }
+    }
+
+    private String getIBQuality(NetworkTest.MOSQuality quality){
+        String qualityStr = null;
+
+        if (quality.equals(NetworkTest.MOSQuality.Bad) || quality.equals(NetworkTest.MOSQuality.Poor) || quality.equals(NetworkTest.MOSQuality.Fair)) {
+            qualityStr = "Poor";
+        }
+        else {
+            if (quality.equals(NetworkTest.MOSQuality.Good)){
+                qualityStr = "Good";
+            }
+            else {
+                if (quality.equals(NetworkTest.MOSQuality.Excellent)){
+                    qualityStr = "Great";
+                }
+            }
+        }
+        return qualityStr;
     }
 }
 
