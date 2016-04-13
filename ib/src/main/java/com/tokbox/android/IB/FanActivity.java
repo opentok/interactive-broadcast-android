@@ -74,6 +74,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private boolean mOnstageMuted = false;
     private boolean mConnectionError = false;
     private boolean mDisplayingUserStatus = false;
+    private boolean mSubscribingError = false;
 
 
     private JSONObject mEvent;
@@ -532,10 +533,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
                     if (mUserIsOnstage) {
 
-                        if (mAudioOnlyFan){
+                        if (mAudioOnlyFan) {
                             mAvatarFan.setVisibility(View.VISIBLE);
-                        }
-                        else {
+                        } else {
                             mPublisher.getView().setVisibility(View.VISIBLE);
                         }
                         //copy layoutparams from fan container
@@ -881,10 +881,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mEventImage.setVisibility(View.VISIBLE);
             mConnectionError = true;
             restartOpentokObjects();
-            //initReconnection();
+            sendWarningSignal();
+
         }
-
-
     }
 
     private void restartOpentokObjects() {
@@ -925,12 +924,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void  showConnectionLost(){
-        Toast toast = Toast.makeText(getApplicationContext(), R.string.connection_lost, Toast.LENGTH_LONG);
-        ViewGroup view = (ViewGroup) toast.getView();
-        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
-        TextView messageTextView = (TextView) view.getChildAt(0);
-        messageTextView.setTextSize(13);
-        toast.show();
+        for(int i=0;i<3;i++) {
+            Toast toast = Toast.makeText(getApplicationContext(), R.string.connection_lost, Toast.LENGTH_LONG);
+            ViewGroup view = (ViewGroup) toast.getView();
+            view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
+            TextView messageTextView = (TextView) view.getChildAt(0);
+            messageTextView.setTextSize(13);
+            toast.show();
+        }
+
     }
 
     @Override
@@ -1042,11 +1044,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
         mLoadingSubPublisher.setVisibility(View.GONE);
+
         if (stream.getSession().getSessionId().equals(mBackstageSessionId)) {
             Log.i(LOG_TAG, "publisher Video height:" + String.valueOf(stream.getVideoHeight()));
             Log.i(LOG_TAG, "publisher Video width:" + String.valueOf(stream.getVideoWidth()));
             Log.i(LOG_TAG, "publisher Video type:" + String.valueOf(stream.getStreamVideoType().name()));
             mBackstageConnectionId = mPublisher.getStream().getConnection().getConnectionId();
+
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -1146,6 +1150,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mBackstageSession != null && mProducerConnection != null) {
             String msg = "{\"connectionId\":\"" + connectionId + "\", \"quality\":\"" + quality + "\"}";
             mBackstageSession.sendSignal("qualityUpdate", msg);
+        }
+    }
+
+    public void sendWarningSignal() {
+        if (mBackstageSession != null && mProducerConnection != null) {
+            String connectionId = mPublisher != null ? mPublisher.getStream().getConnection().getConnectionId() : "";
+            String msg = "{\"connectionId\":\"" + connectionId + "\", \"connected\":\"false\", \"subscribing\":\"false\"}";
+            mBackstageSession.sendSignal("warning", msg);
+            Log.i(LOG_TAG, "sendWarningSignal sent =>" + msg);
         }
     }
 
@@ -1273,6 +1286,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onError(SubscriberKit subscriberKit, OpentokError opentokError) {
         Log.e(LOG_TAG, opentokError.getMessage());
+        if(subscriberKit.getSession().getSessionId().equals(mSessionId)) {
+            mSubscribingError = true;
+            sendWarningSignal();
+            if(!mConnectionError) showConnectionLost();
+        }
     }
 
     /* Signal Listener methods */
@@ -1355,8 +1373,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    if(mPublisher == null) return;
 
+                    if(mPublisher == null) return;
+                    String status = getEventStatus();
                     String connectionId = mBackstageConnectionId;
                     String sessionId = mBackstageSessionId;
                     String snapshot = mCustomVideoRenderer.getSnapshot();
@@ -1370,6 +1389,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         Log.e(LOG_TAG, ex.getMessage());
                     }
                     mSocket.SendSnapShot(obj);
+
+                    //Send warning signal
+                    if(mSession == null || (status.equals("L") && mSubscribingError)) {
+                        Log.i(LOG_TAG, "send warning signal");
+                        sendWarningSignal();
+                    }
 
                     //Send get in line
                     sendGetInLine();
