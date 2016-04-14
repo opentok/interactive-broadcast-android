@@ -261,7 +261,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         Toast.makeText(getApplicationContext(),"Unable to connect to the server. Please try in a few minutes.", Toast.LENGTH_LONG).show();
     }
 
-
     @Override
     public void onPause() {
         super.onPause();
@@ -314,7 +313,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mIsBound = true;
             startService(notificationIntent);
         }
-
     }
 
     @Override
@@ -523,6 +521,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             // start loading spinning
             mLoadingSub.setVisibility(View.VISIBLE);
         }
+        else {
+            enableAudioOnlyView(mSubscriber.getStream().getConnection().getConnectionId(), true);
+        }
     }
 
     private void subscribeFanToStream(Stream stream) {
@@ -685,46 +686,41 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     }
 
-
-    private void showAvatar(String subscriberConnectionId) {
-
+    private void enableAudioOnlyView(String subscriberConnectionId, boolean show) {
         String hostCeleb = mSubscriber != null ? mSubscriber.getStream().getConnection().getConnectionId() : "";
         String fan = mSubscriberFan != null ? mSubscriberFan.getStream().getConnection().getConnectionId() : "";
         if(subscriberConnectionId.equals(hostCeleb)) {
-            mSubscriber.getView().setVisibility(View.GONE);
-            mAvatarHostCelebrity.setVisibility(View.VISIBLE);
+            if (show) {
+                mSubscriber.getView().setVisibility(View.GONE);
+                mAvatarHostCelebrity.setVisibility(View.VISIBLE);
+            }
+            else {
+                mSubscriber.getView().setVisibility(View.VISIBLE);
+                mAvatarHostCelebrity.setVisibility(View.GONE);
+            }
         }
         if(subscriberConnectionId.equals(fan)) {
-            mSubscriberFan.getView().setVisibility(View.GONE);
-            mAvatarFan.setVisibility(View.VISIBLE);
+            if (show) {
+                mSubscriberFan.getView().setVisibility(View.GONE);
+                mAvatarFan.setVisibility(View.VISIBLE);
+            }
+            else {
+                mSubscriberFan.getView().setVisibility(View.VISIBLE);
+                mAvatarFan.setVisibility(View.GONE);
+            }
         }
     }
-
-    private void hideAvatar(String subscriberConnectionId) {
-
-        String hostCeleb = mSubscriber != null ? mSubscriber.getStream().getConnection().getConnectionId() : "";
-        String fan = mSubscriberFan != null ? mSubscriberFan.getStream().getConnection().getConnectionId() : "";
-        if(subscriberConnectionId.equals(hostCeleb)) {
-            mSubscriber.getView().setVisibility(View.VISIBLE);
-            mAvatarHostCelebrity.setVisibility(View.GONE);
-        }
-        if(subscriberConnectionId.equals(fan)) {
-            mSubscriberFan.getView().setVisibility(View.VISIBLE);
-            mAvatarFan.setVisibility(View.GONE);
-        }
-    }
-
     @Override
     public void onVideoDisabled(SubscriberKit subscriber, String reason) {
         Log.i(LOG_TAG,
                 "Video disabled:" + reason);
-        showAvatar(subscriber.getStream().getConnection().getConnectionId());
+        enableAudioOnlyView(subscriber.getStream().getConnection().getConnectionId(), true);
     }
 
     @Override
     public void onVideoEnabled(SubscriberKit subscriber, String reason) {
         Log.i(LOG_TAG, "Video enabled:" + reason);
-        hideAvatar(subscriber.getStream().getConnection().getConnectionId());
+        enableAudioOnlyView(subscriber.getStream().getConnection().getConnectionId(), false);
     }
 
     @Override
@@ -736,7 +732,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onVideoDisableWarningLifted(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may no longer be disabled as stream quality improved. Add UI handling here.");
-        hideAvatar(subscriber.getStream().getConnection().getConnectionId());
     }
 
     /* Subscriber Listener methods */
