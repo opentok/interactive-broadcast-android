@@ -18,13 +18,22 @@ public class Notification {
         this.mContext = context;
     }
 
-    public void  showConnectionLost(){
+    public void showConnectionLost(){
+        showNotification(R.string.connection_lost);
+    }
+
+    public void showCantPublish(String userType){
+        int message = userType.equals("host") ? R.string.cant_publish_host : R.string.cant_publish_celebrity;
+        showNotification(message);
+    }
+
+    public void  showNotification(int message){
         Typeface font = EventUtils.getFont(mContext);
         for(int i=0;i<3;i++) {
-            Toast toast = Toast.makeText(mContext, R.string.connection_lost, Toast.LENGTH_LONG);
+            Toast toast = Toast.makeText(mContext, message, Toast.LENGTH_LONG);
             ViewGroup view = (ViewGroup) toast.getView();
             view.setBackgroundColor(ContextCompat.getColor(mContext, R.color.countdown_background_color));
-            view.setPadding(20,10,0,10);
+            view.setPadding(20,10,20,10);
             TextView messageTextView = (TextView) view.getChildAt(0);
             messageTextView.setTextSize(13);
             messageTextView.setTypeface(font);

@@ -90,6 +90,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private RelativeLayout mAvatarHostCelebrity;
     private RelativeLayout mAvatarFan;
     private RelativeLayout mAvatarPublisher;
+    private Boolean mAllowPublish = true;
 
 
     private Handler mHandler = new Handler();
@@ -453,10 +454,28 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mPublisher = new Publisher(CelebrityHostActivity.this, "publisher");
             mPublisher.setPublisherListener(this);
             attachPublisherView();
-            mSession.publish(mPublisher);
+            doPublish();
         }
         //loading text-chat ui component
         loadTextChatFragment();
+    }
+
+    private void doPublish(){
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(mAllowPublish) {
+                    mSession.publish(mPublisher);
+                } else {
+                    mNotification.showCantPublish(IBConfig.USER_TYPE);
+                    cleanViews();
+                    mLoadingSubPublisher.setVisibility(View.GONE);
+                    mChatButton.setVisibility(View.GONE);
+
+                }
+            }
+        }, 1000);
+
     }
 
     // Initialize a TextChatFragment instance and add it to the UI
@@ -602,14 +621,16 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 break;
             case "usertype=celebrity":
                 Log.i(LOG_TAG, "Celebrity!");
-                if (mCelebirtyStream == null) {
+                if(IBConfig.USER_TYPE.equals("celebrity")) mAllowPublish = false;
+                if (mCelebirtyStream == null && !IBConfig.USER_TYPE.equals("celebrity")) {
                     subscribeToStream(stream);
                     mCelebirtyStream = stream;
                     updateViewsWidth();
                 }
                 break;
             case "usertype=host":
-                if (mHostStream == null) {
+                if(IBConfig.USER_TYPE.equals("host")) mAllowPublish = false;
+                if (mHostStream == null && !IBConfig.USER_TYPE.equals("host")) {
                     subscribeToStream(stream);
                     mHostStream = stream;
                     updateViewsWidth();

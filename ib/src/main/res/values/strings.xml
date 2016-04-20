@@ -36,5 +36,8 @@
 
     <string name="connection_lost">You are experiencing network connectivity issues. Please try closing the application and coming back to the event</string>
 
+    <string name="cant_publish_host">There is already another host in this show</string>
+    <string name="cant_publish_celebrity">There is already another celebrity in this show</string>
+
 
 </resources>
