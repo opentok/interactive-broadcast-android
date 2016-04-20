@@ -48,6 +48,7 @@ import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.services.ClearNotificationService;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
+import com.tokbox.android.IB.common.Notification;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -66,6 +67,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private String mToken;
     private Session mSession;
     private WebServiceCoordinator mWebServiceCoordinator;
+    private Notification mNotification;
     private Publisher mPublisher;
     private Subscriber mSubscriber;
     private Subscriber mSubscriberFan;
@@ -131,6 +133,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
+
+        mNotification = new Notification(this);
     }
 
     @Override
@@ -188,6 +192,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 //@TODO: Handle no extras
             }
         } else {
+            if(savedInstanceState.getSerializable("event_index") == null) return;
             event_index = Integer.parseInt((String) savedInstanceState.getSerializable("event_index"));
         }
 
@@ -577,6 +582,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onError(Session session, OpentokError exception) {
         Log.i(LOG_TAG, "Session exception: " + exception.getMessage());
+        String error = exception.getErrorCode().toString();
+        if(error.equals("ConnectionDropped") || error.equals("ConnectionFailed")) {
+            cleanViews();
+            mNotification.showConnectionLost();
+        }
     }
 
     @Override

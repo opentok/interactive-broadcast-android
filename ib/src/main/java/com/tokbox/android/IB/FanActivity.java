@@ -52,6 +52,7 @@ import com.tokbox.android.IB.services.ClearNotificationService;
 import com.tokbox.android.IB.socket.SocketCoordinator;
 import com.tokbox.android.IB.video.CustomVideoRenderer;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
+import com.tokbox.android.IB.common.Notification;
 
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -91,6 +92,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mTestQuality = "";
 
     private WebServiceCoordinator mWebServiceCoordinator;
+    private Notification mNotification;
     private SocketCoordinator mSocket;
     private Publisher mPublisher;
     private Subscriber mSubscriberHost;
@@ -160,6 +162,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotification = new Notification(this);
 
         mSocket = new SocketCoordinator();
         mSocket.connect();
@@ -307,7 +310,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onWebServiceCoordinatorError(Exception error) {
         Log.e(LOG_TAG, "Web Service error: " + error.getMessage());
 
-        if(!mConnectionError) showConnectionLost();
+        if(!mConnectionError) mNotification.showConnectionLost();
         mGetInLine.setVisibility(View.GONE);
         //initReconnection();
     }
@@ -879,7 +882,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mCircleLiveButton.setVisibility(View.GONE);
             }
             cleanViews();
-            if(!mConnectionError) showConnectionLost();
+            if(!mConnectionError) mNotification.showConnectionLost();
             mGetInLine.setVisibility(View.GONE);
             mEventImage.setVisibility(View.VISIBLE);
             mConnectionError = true;
@@ -920,18 +923,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 sessionConnect();
             }
         }, 10000);
-
-    }
-
-    private void  showConnectionLost(){
-        for(int i=0;i<3;i++) {
-            Toast toast = Toast.makeText(getApplicationContext(), R.string.connection_lost, Toast.LENGTH_LONG);
-            ViewGroup view = (ViewGroup) toast.getView();
-            view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
-            TextView messageTextView = (TextView) view.getChildAt(0);
-            messageTextView.setTextSize(13);
-            toast.show();
-        }
 
     }
 
@@ -1293,7 +1284,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(subscriberKit.getSession().getSessionId().equals(mSessionId)) {
             mSubscribingError = true;
             sendWarningSignal();
-            if(!mConnectionError) showConnectionLost();
+            if(!mConnectionError) mNotification.showConnectionLost();
         }
     }
 
