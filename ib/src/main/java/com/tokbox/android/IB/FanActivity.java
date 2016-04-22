@@ -1889,11 +1889,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String getIBQuality(NetworkTest.MOSQuality quality){
         String qualityStr = null;
 
-        if (quality.equals(NetworkTest.MOSQuality.Bad) || quality.equals(NetworkTest.MOSQuality.Poor) || quality.equals(NetworkTest.MOSQuality.Fair)) {
+        if (quality.equals(NetworkTest.MOSQuality.Bad) || quality.equals(NetworkTest.MOSQuality.Poor)) {
             qualityStr = "Poor";
         }
         else {
-            if (quality.equals(NetworkTest.MOSQuality.Good)){
+            if (quality.equals(NetworkTest.MOSQuality.Good) || quality.equals(NetworkTest.MOSQuality.Fair)){
                 qualityStr = "Good";
             }
             else {
