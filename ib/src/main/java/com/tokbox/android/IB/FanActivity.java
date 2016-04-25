@@ -1434,9 +1434,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSubscriberProducer = null;
         }
 
-        //stop testing quality
-        stopTestingConnectionQuality();
-
         //Hidding leave line button
         setVisibilityGetInLine(View.GONE);
         mBackstageSession.unpublish(mPublisher);
