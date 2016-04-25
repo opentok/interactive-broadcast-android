@@ -261,6 +261,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 //@TODO: Handle no extras
             }
         } else {
+            if(savedInstanceState.getSerializable("event_index") == null) return;
             event_index = Integer.parseInt((String) savedInstanceState.getSerializable("event_index"));
         }
 
@@ -1044,26 +1045,26 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }, 5000);
 
-            if(mHostStream != null && (getEventStatus().equals("L") || mUserIsOnstage)) {
-                Log.i("NetworkTest", "mtestinghost");
-                mTestingOnStage = true;
-                testStreamConnectionQuality(mHostStream);
-            } else if(mCelebrityStream != null  && (getEventStatus().equals("L") || mUserIsOnstage)) {
-                Log.i("NetworkTest", "mCelebritytest");
-                mTestingOnStage = true;
-                testStreamConnectionQuality(mCelebrityStream);
-            } else {
-                Log.i("NetworkTest", "mFanTest");
-                mTestingOnStage = false;
-                testStreamConnectionQuality(stream);
-            }
-
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     hidePublisher();
                 }
             }, 10000);
+        }
+
+        if(mHostStream != null && (getEventStatus().equals("L") || mUserIsOnstage)) {
+            Log.i("NetworkTest", "mtestinghost");
+            mTestingOnStage = true;
+            testStreamConnectionQuality(mHostStream);
+        } else if(mCelebrityStream != null  && (getEventStatus().equals("L") || mUserIsOnstage)) {
+            Log.i("NetworkTest", "mCelebritytest");
+            mTestingOnStage = true;
+            testStreamConnectionQuality(mCelebrityStream);
+        } else {
+            Log.i("NetworkTest", "mFanTest");
+            mTestingOnStage = false;
+            testStreamConnectionQuality(stream);
         }
     }
 
@@ -1106,7 +1107,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if(!mTestingOnStage) {
             autoselfSubscribe(stream);
-            mBackstageSession.subscribe(mTestSubscriber);
+            if(stream.getSession().getSessionId().equals(mBackstageSessionId)) {
+                mBackstageSession.subscribe(mTestSubscriber);
+            } else {
+                mSession.subscribe(mTestSubscriber);
+            }
         } else {
             if(mSubscriberHost != null && stream.getConnection().getConnectionId() == mSubscriberHost.getStream().getConnection().getConnectionId() && mSubscriberHost.getStream().hasVideo()) {
                 mTestSubscriber = mSubscriberHost;
@@ -1869,7 +1874,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onVideoQualityUpdated(String connectionId, NetworkTest.MOSQuality quality) {
         if ( mTestSubscriber != null ) {
             Log.i(LOG_TAG, "Video quality sent to the producer: " + getIBQuality(quality));
-            sendQualityUpdate(mPublisher.getStream().getConnection().getConnectionId(), getIBQuality(quality));
+            sendQualityUpdate(mBackstageConnectionId, getIBQuality(quality));
         }
     }
 
