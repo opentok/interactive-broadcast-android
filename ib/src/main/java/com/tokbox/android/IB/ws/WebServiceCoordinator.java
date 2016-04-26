@@ -156,7 +156,7 @@ public class WebServiceCoordinator {
     public void createToken(String url) {
         RequestQueue reqQueue = Volley.newRequestQueue(context);
 
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.GET, url, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 Log.i(LOG_TAG, response.toString());
