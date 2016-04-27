@@ -505,6 +505,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if (mSubscriberFan != null) {
                     attachSubscriberFanView();
                 }
+                updateViewsWidth();
             }
         }, 500);
     }
