@@ -61,6 +61,9 @@ import android.support.v7.app.AppCompatActivity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.tokbox.android.IB.logging.OTKAnalytics;
+import com.tokbox.android.IB.logging.OTKAnalyticsData;
+
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
         Session.SessionListener, Session.ConnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
@@ -558,6 +561,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void sessionConnect() {
         if (mSession == null) {
+            //addLogEventOnstage("fan_connects_onstage", "Attempt");
             mSession = new Session(FanActivity.this,
                     mApiKey, mSessionId);
             mSession.setSessionListener(this);
@@ -599,6 +603,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             loadTextChatFragment();
 
         } else {
+            addLogEventOnstage("fan_connects_onstage", "Success");
             mGetInLine.setVisibility(View.VISIBLE);
         }
 
@@ -1906,6 +1911,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }
         return qualityStr;
+    }
+
+    private void addLogEventBackstage(String action, String variation){
+        addLogEvent(mBackstageSessionId, mBackstageSession.getConnection().getConnectionId().toString(), action, variation);
+    }
+
+    private void addLogEventOnstage(String action, String variation){
+        addLogEvent(mSessionId, mSession.getConnection().getConnectionId(), action, variation);
+    }
+
+    private void addLogEvent(String sessionID, String connectionId, String action, String variation){
+        OTKAnalyticsData data = new OTKAnalyticsData.Builder(sessionID, mApiKey, connectionId, IBConfig.LOG_CLIENT_VERSION).build();
+        OTKAnalytics logging = new OTKAnalytics(data);
+        logging.logEvent(action, variation);
     }
 }
 
