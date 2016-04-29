@@ -17,12 +17,9 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class OTKAnalytics {
 
-    private static final String LOGTAG = "otkanalytics";
-
+    private static final String LOGTAG = OTKAnalytics.class.getSimpleName();;
     ObjectMapper mapper = new ObjectMapper();
-
     OTKAnalyticsData data;
-
     /**
      * Init the logging
      *
@@ -32,7 +29,6 @@ public class OTKAnalytics {
     public OTKAnalytics(OTKAnalyticsData data) {
         this.data = data;
     }
-
     /**
      * Log a new event defined by an action and a variation
      *
@@ -56,34 +52,26 @@ public class OTKAnalytics {
             Log.e(LOGTAG, "Analytics data cannot be null. EventAction and EventVariation cannot be null in the logEvent method");
         }
     }
-
     public OTKAnalyticsData getData() {
         return data;
     }
-
     public void setData(OTKAnalyticsData data) {
         this.data = data;
     }
-
     private void sendDataStr(final String jsonStr){
-
         new Thread() {
             public void run() {
                 try {
                     Log.i(LOGTAG, "Send data to the logging server: "+jsonStr);
-
-                    URL url = new URL(IBConfig.LOGGING_BASE_URL);
+                    URL url = new URL(Config.LOGGING_BASE_URL);
                     HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
                     conn.setRequestProperty("Accept", "application/json");
                     conn.setRequestProperty("Content-type", "application/json");
-
                     conn.setRequestMethod("POST");
                     conn.setDoOutput(true);
-
                     byte[] jsonBytes = jsonStr.getBytes("UTF-8");
                     conn.getOutputStream().write(jsonBytes);
                     conn.getOutputStream().flush();
-
                     Log.i(LOGTAG, "Response code: "+conn.getResponseCode());
 
                 } catch (MalformedURLException e) {

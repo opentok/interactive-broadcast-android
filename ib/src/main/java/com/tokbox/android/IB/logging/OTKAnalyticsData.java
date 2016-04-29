@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public class OTKAnalyticsData {
 
-    private static final String LOGTAG = "otkanalyticsdata";
+    private static final String LOGTAG = OTKAnalyticsData.class.getSimpleName();
 
     private String logVersion; //optional
     private String guid; //optional
@@ -27,6 +27,7 @@ public class OTKAnalyticsData {
     private String action; //optional
     private String variation; //optional
     private final String clientVersion; //required
+    private final String source; // required
 
     public void setAction(String action) {
         this.action = action;
@@ -84,6 +85,8 @@ public class OTKAnalyticsData {
 
     public String getSystemName() { return systemName; }
 
+    public String getSource() { return source; }
+
     public OTKAnalyticsData(Builder builder){
 
         this.logVersion = builder.logVersion;
@@ -94,6 +97,7 @@ public class OTKAnalyticsData {
         this.clientSystemTime = builder.clientSystemTime;
         this.action = builder.action;
         this.variation = builder.variation;
+        this.source = builder.source;
         this.deviceModel = builder.deviceModel;
         this.clientVersion = builder.clientVersion;
         this.client = builder.client;
@@ -145,16 +149,18 @@ public class OTKAnalyticsData {
 
         private int clientSystemTime; //optional
 
-        private String action; //required
-        private String variation; //required
+        private String action; //optional
+        private String variation; //optional
+        private final String source; // required
         private final String clientVersion; //required
 
-        public Builder(String sessionId, String partnerId, String connectionId, String clientVersion) {
+        public Builder(String sessionId, String partnerId, String connectionId, String clientVersion, String source) {
 
             this.sessionId = sessionId;
             this.partnerId = partnerId;
             this.connectionId = connectionId;
             this.clientVersion = clientVersion;
+            this.source = source;
         }
 
         public Builder logVersion(String logVersion) {
@@ -227,7 +233,10 @@ public class OTKAnalyticsData {
                 Log.i(LOGTAG, "The clientVersion field cannot be null in the log entry");
                 return null;
             }
-
+            if (data.source == null || data.source.isEmpty()) {
+                Log.i(LOGTAG, "The source field cannot be null in the log entry");
+                return null;
+            }
             return data;
         }
     }

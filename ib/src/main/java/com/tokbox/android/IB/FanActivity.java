@@ -63,6 +63,8 @@ import org.json.JSONObject;
 
 import com.tokbox.android.IB.logging.OTKAnalytics;
 import com.tokbox.android.IB.logging.OTKAnalyticsData;
+import com.tokbox.android.IB.logging.OTKAction;
+import com.tokbox.android.IB.logging.OTKVariation;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
@@ -157,6 +159,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private TextChatFragment mTextChatFragment;
     private FragmentTransaction mFragmentTransaction;
     private boolean msgError = false;
+
+    //Logging
+    private OTKAnalyticsData mBackstageAnalyticsData;
+    private OTKAnalytics mBackstageAnalytics;
+
+    private OTKAnalyticsData mOnStageAnalyticsData;
+    private OTKAnalytics mOnStageAnalytics;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -424,17 +433,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
         if (isFinishing()) {
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-
-            //mSocket.disconnect();
-
-            if (mSession != null) {
-                mSession.disconnect();
-            }
-
-            if (mBackstageSession != null) {
-                mBackstageSession.disconnect();
-            }
-
+            disconnectOnStageSession();
+            disconnectBackstageSession();
         }
     }
 
@@ -445,15 +445,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             unbindService(mConnection);
             mIsBound = false;
         }
-
-        if (mSession != null) {
-            mSession.disconnect();
-        }
-
-        if (mBackstageSession != null) {
-            mBackstageSession.disconnect();
-        }
-
+        disconnectOnStageSession();
+        disconnectBackstageSession();
         super.onDestroy();
         finish();
     }
@@ -465,14 +458,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             toggleChat();
         }else {
-            //mSocket.disconnect();
-            if (mSession != null) {
-                mSession.disconnect();
-            }
-
-            if (mBackstageSession != null) {
-                mBackstageSession.disconnect();
-            }
+            disconnectOnStageSession();
+            disconnectBackstageSession();
 
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             if (mIsBound) {
@@ -513,7 +500,25 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }, 500);
     }
 
-    public void updateViewsWidth() {
+    private void disconnectOnStageSession() {
+        if (mSession != null) {
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_DISCONNECTS_ONSTAGE, OTKAction.ATTEMPT);
+            mSession.disconnect();
+            mSession = null;
+        }
+    }
+
+    private void disconnectBackstageSession() {
+        if (mBackstageSession != null) {
+            //Logging
+            addLogEvent(mBackstageAnalytics, OTKVariation.FAN_DISCONNECTS_BACKSTAGE, OTKAction.ATTEMPT);
+            mBackstageSession.disconnect();
+            mBackstageSession = null;
+        }
+    }
+
+    private void updateViewsWidth() {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -561,7 +566,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void sessionConnect() {
         if (mSession == null) {
-            //addLogEventOnstage("fan_connects_onstage", "Attempt");
             mSession = new Session(FanActivity.this,
                     mApiKey, mSessionId);
             mSession.setSessionListener(this);
@@ -593,8 +597,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
 
-            //mPublisher.setAudioFallbackEnabled(false);
+            //Init the analytics logging for backstage
+            mBackstageAnalyticsData = new OTKAnalyticsData.Builder(mBackstageSession.getConnection().getConnectionId(),
+                    mApiKey, mBackstageSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, IBConfig.LOG_SOURCE).build();
+            mBackstageAnalytics = new OTKAnalytics(mBackstageAnalyticsData);
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_CONNECTS_BACKSTAGE, OTKAction.SUCCESS);
+
+            //Logging
+            addLogEvent(mBackstageAnalytics, OTKVariation.FAN_PUBLISHES_BACKSTAGE, OTKAction.ATTEMPT);
             mBackstageSession.publish(mPublisher);
+
             mGetInLine.setText(getResources().getString(R.string.leave_line));
             mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
             setVisibilityGetInLine(View.VISIBLE);
@@ -603,7 +616,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             loadTextChatFragment();
 
         } else {
-            addLogEventOnstage("fan_connects_onstage", "Success");
+
+            //Init the analytics logging for onstage
+            mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSession.getConnection().getConnectionId(),
+                    mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, IBConfig.LOG_SOURCE).build();
+            mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_CONNECTS_ONSTAGE, OTKAction.SUCCESS);
+
             mGetInLine.setVisibility(View.VISIBLE);
         }
 
@@ -644,12 +664,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onDisconnected(Session session) {
         Log.i(LOG_TAG, "Disconnected from the session.");
         if(session.getSessionId().equals(mSessionId)) {
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_DISCONNECTS_BACKSTAGE, OTKAction.SUCCESS);
             cleanViews();
             mUserIsOnstage = false;
 
         } else {
-            //TODO: Hide Get Inline button on forceDisconnect event
+            //Logging
+            addLogEvent(mBackstageAnalytics, OTKVariation.FAN_DISCONNECTS_BACKSTAGE, OTKAction.SUCCESS);
             leaveLine();
+
         }
     }
 
@@ -661,9 +685,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 stopTestingConnectionQuality();
 
                 if (mBackstageSession != null) {
+                    //Logging
+                    addLogEvent(mBackstageAnalytics, OTKVariation.FAN_UNPUBLISHES_BACKSTAGE, OTKAction.ATTEMPT);
                     mBackstageSession.unpublish(mPublisher);
-                    mBackstageSession.disconnect();
-                    mBackstageSession = null;
+                    disconnectBackstageSession();
                 }
                 if (mPublisher != null) {
                     mPublisherViewContainer.setVisibility(View.GONE);
@@ -712,6 +737,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void subscribeHostToStream(Stream stream) {
+        //Logging
+        addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_HOST, OTKAction.ATTEMPT);
+
         mSubscriberHost = new Subscriber(FanActivity.this, stream);
         mSubscriberHost.setVideoListener(this);
         mSession.subscribe(mSubscriberHost);
@@ -726,6 +754,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void subscribeCelebrityToStream(Stream stream) {
+        //Logging
+        addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_CELEBRITY, OTKAction.ATTEMPT);
+
         mSubscriberCelebrity = new Subscriber(FanActivity.this, stream);
         mSubscriberCelebrity.setVideoListener(this);
         mSession.subscribe(mSubscriberCelebrity);
@@ -740,6 +771,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void subscribeFanToStream(Stream stream) {
+        //Logging
+        addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_FAN, OTKAction.ATTEMPT);
 
         mSubscriberFan = new Subscriber(FanActivity.this, stream);
         mSubscriberFan.setVideoListener(this);
@@ -880,9 +913,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onError(Session session, OpentokError exception) {
-
-        Log.i(LOG_TAG, "Session exception: " + exception.getMessage() + " Code: " + exception.getErrorCode());
         String error = exception.getErrorCode().toString();
+        Log.i(LOG_TAG, "Session exception: " + exception.getMessage() + " Code: " + exception.getErrorCode());
+
+        //Logging
+        if(session.getSessionId().equals(mSessionId)) {
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_DISCONNECTS_ONSTAGE, OTKAction.ERROR);
+        } else {
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_DISCONNECTS_BACKSTAGE, OTKAction.ERROR);
+        }
+
         if(error.equals("ConnectionDropped") || error.equals("ConnectionFailed")) {
             if(mUserIsOnstage) {
                 mLiveButton.setVisibility(View.GONE);
@@ -900,11 +940,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void restartOpentokObjects() {
-        if (mSession != null) mSession.disconnect();
-        if (mBackstageSession != null) mBackstageSession.disconnect();
+        disconnectOnStageSession();
+        disconnectBackstageSession();
         mUserIsOnstage = false;
-        mSession = null;
-        mBackstageSession  = null;
         mPublisher  = null;
         mSubscriberHost  = null;
         mSubscriberCelebrity  = null;
@@ -1041,6 +1079,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.i(LOG_TAG, "publisher Video height:" + String.valueOf(stream.getVideoHeight()));
             Log.i(LOG_TAG, "publisher Video width:" + String.valueOf(stream.getVideoWidth()));
             Log.i(LOG_TAG, "publisher Video type:" + String.valueOf(stream.getStreamVideoType().name()));
+
+            //Logging
+            addLogEvent(mBackstageAnalytics, OTKVariation.FAN_PUBLISHES_BACKSTAGE, OTKAction.SUCCESS);
+
             mBackstageConnectionId = mPublisher.getStream().getConnection().getConnectionId();
 
             mHandler.postDelayed(new Runnable() {
@@ -1057,6 +1099,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     hidePublisher();
                 }
             }, 10000);
+        } else {
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_PUBLISHES_ONSTAGE, OTKAction.SUCCESS);
         }
 
         if(mHostStream != null && (getEventStatus().equals("L") || mUserIsOnstage)) {
@@ -1168,12 +1213,25 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
+
+        if(publisher.getSession().getSessionId().equals(mSessionId)) {
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_UNPUBLISHES_ONSTAGE, OTKAction.SUCCESS);
+        } else {
+            addLogEvent(mBackstageAnalytics, OTKVariation.FAN_UNPUBLISHES_BACKSTAGE, OTKAction.SUCCESS);
+        }
         Log.i(LOG_TAG, "Publisher destroyed");
     }
 
     @Override
     public void onError(PublisherKit publisher, OpentokError exception) {
         Log.i(LOG_TAG, "Publisher exception: " + exception.getMessage());
+        //Logging
+        if(publisher.getSession().getSessionId().equals(mSessionId)) {
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_PUBLISHES_ONSTAGE, OTKAction.ERROR);
+        } else {
+            addLogEvent(mBackstageAnalytics, OTKVariation.FAN_PUBLISHES_BACKSTAGE, OTKAction.ERROR);
+        }
+
     }
 
     @Override
@@ -1181,14 +1239,28 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "First frame received");
         Log.i(LOG_TAG, "onVideoDataReceived " + subscriber.getStream().getConnection().getData());
         if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
+
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_FAN, OTKAction.SUCCESS);
+
             // stop loading spinning
             mLoadingSubFan.setVisibility(View.GONE);
             attachSubscriberFanView();
         } else if(subscriber.getStream().getConnection().getData().equals("usertype=host")) {
+
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_HOST, OTKAction.SUCCESS);
+
             // stop loading spinning
             mLoadingSubHost.setVisibility(View.GONE);
             attachSubscriberHostView();
+
+
         } else if(subscriber.getStream().getConnection().getData().equals("usertype=celebrity")) {
+
+            //Logging
+            addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_CELEBRITY, OTKAction.SUCCESS);
+
             // stop loading spinning
             mLoadingSubCelebrity.setVisibility(View.GONE);
             attachSubscriberCelebrityView();
@@ -1293,6 +1365,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onError(SubscriberKit subscriberKit, OpentokError opentokError) {
         Log.e(LOG_TAG, opentokError.getMessage());
         if(subscriberKit.getSession().getSessionId().equals(mSessionId)) {
+
+            //Logging
+            switch (subscriberKit.getStream().getConnection().getData()) {
+                case "usertype=fan":
+                    addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_FAN, OTKAction.ERROR);
+                    break;
+                case "usertype=celebrity":
+                    addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_CELEBRITY, OTKAction.ERROR);
+                    break;
+                case "usertype=host":
+                    addLogEvent(mOnStageAnalytics, OTKVariation.FAN_SUBSCRIBES_HOST, OTKAction.ERROR);
+                    break;
+            }
+
             mSubscribingError = true;
             sendWarningSignal();
             if(!mConnectionError) mNotification.showConnectionLost();
@@ -1447,6 +1533,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Hidding leave line button
         setVisibilityGetInLine(View.GONE);
+        //Logging
+        addLogEvent(mBackstageAnalytics, OTKVariation.FAN_UNPUBLISHES_BACKSTAGE, OTKAction.ATTEMPT);
         mBackstageSession.unpublish(mPublisher);
         setUserStatus(R.string.status_onstage);
 
@@ -1495,6 +1583,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mAvatarFan.setVisibility(View.GONE);
 
         //Unpublish
+        addLogEvent(mOnStageAnalytics, OTKVariation.FAN_UNPUBLISHES_ONSTAGE, OTKAction.ATTEMPT);
         mSession.unpublish(mPublisher);
 
         //Hide publisher
@@ -1507,7 +1596,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         hideChat();
 
         //Disconnect from backstage
-        if(mBackstageSession!=null) mBackstageSession.disconnect();
+        disconnectBackstageSession();
 
         //Remove publisher
         mPublisherViewContainer.removeView(mPublisher.getView());
@@ -1682,14 +1771,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             disconnectFromOnstage();
         } else {
             //Disconnect the onbackstage session
-            if (mBackstageSession != null) mBackstageSession.disconnect();
+            disconnectBackstageSession();
         }
 
         //Disconnect from onstage session
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mSession != null) mSession.disconnect();
+                disconnectOnStageSession();
             }
         }, 10000);
 
@@ -1913,18 +2002,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         return qualityStr;
     }
 
-    private void addLogEventBackstage(String action, String variation){
-        addLogEvent(mBackstageSessionId, mBackstageSession.getConnection().getConnectionId().toString(), action, variation);
-    }
-
-    private void addLogEventOnstage(String action, String variation){
-        addLogEvent(mSessionId, mSession.getConnection().getConnectionId(), action, variation);
-    }
-
-    private void addLogEvent(String sessionID, String connectionId, String action, String variation){
-        OTKAnalyticsData data = new OTKAnalyticsData.Builder(sessionID, mApiKey, connectionId, IBConfig.LOG_CLIENT_VERSION).build();
-        OTKAnalytics logging = new OTKAnalytics(data);
-        logging.logEvent(action, variation);
+    private void addLogEvent(OTKAnalytics analytics, String action, String variation){
+        if ( analytics != null ) {
+            analytics.logEvent(action, variation);
+        }
     }
 }
 
