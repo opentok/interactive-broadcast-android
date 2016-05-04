@@ -1218,11 +1218,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
 
-        //if(publisher.getSession().getSessionId().equals(mSessionId)) {
-        //    addLogEvent(mOnStageAnalytics, OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
-        //} else {
-        //    addLogEvent(mBackstageAnalytics, OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.SUCCESS);
-        //}
+        if(publisher.getSession().getSessionId().equals(mSessionId)) {
+            addLogEvent(mOnStageAnalytics, OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
+        } else {
+            addLogEvent(mBackstageAnalytics, OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.SUCCESS);
+        }
         Log.i(LOG_TAG, "Publisher destroyed");
     }
 
