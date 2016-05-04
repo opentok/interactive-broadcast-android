@@ -374,7 +374,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
                         mNotificationManager.notify(ClearNotificationService.NOTIFICATION_ID, mNotifyBuilder.build());
                     } catch (Exception ex) {
-                        Log.e(LOG_TAG, ex.getMessage());
+                        Log.e(LOG_TAG, "onServiceConnected Error ---> " + ex.getMessage());
                     }
 
                 }
@@ -1218,11 +1218,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
 
-        if(publisher.getSession().getSessionId().equals(mSessionId)) {
-            addLogEvent(mOnStageAnalytics, OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
-        } else {
-            addLogEvent(mBackstageAnalytics, OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.SUCCESS);
-        }
+        //if(publisher.getSession().getSessionId().equals(mSessionId)) {
+        //    addLogEvent(mOnStageAnalytics, OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
+        //} else {
+        //    addLogEvent(mBackstageAnalytics, OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.SUCCESS);
+        //}
         Log.i(LOG_TAG, "Publisher destroyed");
     }
 
@@ -1375,26 +1375,39 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onError(SubscriberKit subscriberKit, OpentokError opentokError) {
-        Log.e(LOG_TAG, opentokError.getMessage());
-        if(subscriberKit.getSession().getSessionId().equals(mSessionId)) {
+        Log.e(LOG_TAG, "SubscriberKit opentokError.getMessage() ---> " + opentokError.getMessage());
+        Log.e(LOG_TAG, "SubscriberKit opentokError.getErrorCode() ---> " + opentokError.getErrorCode());
+        Log.e(LOG_TAG, "SubscriberKit opentokError.getErrorDomain() ---> " + opentokError.getErrorDomain());
 
-            //Logging
-            switch (subscriberKit.getStream().getConnection().getData()) {
-                case "usertype=fan":
-                    addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.ERROR);
-                    break;
-                case "usertype=celebrity":
-                    addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ERROR);
-                    break;
-                case "usertype=host":
-                    addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.ERROR);
-                    break;
+        //Preventing a crash when the producer kicks the fan from the active fan list
+        if(opentokError.getErrorCode() == OpentokError.ErrorCode.SessionSubscriberNotFound) return;
+
+        try {
+            if(subscriberKit.getSession().getSessionId().equals(mSessionId)) {
+
+                //Logging
+                switch (subscriberKit.getStream().getConnection().getData()) {
+                    case "usertype=fan":
+                        addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.ERROR);
+                        break;
+                    case "usertype=celebrity":
+                        addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ERROR);
+                        break;
+                    case "usertype=host":
+                        addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.ERROR);
+                        break;
+                }
+
+                mSubscribingError = true;
+                sendWarningSignal();
+                if(!mConnectionError) mNotification.showConnectionLost();
             }
-
-            mSubscribingError = true;
-            sendWarningSignal();
+        } catch(Exception ex) {
+            Log.e(LOG_TAG, "Catching error SubscriberKit");
+        } finally {
             if(!mConnectionError) mNotification.showConnectionLost();
         }
+
     }
 
     /* Signal Listener methods */
@@ -1490,7 +1503,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         obj.put("sessionId", sessionId);
                         obj.put("snapshot", snapshot);
                     } catch (JSONException ex) {
-                        Log.e(LOG_TAG, ex.getMessage());
+                        Log.e(LOG_TAG, "ackNewFanSignal error " + ex.getMessage());
                     }
                     mSocket.SendSnapShot(obj);
 
@@ -1724,7 +1737,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 updateViewsWidth();
             }
         } catch (JSONException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
+            Log.e(LOG_TAG, "goLivegoLive error ---> " + ex.getMessage());
         }
     }
 
@@ -1733,7 +1746,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mEventName.setText(EventUtils.ellipsize(mEvent.getString("event_name"), 20));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
+            Log.e(LOG_TAG, "updateEventName ---> " + ex.getMessage());
         }
     }
 
@@ -1926,7 +1939,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             });
         }
     }
-
     private void sendNewFanSignal() {
 
         if(mProducerConnection != null && mBackstageSession != null){
