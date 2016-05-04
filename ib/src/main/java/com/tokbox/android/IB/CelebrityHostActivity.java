@@ -53,6 +53,11 @@ import com.tokbox.android.IB.common.Notification;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.tokbox.android.IB.logging.OTKAnalytics;
+import com.tokbox.android.IB.logging.OTKAnalyticsData;
+import com.tokbox.android.IB.logging.OTKAction;
+import com.tokbox.android.IB.logging.OTKVariation;
+
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
@@ -105,6 +110,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private ProgressBar mLoadingSubFan;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
+    private boolean mUserIsCelebrity;
     private NotificationCompat.Builder mNotifyBuilder;
     private NotificationManager mNotificationManager;
     private ServiceConnection mConnection;
@@ -112,20 +118,23 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private TextChatFragment mTextChatFragment;
     private FragmentTransaction mFragmentTransaction;
     private boolean msgError = false;
-
     private int mUnreadMessages = 0;
+
+    private OTKAnalyticsData mOnStageAnalyticsData;
+    private OTKAnalytics mOnStageAnalytics;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_celebrity_host);
 
-
         //Hide the bar
         getSupportActionBar().hide();
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mUserIsCelebrity = IBConfig.USER_TYPE.equals("celebrity");
 
         initLayoutWidgets();
 
@@ -202,7 +211,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         try {
             updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
             EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
-            if(IBConfig.USER_TYPE == "celebrity") {
+            if(mUserIsCelebrity) {
                 mWebServiceCoordinator.createCelebrityToken(event.getString("celebrity_url"));
             } else {
                 mWebServiceCoordinator.createHostToken(event.getString("host_url"));
@@ -354,9 +363,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         if (isFinishing()) {
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-            if (mSession != null) {
-                mSession.disconnect();
-            }
+            disconnectSession();
         }
     }
 
@@ -368,9 +375,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mIsBound = false;
         }
 
-        if (mSession != null) {
-            mSession.disconnect();
-        }
+        disconnectSession();
 
         super.onDestroy();
         finish();
@@ -382,9 +387,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         if(mFragmentContainer.getVisibility() == View.VISIBLE) {
             toggleChat();
         }else {
-            if (mSession != null) {
-                mSession.disconnect();
-            }
+            disconnectSession();
 
             if (mIsBound) {
                 unbindService(mConnection);
@@ -393,6 +396,18 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
 
             super.onBackPressed();
+        }
+    }
+
+    private void disconnectSession() {
+        if (mSession != null) {
+            if(mUserIsCelebrity) {
+                addLogEvent(OTKAction.CELEBRITY_DISCONNECTS_ONSTAGE, OTKVariation.ATTEMPT);
+            } else {
+                addLogEvent(OTKAction.HOST_DISCONNECTS_ONSTAGE, OTKVariation.ATTEMPT);
+            }
+            mSession.disconnect();
+            mSession = null;
         }
     }
 
@@ -450,6 +465,19 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onConnected(Session session) {
         Log.i(LOG_TAG, "Connected to the session.");
+
+        //Init the analytics logging for onstage
+        mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSession.getConnection().getConnectionId(),
+                mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, IBConfig.LOG_SOURCE).build();
+        mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
+        //Logging
+        if(mUserIsCelebrity) {
+            addLogEvent(OTKAction.CELEBRITY_CONNECTS_ONSTAGE, OTKVariation.SUCCESS);
+        } else {
+            addLogEvent(OTKAction.HOST_CONNECTS_ONSTAGE, OTKVariation.SUCCESS);
+        }
+
+
         if (mPublisher == null) {
             mPublisher = new Publisher(CelebrityHostActivity.this, "publisher");
             mPublisher.setPublisherListener(this);
@@ -465,6 +493,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             @Override
             public void run() {
                 if(mAllowPublish) {
+                    if(mUserIsCelebrity) {
+                        addLogEvent(OTKAction.CELEBRITY_PUBLISHES_ONSTAGE, OTKVariation.ATTEMPT);
+                    } else {
+                        addLogEvent(OTKAction.HOST_PUBLISHES_ONSTAGE, OTKVariation.ATTEMPT);
+                    }
                     mSession.publish(mPublisher);
                 } else {
                     mNotification.showCantPublish(IBConfig.USER_TYPE);
@@ -509,6 +542,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onDisconnected(Session session) {
         Log.i(LOG_TAG, "Disconnected from the session.");
+        if(mUserIsCelebrity) {
+            addLogEvent(OTKAction.CELEBRITY_DISCONNECTS_ONSTAGE, OTKVariation.SUCCESS);
+        } else {
+            addLogEvent(OTKAction.HOST_DISCONNECTS_ONSTAGE, OTKVariation.SUCCESS);
+        }
+
         cleanViews();
     }
 
@@ -602,6 +641,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void onError(Session session, OpentokError exception) {
         Log.i(LOG_TAG, "Session exception: " + exception.getMessage());
         String error = exception.getErrorCode().toString();
+        if(mUserIsCelebrity) {
+            addLogEvent(OTKAction.CELEBRITY_DISCONNECTS_ONSTAGE, OTKVariation.ERROR);
+        } else {
+            addLogEvent(OTKAction.HOST_DISCONNECTS_ONSTAGE, OTKVariation.ERROR);
+        }
         if(error.equals("ConnectionDropped") || error.equals("ConnectionFailed")) {
             cleanViews();
             mNotification.showConnectionLost();
@@ -614,6 +658,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         switch(stream.getConnection().getData()) {
             case "usertype=fan":
                 if (mFanStream == null) {
+                    if(mUserIsCelebrity) {
+                        addLogEvent(OTKAction.CELEBRITY_SUBSCRIBES_FAN, OTKVariation.ATTEMPT);
+                    } else {
+                        addLogEvent(OTKAction.HOST_SUBSCRIBES_FAN, OTKVariation.ATTEMPT);
+                    }
                     subscribeFanToStream(stream);
                     mFanStream = stream;
                     updateViewsWidth();
@@ -621,16 +670,18 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 break;
             case "usertype=celebrity":
                 Log.i(LOG_TAG, "Celebrity!");
-                if(IBConfig.USER_TYPE.equals("celebrity")) mAllowPublish = false;
-                if (mCelebirtyStream == null && !IBConfig.USER_TYPE.equals("celebrity")) {
+                if(mUserIsCelebrity) mAllowPublish = false;
+                if (mCelebirtyStream == null && !mUserIsCelebrity) {
+                    addLogEvent(OTKAction.HOST_SUBSCRIBES_CELEBRITY, OTKVariation.ATTEMPT);
                     subscribeToStream(stream);
                     mCelebirtyStream = stream;
                     updateViewsWidth();
                 }
                 break;
             case "usertype=host":
-                if(IBConfig.USER_TYPE.equals("host")) mAllowPublish = false;
-                if (mHostStream == null && !IBConfig.USER_TYPE.equals("host")) {
+                if(!mUserIsCelebrity) mAllowPublish = false;
+                if (mHostStream == null && mUserIsCelebrity) {
+                    addLogEvent(OTKAction.CELEBRITY_SUBSCRIBES_HOST, OTKVariation.ATTEMPT);
                     subscribeToStream(stream);
                     mHostStream = stream;
                     updateViewsWidth();
@@ -682,6 +733,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onStreamCreated(PublisherKit publisher, Stream stream) {
+
+        if(mUserIsCelebrity) {
+           addLogEvent(OTKAction.CELEBRITY_PUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
+        } else {
+            addLogEvent(OTKAction.HOST_PUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
+        }
+
         // stop loading spinning
         mLoadingSubPublisher.setVisibility(View.GONE);
         updateViewsWidth();
@@ -696,20 +754,45 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
         Log.i(LOG_TAG, "Publisher destroyed");
+        if(mUserIsCelebrity) {
+            addLogEvent(OTKAction.CELEBRITY_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
+        } else {
+            addLogEvent(OTKAction.HOST_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
+        }
     }
 
     @Override
     public void onError(PublisherKit publisher, OpentokError exception) {
         Log.i(LOG_TAG, "Publisher exception: " + exception.getMessage());
+        if(mUserIsCelebrity) {
+            addLogEvent(OTKAction.CELEBRITY_PUBLISHES_ONSTAGE, OTKVariation.ERROR);
+        } else {
+            addLogEvent(OTKAction.HOST_PUBLISHES_ONSTAGE, OTKVariation.ERROR);
+        }
     }
 
     @Override
     public void onVideoDataReceived(SubscriberKit subscriber) {
         if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
+
+            if(mUserIsCelebrity) {
+                addLogEvent(OTKAction.CELEBRITY_SUBSCRIBES_FAN, OTKVariation.SUCCESS);
+            } else {
+                addLogEvent(OTKAction.HOST_SUBSCRIBES_FAN, OTKVariation.SUCCESS);
+            }
+
+
             // stop loading spinning
             mLoadingSubFan.setVisibility(View.GONE);
             attachSubscriberFanView();
         } else {
+
+            if(mUserIsCelebrity) {
+                addLogEvent(OTKAction.CELEBRITY_SUBSCRIBES_HOST, OTKVariation.SUCCESS);
+            } else {
+                addLogEvent(OTKAction.HOST_SUBSCRIBES_CELEBRITY, OTKVariation.SUCCESS);
+            }
+
             // stop loading spinning
             mLoadingSub.setVisibility(View.GONE);
             attachSubscriberView();
@@ -1003,6 +1086,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mAvatarPublisher.setVisibility(View.GONE);
 
         //Unpublish
+        if(mUserIsCelebrity) {
+            addLogEvent(OTKAction.CELEBRITY_UNPUBLISHES_ONSTAGE, OTKVariation.ATTEMPT);
+        } else {
+            addLogEvent(OTKAction.HOST_UNPUBLISHES_ONSTAGE, OTKVariation.ATTEMPT);
+        }
         mSession.unpublish(mPublisher);
 
         //Hide chat
@@ -1022,7 +1110,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (mSession != null) mSession.disconnect();
+                disconnectSession();
             }
         }, 10000);
 
@@ -1077,6 +1165,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mFragmentContainer.setVisibility(View.GONE);
         if(mSession == null) {
             mChatButton.setVisibility(View.GONE);
+        }
+    }
+
+    private void addLogEvent(String action, String variation){
+        if ( mOnStageAnalytics != null ) {
+            mOnStageAnalytics.logEvent(action, variation);
         }
     }
 
