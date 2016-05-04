@@ -16,6 +16,9 @@ public class OTKAction {
     public static final String FAN_PUBLISHES_ONSTAGE = "fan_publishes_onstage";
     public static final String FAN_UNPUBLISHES_ONSTAGE = "fan_unpublishes_onstage";
     public static final String FAN_DISCONNECTS_BACKSTAGE = "fan_disconnects_backstage";
+    public static final String FAN_SUBSCRIBES_PRODUCER= "fan_subscribes_producer";
+    public static final String FAN_UNSUBSCRIBES_PRODUCER= "fan_unsubscribes_producer";
+
 
     //Host
     public static final String HOST_CONNECTS_ONSTAGE = "host_connects_onstage";

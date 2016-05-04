@@ -791,6 +791,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mProducerStream != null) {
             enableVideoAndAudio(true);
             muteOnstage(true);
+            addLogEvent(mBackstageAnalytics, OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
             mBackstageSession.subscribe(mSubscriberProducer);
             setUserStatus(R.string.status_private_call);
@@ -802,6 +803,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             enableVideoAndAudio(false);
             muteOnstage(false);
+            addLogEvent(mBackstageAnalytics, OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mBackstageSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
             setUserStatus(R.string.status_private_call_ended);
@@ -818,7 +820,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if(mProducerStreamOnstage != null && mPublisher != null && mPublisher.getStream().getConnection().getConnectionId().equals(callWith)) {
             enableVideoAndAudio(true);
-
+            addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
             setUserStatus(R.string.status_private_call);
@@ -1055,11 +1057,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             case "usertype=producer":
                 if(!bIsOnStage) {
                     if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
+                        addLogEvent(mBackstageAnalytics, OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
                         unSubscribeProducer();
                         mProducerStream = null;
                     }
                 } else {
                     if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId().equals(streamConnectionId)) {
+                        addLogEvent(mOnStageAnalytics, OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
                         endPrivateCall();
                         mProducerStreamOnstage = null;
                     }
@@ -1144,7 +1148,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void stopTestingConnectionQuality() {
 
         if(mTestSubscriber == null) return;
-        if(!mTestingOnStage) { //if autoselfsubscribe
+        if(!mTestingOnStage && mBackstageSession != null) { //if autoselfsubscribe
             mBackstageSession.unsubscribe(mTestSubscriber);
         }
         if ( mTest!= null ) {
@@ -1264,6 +1268,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             // stop loading spinning
             mLoadingSubCelebrity.setVisibility(View.GONE);
             attachSubscriberCelebrityView();
+        } else if(subscriber.getStream().getConnection().getData().equals("usertype=producer")) {
+            Boolean bIsOnStage = subscriber.getSession().getSessionId().equals(mSessionId);
+            if(!bIsOnStage) {
+                addLogEvent(mBackstageAnalytics, OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
+            } else {
+                addLogEvent(mOnStageAnalytics, OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
+            }
+
         }
     }
 
