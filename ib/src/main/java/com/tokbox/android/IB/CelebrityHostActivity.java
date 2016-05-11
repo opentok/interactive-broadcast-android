@@ -123,6 +123,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private OTKAnalyticsData mOnStageAnalyticsData;
     private OTKAnalytics mOnStageAnalytics;
 
+    private String mLogSource;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -260,6 +262,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mApiKey = results.getString("apiKey");
             mToken = results.getString("tokenHost");
             mSessionId = results.getString("sessionIdHost");
+
+            //Set the LogSource
+            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-event-" + mEvent.getString("id");
 
             updateEventName();
             sessionConnect();
@@ -468,7 +473,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         //Init the analytics logging for onstage
         mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSession.getConnection().getConnectionId(),
-                mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, IBConfig.LOG_SOURCE).build();
+                mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, mLogSource).build();
         mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
         //Logging
         if(mUserIsCelebrity) {
