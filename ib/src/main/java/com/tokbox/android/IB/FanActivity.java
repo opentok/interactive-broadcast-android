@@ -1094,13 +1094,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mCustomVideoRenderer.setSaveScreenshot(true);
                 }
             }, 5000);
-
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    hidePublisher();
-                }
-            }, 10000);
         } else {
             //Logging
             addLogEvent(OTKAction.FAN_PUBLISHES_ONSTAGE, OTKVariation.SUCCESS);

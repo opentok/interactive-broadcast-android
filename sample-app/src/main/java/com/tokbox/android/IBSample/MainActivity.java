@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
         //Replace with the BACKEND URL
         //IBConfig.BACKEND_BASE_URL = "https://spotlight-tesla-mlb.herokuapp.com";
-        IBConfig.BACKEND_BASE_URL = "https://chatshow-tesla.herokuapp.com";
+        IBConfig.BACKEND_BASE_URL = "https://tokbox-ib-staging-tesla.herokuapp.com";
 
         //Setting the userName
         if((!userName.getText().toString().equals(""))) {
