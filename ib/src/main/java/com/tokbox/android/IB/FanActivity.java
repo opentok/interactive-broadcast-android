@@ -616,7 +616,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         } else {
 
             //Init the analytics logging for onstage
-            mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSession.getConnection().getConnectionId(),
+            mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSessionId,
                     mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, mLogSource).build();
             mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
             //Logging

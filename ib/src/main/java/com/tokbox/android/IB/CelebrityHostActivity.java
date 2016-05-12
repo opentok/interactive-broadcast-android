@@ -472,7 +472,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         Log.i(LOG_TAG, "Connected to the session.");
 
         //Init the analytics logging for onstage
-        mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSession.getConnection().getConnectionId(),
+        mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSessionId,
                 mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, mLogSource).build();
         mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
         //Logging
