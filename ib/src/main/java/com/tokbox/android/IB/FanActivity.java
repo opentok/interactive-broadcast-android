@@ -584,6 +584,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSession.setSessionListener(this);
             mBackstageSession.setSignalListener(this);
             mBackstageSession.setConnectionListener(this);
+
+            //Logging
+            addLogEvent(OTKAction.FAN_CONNECTS_BACKSTAGE, OTKVariation.ATTEMPT);
+
             mBackstageSession.connect(mBackstageToken);
         }
     }
