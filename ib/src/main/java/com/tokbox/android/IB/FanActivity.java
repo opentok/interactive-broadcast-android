@@ -513,6 +513,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void disconnectBackstageSession() {
         if (mBackstageSession != null) {
+
+            this.stopTestingConnectionQuality();
+
             //Logging
             addLogEvent(OTKAction.FAN_DISCONNECTS_BACKSTAGE, OTKVariation.ATTEMPT);
             mBackstageSession.disconnect();
@@ -610,8 +613,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_PUBLISHES_BACKSTAGE, OTKVariation.ATTEMPT);
             mBackstageSession.publish(mPublisher);
 
-            mGetInLine.setText(getResources().getString(R.string.leave_line));
-            mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
             setVisibilityGetInLine(View.VISIBLE);
 
             //loading text-chat ui component
@@ -792,7 +793,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void subscribeProducer() {
         if(mProducerStream != null) {
             showPublisher();
-            enableVideoAndAudio(true);
             muteOnstage(true);
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
@@ -804,7 +804,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unSubscribeProducer() {
         if (mProducerStream!= null && mSubscriberProducer != null) {
             hidePublisher();
-            enableVideoAndAudio(false);
             muteOnstage(false);
             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mBackstageSession.unsubscribe(mSubscriberProducer);
@@ -822,7 +821,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
 
         if(mProducerStreamOnstage != null && mPublisher != null && mPublisher.getStream().getConnection().getConnectionId().equals(callWith)) {
-            enableVideoAndAudio(true);
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
@@ -836,7 +834,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void endPrivateCall() {
         muteOnstage(false);
         if (mProducerStreamOnstage != null && mSubscriberProducerOnstage != null) {
-            enableVideoAndAudio(false);
             mSession.unsubscribe(mSubscriberProducerOnstage);
             mSubscriberProducerOnstage = null;
             setUserStatus(R.string.status_private_call_ended);
@@ -854,7 +851,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unsubscribeHostFromStream(Stream stream) {
         if (mSubscriberHost.getStream().equals(stream)) {
             mSubscriberHostViewContainer.removeView(mSubscriberHost.getView());
-            mSession.unsubscribe(mSubscriberHost);
+            //mSession.unsubscribe(mSubscriberHost);
             mSubscriberHost = null;
             mLoadingSubHost.setVisibility(View.GONE);
         }
@@ -863,7 +860,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unsubscribeCelebrityFromStream(Stream stream) {
         if (mSubscriberCelebrity.getStream().equals(stream)) {
             mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
-            mSession.unsubscribe(mSubscriberCelebrity);
+            //mSession.unsubscribe(mSubscriberCelebrity);
             mSubscriberCelebrity = null;
             mLoadingSubCelebrity.setVisibility(View.GONE);
         }
@@ -872,7 +869,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unsubscribeFanFromStream(Stream stream) {
         if (mSubscriberFan.getStream().equals(stream)) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
-            mSession.unsubscribe(mSubscriberFan);
+            //mSession.unsubscribe(mSubscriberFan);
             mSubscriberFan = null;
             mLoadingSubFan.setVisibility(View.GONE);
         }
@@ -1151,7 +1148,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mPublisherSpinnerLayout.setVisibility(View.GONE);
                     mPublisherViewContainer.setVisibility(View.GONE);
                     mPublisher.getView().setVisibility(View.GONE);
-                    enableVideoAndAudio(false);
                 }
             }, 1000);
         }
@@ -1161,8 +1157,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void stopTestingConnectionQuality() {
 
         if(mTestSubscriber == null) return;
-        if(!mTestingOnStage && mBackstageSession != null) { //if autoselfsubscribe
-            mBackstageSession.unsubscribe(mTestSubscriber);
+        if(!mTestingOnStage) { //if autoselfsubscribe
+            if(mTestSubscriber.getSession().getSessionId().equals(mSessionId)) {
+                if(mSession != null) mSession.unsubscribe(mTestSubscriber);
+            } else {
+                if(mBackstageSession != null) mBackstageSession.unsubscribe(mTestSubscriber);
+            }
+
         }
         if ( mTest!= null ) {
             mTest.stopNetworkTest();
@@ -1526,22 +1527,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinBackstage() {
-        enableVideoAndAudio(true);
         showPublisher();
         setUserStatus(R.string.status_backstage);
     }
 
-    private void enableVideoAndAudio(Boolean enable) {
-        //If the fan is testing the quality from his own video, then the streaming should never stop.
-        if (mTestingOnStage) {
-            mPublisher.setPublishAudio(enable);
-            mPublisher.setPublishVideo(enable);
-        }
-    }
-
     private void disconnectBackstage() {
         hidePublisher();
-        enableVideoAndAudio(false);
         setUserStatus(R.string.status_inline);
     }
 
@@ -1577,7 +1568,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void publishOnStage(){
         if(mSession != null && mPublisher != null) {
             mSession.publish(mPublisher);
-            enableVideoAndAudio(true);
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -1614,7 +1604,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisherSpinnerLayout.setVisibility(View.GONE);
         mPublisherViewContainer.setVisibility(View.GONE);
         mPublisher.getView().setVisibility(View.GONE);
-        enableVideoAndAudio(false);
+
 
         //Hide chat
         hideChat();
@@ -1873,6 +1863,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     public void initGetInline() {
         setVisibilityGetInLine(View.GONE);
+        mGetInLine.setText(getResources().getString(R.string.leave_line));
+        mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
         if(mBackstageSessionId != null) {
             //mPublisherViewContainer.setAlpha(1f);
             //mPublisherViewContainer.setVisibility(View.VISIBLE);
