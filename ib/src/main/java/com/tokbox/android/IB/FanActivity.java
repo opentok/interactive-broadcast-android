@@ -791,6 +791,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void subscribeProducer() {
         if(mProducerStream != null) {
+            showPublisher();
             enableVideoAndAudio(true);
             muteOnstage(true);
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
@@ -802,7 +803,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void unSubscribeProducer() {
         if (mProducerStream!= null && mSubscriberProducer != null) {
-
+            hidePublisher();
             enableVideoAndAudio(false);
             muteOnstage(false);
             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
@@ -1118,6 +1119,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
+    private void showPublisher() {
+        if(mPublisher != null) {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    mPublisherViewContainer.clearAnimation();
+                    mPublisherSpinnerLayout.clearAnimation();
+                    mPublisherViewContainer.setAlpha(1f);
+                    mPublisherViewContainer.setVisibility(View.VISIBLE);
+                    mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
+                    mPublisher.getView().setVisibility(View.VISIBLE);
+                }
+            }, 500);
+
+        }
+    }
+
     private void hidePublisher() {
         if(mPublisher != null && mPublisherSpinnerLayout.getVisibility() != View.GONE) {
 
@@ -1378,29 +1396,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(opentokError.getErrorCode() == OpentokError.ErrorCode.SessionSubscriberNotFound) return;
 
         try {
-            if(subscriberKit.getSession().getSessionId().equals(mSessionId)) {
-
-                //Logging
-                switch (subscriberKit.getStream().getConnection().getData()) {
-                    case "usertype=fan":
-                        addLogEvent(OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.ERROR);
-                        break;
-                    case "usertype=celebrity":
-                        addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ERROR);
-                        break;
-                    case "usertype=host":
-                        addLogEvent(OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.ERROR);
-                        break;
-                }
-
-                mSubscribingError = true;
-                sendWarningSignal();
-                if(!mConnectionError) mNotification.showConnectionLost();
-            }
+            addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ERROR);
+            mSubscribingError = true;
+            sendWarningSignal();
+            if(!mConnectionError) mNotification.showConnectionLost();
         } catch(Exception ex) {
             Log.e(LOG_TAG, "Catching error SubscriberKit");
-        } finally {
-            if(!mConnectionError) mNotification.showConnectionLost();
         }
 
     }
@@ -1525,8 +1526,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinBackstage() {
-        hidePublisher();
         enableVideoAndAudio(true);
+        showPublisher();
         setUserStatus(R.string.status_backstage);
     }
 
@@ -1539,11 +1540,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void disconnectBackstage() {
+        hidePublisher();
         enableVideoAndAudio(false);
         setUserStatus(R.string.status_inline);
     }
 
     private void connectWithOnstage() {
+        hidePublisher();
         //End the private call
         if (mProducerStream!= null && mSubscriberProducer != null) {
             muteOnstage(false);
@@ -1566,6 +1569,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinHostNow() {
+
         Log.i(LOG_TAG, "joinHostNow!");
         publishOnStage();
     }
@@ -1870,10 +1874,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void initGetInline() {
         setVisibilityGetInLine(View.GONE);
         if(mBackstageSessionId != null) {
-            mPublisherViewContainer.setAlpha(1f);
-            mPublisherViewContainer.setVisibility(View.VISIBLE);
-            mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-            mLoadingSubPublisher.setVisibility(View.VISIBLE);
+            //mPublisherViewContainer.setAlpha(1f);
+            //mPublisherViewContainer.setVisibility(View.VISIBLE);
+            //mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
+            //mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
             //Send socket signal
             mSocket.emitJoinRoom(mBackstageSessionId);
