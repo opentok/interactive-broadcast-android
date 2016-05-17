@@ -1978,7 +1978,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     // Initialize a TextChatFragment instance and add it to the UI
     private void loadTextChatFragment(){
-        if(mIsOnPause) return;
+        if(mIsOnPause || mBackstageSession.getConnection() == null) return;
         int containerId = R.id.fragment_textchat_container;
         mFragmentTransaction = getFragmentManager().beginTransaction();
         mTextChatFragment = (TextChatFragment)this.getFragmentManager().findFragmentByTag("TextChatFragment");
