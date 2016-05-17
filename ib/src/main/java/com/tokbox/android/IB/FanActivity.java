@@ -536,9 +536,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void disconnectBackstageSession() {
         if (mBackstageSession != null) {
-
-            this.stopTestingConnectionQuality();
-
+            if(mTestingOnStage) {
+                this.stopTestingConnectionQuality();
+            } else {
+                if ( mTest!= null ) {
+                    mTest.stopNetworkTest();
+                    mTest = null;
+                }
+                mTestSubscriber = null;
+            }
             //Logging
             addLogEvent(OTKAction.FAN_DISCONNECTS_BACKSTAGE, OTKVariation.ATTEMPT);
             mBackstageSession.disconnect();
@@ -708,7 +714,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
                 String status = getEventStatus();
-                stopTestingConnectionQuality();
 
                 if (mBackstageSession != null) {
                     //Logging
