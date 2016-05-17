@@ -21,11 +21,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //request Marshmallow camera permission
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(permissions, permsRequestCode);
-        }
     }
 
     public void onStartClicked(View v) {
@@ -65,17 +60,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(localIntent);
     }
 
-    @Override
-    public void onRequestPermissionsResult ( int permsRequestCode, String[] permissions,
-                                             int[] grantResults){
-        switch (permsRequestCode) {
 
-            case 200:
-                boolean video = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                boolean audio = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-                break;
-        }
-    }
 
 
 }
