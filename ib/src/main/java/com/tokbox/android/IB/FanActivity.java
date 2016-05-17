@@ -162,6 +162,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ProgressBar mLoadingSubPublisher;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
+    private boolean mIsOnPause = false;
     private boolean mUserIsOnstage = false;
     private NotificationCompat.Builder mNotifyBuilder;
     private NotificationManager mNotificationManager;
@@ -350,6 +351,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onPause() {
         super.onPause();
 
+        mIsOnPause = true;
+
         if (mSession != null) {
             mSession.onPause();
 
@@ -418,6 +421,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onResume() {
         super.onResume();
 
+        mIsOnPause = false;
+
         if (mIsBound) {
             unbindService(mConnection);
             mIsBound = false;
@@ -434,6 +439,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if (mBackstageSession != null) {
                 mBackstageSession.onResume();
             }
+        }
+        if(mTextChatFragment == null) {
+           loadTextChatFragment();
         }
         mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
 
@@ -1635,6 +1643,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLiveButton.setVisibility(View.GONE);
         mCircleLiveButton.setVisibility(View.GONE);
 
+
         Toast toast = Toast.makeText(getApplicationContext(), R.string.thanks_for_participating, Toast.LENGTH_LONG);
         ViewGroup view = (ViewGroup) toast.getView();
         view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
@@ -1661,12 +1670,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ChatMessage msg = null;
         msg = new ChatMessage(connection.getConnectionId(), "Producer", text);
         // Add the new ChatMessage to the text-chat component
-        mTextChatFragment.addMessage(msg);
-        if(mFragmentContainer.getVisibility() != View.VISIBLE) {
-            mUnreadMessages++;
-            refreshUnreadMessages();
-            mChatButton.setVisibility(View.VISIBLE);
+        if(mTextChatFragment != null ){
+            mTextChatFragment.addMessage(msg);
+            if(mFragmentContainer.getVisibility() != View.VISIBLE) {
+                mUnreadMessages++;
+                refreshUnreadMessages();
+                mChatButton.setVisibility(View.VISIBLE);
+            }
         }
+
     }
 
     private void refreshUnreadMessages() {
@@ -1966,6 +1978,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     // Initialize a TextChatFragment instance and add it to the UI
     private void loadTextChatFragment(){
+        if(mIsOnPause) return;
         int containerId = R.id.fragment_textchat_container;
         mFragmentTransaction = getFragmentManager().beginTransaction();
         mTextChatFragment = (TextChatFragment)this.getFragmentManager().findFragmentByTag("TextChatFragment");
@@ -1978,7 +1991,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mFragmentTransaction.add(containerId, mTextChatFragment, "TextChatFragment").commit();
             mFragmentContainer.setVisibility(View.GONE);
         }
-
     }
 
     @Override
@@ -1997,6 +2009,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mFragmentContainer.setVisibility(View.GONE);
         if(mBackstageSession == null) {
             mChatButton.setVisibility(View.GONE);
+            mUnreadCircle.setVisibility(View.GONE);
         }
     }
 
