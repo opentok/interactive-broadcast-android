@@ -268,7 +268,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
                     }
                 }
             } else {
-                Toast.makeText(getApplicationContext(),"Invalid instance ID", Toast.LENGTH_SHORT).show();
+                Log.e(LOG_TAG, "Invalid instance ID");
             }
         } catch(JSONException e) {
             Log.e(LOG_TAG, "parsing instanceAppData error", e);

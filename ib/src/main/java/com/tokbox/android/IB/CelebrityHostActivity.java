@@ -1,19 +1,27 @@
 package com.tokbox.android.IB;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -65,6 +73,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         Session.SignalListener,Subscriber.VideoListener,
         TextChatFragment.TextChatListener{
 
+    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
+    private final int permsRequestCode = 200;
     private static final String LOG_TAG = CelebrityHostActivity.class.getSimpleName();
     private JSONObject mEvent;
     private String mApiKey;
@@ -267,7 +277,14 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mLogSource = getApplicationContext().getApplicationInfo().packageName + "-event-" + mEvent.getString("id");
 
             updateEventName();
-            sessionConnect();
+            //request Marshmallow camera permission
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(permissions, permsRequestCode);
+            }
+            else {
+                sessionConnect();
+            }
+
 
         } catch(JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -1177,6 +1194,77 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         if ( mOnStageAnalytics != null ) {
             mOnStageAnalytics.logEvent(action, variation);
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult (final int permsRequestCode, final String[] permissions,
+                                            int[] grantResults){
+        switch (permsRequestCode) {
+            case 200:
+                boolean video = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean audio = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+        if(grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            Log.i(LOG_TAG, "Permission granted");
+            sessionConnect();
+
+        } else if(grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED) {
+            Log.i(LOG_TAG, "Permission denied");
+            boolean audio = ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[0]);
+            boolean video = ActivityCompat.shouldShowRequestPermissionRationale(this, permissions[1]);
+
+            if(audio || video){
+                //user denied without Never ask again, just show rationale explanation
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Permission Denied");
+                builder.setMessage("Without this permission the app is unable to publish. Are you sure you want to deny this permission?");
+                builder.setPositiveButton("I'M SURE", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        onBackPressed();
+                    }
+                });
+                builder.setNegativeButton("RE-TRY", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            requestPermissions(permissions, permsRequestCode);
+                        }
+                    }});
+                builder.show();
+            }else{
+                Log.i(LOG_TAG, "user has denied with `Never Ask Again`, go to settings");
+                //user has denied with `Never Ask Again`, go to settings
+                promptSettings();
+            }
+        }
+    }
+
+    private void promptSettings() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        String mDeniedNeverAskTitle = "Unable to get inline";
+        String mDeniedNeverAskMsg = "You have denied the permission to get inline. Please go to app settings and allow permission";
+        builder.setTitle(mDeniedNeverAskTitle);
+        builder.setMessage(mDeniedNeverAskMsg);
+        builder.setPositiveButton("go to Settings", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                goToSettings();
+            }
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void goToSettings() {
+        Intent myAppSettings = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + this.getPackageName()));
+        myAppSettings.addCategory(Intent.CATEGORY_DEFAULT);
+        myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        this.startActivity(myAppSettings);
     }
 
 
