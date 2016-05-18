@@ -536,9 +536,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void disconnectBackstageSession() {
         if (mBackstageSession != null) {
-
-            this.stopTestingConnectionQuality();
-
+            if(mTestingOnStage) {
+                this.stopTestingConnectionQuality();
+            } else {
+                if ( mTest!= null ) {
+                    mTest.stopNetworkTest();
+                    mTest = null;
+                }
+                mTestSubscriber = null;
+            }
             //Logging
             addLogEvent(OTKAction.FAN_DISCONNECTS_BACKSTAGE, OTKVariation.ATTEMPT);
             mBackstageSession.disconnect();
@@ -708,7 +714,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
                 String status = getEventStatus();
-                stopTestingConnectionQuality();
 
                 if (mBackstageSession != null) {
                     //Logging
@@ -1978,7 +1983,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     // Initialize a TextChatFragment instance and add it to the UI
     private void loadTextChatFragment(){
-        if(mIsOnPause || mBackstageSession.getConnection() == null) return;
+        if(mBackstageSession == null || mIsOnPause || mBackstageSession.getConnection() == null) return;
         int containerId = R.id.fragment_textchat_container;
         mFragmentTransaction = getFragmentManager().beginTransaction();
         mTextChatFragment = (TextChatFragment)this.getFragmentManager().findFragmentByTag("TextChatFragment");
