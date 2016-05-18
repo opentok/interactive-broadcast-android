@@ -50,7 +50,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
 
         super.onCreate(savedInstanceState);
 
-        if(IBConfig.INSTANCE_ID == null || IBConfig.INSTANCE_ID.equals("")) {
+        if(IBConfig.ADMIN_ID == null || IBConfig.ADMIN_ID.equals("")) {
             goToMainActivity();
         }
         setContentView(R.layout.event_list_activity);
@@ -66,7 +66,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         startLoadingAnimation();
 
         //
-        getInstanceId();
+        getEventsByAdmin();
     }
 
     private void initSocket() {
@@ -144,7 +144,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
             mListActivities.setAdapter(null);
             //start the progress bar
             startLoadingAnimation();
-            getInstanceId();
+            getEventsByAdmin();
         }
 
     }
@@ -166,9 +166,9 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
 
     }
 
-    public void getInstanceId() {
+    public void getEventsByAdmin() {
         try {
-            mWebServiceCoordinator.getInstanceById();
+            mWebServiceCoordinator.getEventsByAdmin();
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -285,7 +285,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                getInstanceId();
+                getEventsByAdmin();
             }
         }, 5000);
     }

@@ -48,6 +48,18 @@ public class WebServiceCoordinator {
         this.fetchInstanceAppData(jsonBody, BACKEND_BASE_URL + "/get-instance-by-id");
     }
 
+    public void getEventsByAdmin() throws JSONException {
+
+        JSONObject jsonBody = null;
+        try {
+            jsonBody = new JSONObject("{\"id\":\""+ IBConfig.ADMIN_ID +"\"}");
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception", e);
+        }
+
+        this.fetchInstanceAppData(jsonBody, BACKEND_BASE_URL + "/get-events-by-admin");
+    }
+
     public void createCelebrityToken(String celebrity_url) throws JSONException {
         String url = BACKEND_BASE_URL + "/create-token-celebrity/" + celebrity_url;
         createToken(url);

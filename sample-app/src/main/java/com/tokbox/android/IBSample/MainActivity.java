@@ -40,8 +40,10 @@ public class MainActivity extends AppCompatActivity {
 
         //Replace with the instance ID
         //IBConfig.INSTANCE_ID = "spotlight-mlb-210216";
-        IBConfig.INSTANCE_ID = "AAAA1";
+        //IBConfig.INSTANCE_ID = "AAAA1";
 
+        //Replace with the admin ID hashed
+        IBConfig.ADMIN_ID = "0NV0";
 
         //Replace with the BACKEND URL
         //IBConfig.BACKEND_BASE_URL = "https://spotlight-tesla-mlb.herokuapp.com";
