@@ -298,12 +298,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
             EventUtils.loadEventImage(this, event.getString("event_image"), mEventImage);
             EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
-            if(InstanceApp.getInstance().getEnableAnalytics()) {
-                mWebServiceCoordinator.createFanTokenAnalytics(event.getString("fan_url"));
-            } else {
-                mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
-            }
-
+            mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -491,17 +486,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 unbindService(mConnection);
                 mIsBound = false;
             }
-
-            if(mWebServiceCoordinator.isConnected()) {
-                if(InstanceApp.getInstance().getEnableAnalytics()) {
-                    try {
-                        mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-                    }
-                }
-            }
-
 
             super.onBackPressed();
         }
@@ -1537,9 +1521,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         Log.i(LOG_TAG, "send warning signal");
                         sendWarningSignal();
                     }
-
-                    //Send get in line
-                    sendGetInLine();
                 }
             });
         } else {
@@ -1748,7 +1729,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void goLive(){
 
         try {
-            sendGoLiveMetrics();
             mEvent.put("status", "L");
             updateEventName();
             if(!mUserIsOnstage) {
@@ -1937,37 +1917,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    private void sendGetInLine(){
-        if(InstanceApp.getInstance().getEnableAnalytics()) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-                    }
-                }
-            });
-        }
-    }
-
-    private void sendGoLiveMetrics(){
-        if(InstanceApp.getInstance().getEnableAnalytics()) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String is_on_stage = String.valueOf(mUserIsOnstage);
-                        String is_in_line = (mUserIsOnstage || isInLine()) ? "true" : "false";
-                        mWebServiceCoordinator.sendGoLiveMetrics(mEvent.getString("id"), is_on_stage, is_in_line);
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-                    }
-                }
-            });
-        }
-    }
     private void sendNewFanSignal() {
 
         if(mProducerConnection != null && mBackstageSession != null){
