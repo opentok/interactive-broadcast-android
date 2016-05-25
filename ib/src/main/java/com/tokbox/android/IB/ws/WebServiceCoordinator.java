@@ -61,12 +61,22 @@ public class WebServiceCoordinator {
     }
 
     public void createCelebrityToken(String celebrity_url) throws JSONException {
-        String url = BACKEND_BASE_URL + "/create-token-celebrity/" + celebrity_url;
+        String url = "";
+        if(IBConfig.ADMIN_ID != "") {
+            url = BACKEND_BASE_URL + "/create-token-celebrity/" + IBConfig.ADMIN_ID + "/" + celebrity_url;
+        } else {
+            url = BACKEND_BASE_URL + "/create-token-celebrity/" + celebrity_url;
+        }
         createToken(url);
     }
 
     public void createHostToken(String host_url) throws JSONException {
-        String url = BACKEND_BASE_URL + "/create-token-host/" + host_url;
+        String url = "";
+        if(IBConfig.ADMIN_ID != "") {
+            url = BACKEND_BASE_URL + "/create-token-host/" + IBConfig.ADMIN_ID + "/" + host_url;
+        } else {
+            url = BACKEND_BASE_URL + "/create-token-host/" + host_url;
+        }
         createToken(url);
     }
 
