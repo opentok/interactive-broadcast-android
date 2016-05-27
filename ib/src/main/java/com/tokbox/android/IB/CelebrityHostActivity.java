@@ -274,7 +274,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mSessionId = results.getString("sessionIdHost");
 
             //Set the LogSource
-            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-event-" + mEvent.getString("id");
+            mLogSource = getApplicationContext().getApplicationInfo().packageName +
+                    "-" + mEvent.getString("admins_name") +
+                    "-event-" + mEvent.getString("id");
 
             updateEventName();
             //request Marshmallow camera permission

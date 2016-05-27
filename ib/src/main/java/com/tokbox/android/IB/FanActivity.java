@@ -321,7 +321,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSessionId = results.getString("sessionIdProducer");
 
             //Set the LogSource
-            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-event-" + mEvent.getString("id");
+            mLogSource = getApplicationContext().getApplicationInfo().packageName +
+                         "-" + mEvent.getString("admins_name") +
+                         "-event-" + mEvent.getString("id");
 
             updateEventName();
             sessionConnect();
