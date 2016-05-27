@@ -267,6 +267,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
      */
     @Override
     public void onDataReady(JSONObject results) {
+        JSONObject objSource = new JSONObject();
         try {
             mEvent = results.getJSONObject("event");
             mApiKey = results.getString("apiKey");
@@ -274,9 +275,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mSessionId = results.getString("sessionIdHost");
 
             //Set the LogSource
-            mLogSource = getApplicationContext().getApplicationInfo().packageName +
-                    "-" + mEvent.getString("admins_name") +
-                    "-event-" + mEvent.getString("id");
+            objSource.put("app", getApplicationContext().getApplicationInfo().packageName);
+            objSource.put("account", mEvent.getString("admins_name"));
+            objSource.put("event-id", mEvent.getString("id"));
+
+            mLogSource = objSource.toString();
 
             updateEventName();
             //request Marshmallow camera permission

@@ -312,6 +312,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onDataReady(JSONObject results) {
         mConnectionError = false;
+        JSONObject objSource = new JSONObject();
         try {
             mEvent = results.getJSONObject("event");
             mApiKey = results.getString("apiKey");
@@ -321,9 +322,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSessionId = results.getString("sessionIdProducer");
 
             //Set the LogSource
-            mLogSource = getApplicationContext().getApplicationInfo().packageName +
-                         "-" + mEvent.getString("admins_name") +
-                         "-event-" + mEvent.getString("id");
+            objSource.put("app", getApplicationContext().getApplicationInfo().packageName);
+            objSource.put("account", mEvent.getString("admins_name"));
+            objSource.put("event-id", mEvent.getString("id"));
+
+            mLogSource = objSource.toString();
 
             updateEventName();
             sessionConnect();
