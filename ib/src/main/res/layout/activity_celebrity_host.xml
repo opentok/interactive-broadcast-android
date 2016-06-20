@@ -5,82 +5,24 @@ android:layout_width="match_parent"
 android:layout_height="match_parent"
 android:background="#000000" >
 
-<RelativeLayout
-    android:id="@+id/subscriberview"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center_horizontal"
-    android:keepScreenOn="true"
-    android:layout_toRightOf="@+id/publisherview"
-    android:layout_toEndOf="@+id/publisherview"
-    android:layout_below="@+id/top_bar">
-
-    <ProgressBar
-        android:id="@+id/loadingSpinner"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:indeterminate="false"
-        android:visibility="gone" />
-
-    <RelativeLayout
-        android:id="@+id/avatar_hostceleb"
+    <include layout="@layout/subscriber"
+        android:id="@+id/subscriberview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/gradient_audio_only"
-        android:visibility="gone" >
+        android:gravity="center_horizontal"
+        android:keepScreenOn="true"
+        android:layout_toRightOf="@+id/publisherview"
+        android:layout_toEndOf="@+id/publisherview"
+        android:layout_below="@+id/top_bar"/>
 
-        <ImageView
-            android:id="@+id/avatar_img_hostceleb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:layout_marginBottom="30dp"
-            android:src="@drawable/avatar" />
-    </RelativeLayout>
-</RelativeLayout>
-
-    <RelativeLayout
+    <include layout="@layout/subscriber"
         android:id="@+id/publisherview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true"
         android:layout_alignParentBottom="true"
         android:gravity="center_horizontal"
-        android:layout_below="@+id/top_bar">
-
-        <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
-            android:id="@+id/loadingSpinnerPublisher"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-
-        <RelativeLayout
-            android:id="@+id/avatar_publisher"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/gradient_audio_only"
-            android:visibility="gone" >
-
-            <ImageView
-                android:id="@+id/avatar_img_publisher"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:src="@drawable/avatar" />
-        </RelativeLayout>
-    </RelativeLayout>
+        android:layout_below="@+id/top_bar"/>
 
     <RelativeLayout
         android:id="@+id/subscriberviewfan"

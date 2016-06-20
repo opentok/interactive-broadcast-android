@@ -178,12 +178,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     private void initLayoutWidgets() {
-        mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);
+        View publisherView = findViewById(R.id.publisherview);
+        mPublisherViewContainer = (RelativeLayout) publisherView.findViewById(R.id.relative);
         mSubscriberViewContainer = (RelativeLayout) findViewById(R.id.subscriberview);
         mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberviewfan);
 
         mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
-        mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
+        mLoadingSubPublisher = (ProgressBar) mPublisherViewContainer.findViewById(R.id.loadingSpinner);
         mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
@@ -196,7 +197,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
-        mAvatarPublisher = (RelativeLayout) findViewById(R.id.avatar_publisher);
+        mAvatarPublisher = (RelativeLayout) mPublisherViewContainer.findViewById(R.id.avatar_hostceleb);
         mAvatarFan = (RelativeLayout) findViewById(R.id.avatar_fan);
         mAvatarHostCelebrity = (RelativeLayout) findViewById(R.id.avatar_hostceleb);
     }
