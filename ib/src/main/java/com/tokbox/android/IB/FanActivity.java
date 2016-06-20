@@ -854,7 +854,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void unsubscribeHostFromStream(Stream stream) {
-        if (mSubscriberHost.getStream().equals(stream)) {
+        if (mSubscriberHost != null && mSubscriberHost.getStream().equals(stream)) {
             mSubscriberHostViewContainer.removeView(mSubscriberHost.getView());
             //mSession.unsubscribe(mSubscriberHost);
             mSubscriberHost = null;
@@ -863,7 +863,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void unsubscribeCelebrityFromStream(Stream stream) {
-        if (mSubscriberCelebrity.getStream().equals(stream)) {
+        if (mSubscriberCelebrity != null && mSubscriberCelebrity.getStream().equals(stream)) {
             mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
             //mSession.unsubscribe(mSubscriberCelebrity);
             mSubscriberCelebrity = null;
@@ -872,7 +872,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void unsubscribeFanFromStream(Stream stream) {
-        if (mSubscriberFan.getStream().equals(stream)) {
+        if (mSubscriberCelebrity != null && mSubscriberFan.getStream().equals(stream)) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
             //mSession.unsubscribe(mSubscriberFan);
             mSubscriberFan = null;
@@ -1146,13 +1146,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             //animation1.setFillAfter(true);
             mPublisherSpinnerLayout.startAnimation(animation1);
             mPublisherViewContainer.startAnimation(animation1);
-            mPublisher.getView().startAnimation(animation1);
+            //mPublisher.getView().startAnimation(animation1);
+            mPublisher.getView().setVisibility(View.GONE);
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mPublisherSpinnerLayout.setVisibility(View.GONE);
                     mPublisherViewContainer.setVisibility(View.GONE);
-                    mPublisher.getView().setVisibility(View.GONE);
+
                 }
             }, 1000);
         }
