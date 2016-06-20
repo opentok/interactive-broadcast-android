@@ -66,6 +66,9 @@ import com.tokbox.android.IB.logging.OTKAnalyticsData;
 import com.tokbox.android.IB.logging.OTKAction;
 import com.tokbox.android.IB.logging.OTKVariation;
 
+import com.tokbox.android.IB.ui.CustomViewSubscriber;
+
+
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
@@ -102,22 +105,16 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private Button mLiveButton;
     private ImageView mEventImageEnd;
     private ImageButton mUnreadCircle;
-    private RelativeLayout mAvatarHostCelebrity;
-    private RelativeLayout mAvatarFan;
-    private RelativeLayout mAvatarPublisher;
     private Boolean mAllowPublish = true;
 
 
     private Handler mHandler = new Handler();
-    private RelativeLayout mPublisherViewContainer;
-    private RelativeLayout mSubscriberViewContainer;
-    private RelativeLayout mSubscriberFanViewContainer;
+    private CustomViewSubscriber mPublisherViewContainer;
+    private CustomViewSubscriber mSubscriberViewContainer;
+    private CustomViewSubscriber mSubscriberFanViewContainer;
     private FrameLayout mFragmentContainer;
 
     // Spinning wheel for loading subscriber view
-    private ProgressBar mLoadingSub;
-    private ProgressBar mLoadingSubPublisher;
-    private ProgressBar mLoadingSubFan;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
     private boolean mUserIsCelebrity;
@@ -178,14 +175,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     private void initLayoutWidgets() {
-        View publisherView = findViewById(R.id.publisherview);
-        mPublisherViewContainer = (RelativeLayout) publisherView.findViewById(R.id.relative);
-        mSubscriberViewContainer = (RelativeLayout) findViewById(R.id.subscriberview);
-        mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberviewfan);
+        mPublisherViewContainer = (CustomViewSubscriber) findViewById(R.id.publisherview);
+        mSubscriberViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberview);
+        mSubscriberFanViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberviewfan);
 
-        mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
-        mLoadingSubPublisher = (ProgressBar) mPublisherViewContainer.findViewById(R.id.loadingSpinner);
-        mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mLiveButton = (Button) findViewById(R.id.live_button);
@@ -197,13 +190,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
-        mAvatarPublisher = (RelativeLayout) mPublisherViewContainer.findViewById(R.id.avatar_hostceleb);
-        mAvatarFan = (RelativeLayout) findViewById(R.id.avatar_fan);
-        mAvatarHostCelebrity = (RelativeLayout) findViewById(R.id.avatar_hostceleb);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
-        mLoadingSubPublisher.setVisibility(View.VISIBLE);
+        mPublisherViewContainer.displaySpinner(true);
         int event_index = 0;
         //Parse data from activity_join
         if (savedInstanceState == null) {
@@ -530,7 +520,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 } else {
                     mNotification.showCantPublish(IBConfig.USER_TYPE);
                     cleanViews();
-                    mLoadingSubPublisher.setVisibility(View.GONE);
+                    mPublisherViewContainer.displayAvatar(false);
                     mChatButton.setVisibility(View.GONE);
 
                 }
@@ -610,7 +600,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         if (stream.hasVideo()) {
             // start loading spinning
-            mLoadingSub.setVisibility(View.VISIBLE);
+            mSubscriberViewContainer.displaySpinner(true);
         }
         else {
             enableAudioOnlyView(mSubscriber.getStream().getConnection().getConnectionId(), true);
@@ -625,7 +615,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         if (stream.hasVideo()) {
             // start loading spinning
-            mLoadingSubFan.setVisibility(View.VISIBLE);
+            mSubscriberFanViewContainer.displaySpinner(true);
         }
     }
 
@@ -769,7 +759,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
 
         // stop loading spinning
-        mLoadingSubPublisher.setVisibility(View.GONE);
+        mPublisherViewContainer.displaySpinner(false);
         updateViewsWidth();
     }
 
@@ -811,7 +801,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
 
             // stop loading spinning
-            mLoadingSubFan.setVisibility(View.GONE);
+            mSubscriberFanViewContainer.displayAvatar(false);
             attachSubscriberFanView();
         } else {
 
@@ -822,7 +812,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             }
 
             // stop loading spinning
-            mLoadingSub.setVisibility(View.GONE);
+            mSubscriberViewContainer.displaySpinner(false);
             attachSubscriberView();
         }
 
@@ -834,21 +824,21 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         if(subscriberConnectionId.equals(hostCeleb)) {
             if (show) {
                 mSubscriber.getView().setVisibility(View.GONE);
-                mAvatarHostCelebrity.setVisibility(View.VISIBLE);
+                mSubscriberViewContainer.displayAvatar(true);
             }
             else {
                 mSubscriber.getView().setVisibility(View.VISIBLE);
-                mAvatarHostCelebrity.setVisibility(View.GONE);
+                mSubscriberViewContainer.displayAvatar(false);
             }
         }
         if(subscriberConnectionId.equals(fan)) {
             if (show) {
                 mSubscriberFan.getView().setVisibility(View.GONE);
-                mAvatarFan.setVisibility(View.VISIBLE);
+                mSubscriberFanViewContainer.displayAvatar(true);
             }
             else {
                 mSubscriberFan.getView().setVisibility(View.VISIBLE);
-                mAvatarFan.setVisibility(View.GONE);
+                mSubscriberFanViewContainer.displayAvatar(false);
             }
         }
     }
@@ -1035,10 +1025,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         if(video.equals("on")) {
             mPublisher.getView().setVisibility(View.VISIBLE);
-            mAvatarPublisher.setVisibility(View.GONE);
+            mPublisherViewContainer.displayAvatar(false);
         } else {
             mPublisher.getView().setVisibility(View.GONE);
-            mAvatarPublisher.setVisibility(View.VISIBLE);
+            mPublisherViewContainer.displayAvatar(true);
         }
 
     }
@@ -1109,9 +1099,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mSubscriberFanViewContainer.setVisibility(View.GONE);
 
         //Hide avatars
-        mAvatarFan.setVisibility(View.GONE);
-        mAvatarHostCelebrity.setVisibility(View.GONE);
-        mAvatarPublisher.setVisibility(View.GONE);
+        mSubscriberFanViewContainer.displayAvatar(false);
+        mSubscriberViewContainer.displayAvatar(false);
+        mPublisherViewContainer.displayAvatar(false);
 
         //Unpublish
         if(mUserIsCelebrity) {
