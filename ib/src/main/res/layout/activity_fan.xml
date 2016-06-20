@@ -12,7 +12,7 @@
         android:layout_below="@+id/event_list_top_bar"
         android:visibility="visible" />
 
-    <RelativeLayout
+    <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberHostView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -21,37 +21,9 @@
         android:layout_below="@+id/event_list_top_bar"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true">
+    </com.tokbox.android.IB.ui.CustomViewSubscriber>
 
-        <ProgressBar
-            android:id="@+id/loadingSpinnerHost"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-
-        <RelativeLayout
-            android:id="@+id/avatar_host"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/gradient_audio_only"
-            android:visibility="gone" >
-
-            <ImageView
-                android:id="@+id/avatar_img_host"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:src="@drawable/avatar" />
-        </RelativeLayout>
-    </RelativeLayout>
-
-    <RelativeLayout
+    <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberCelebrityView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -63,37 +35,9 @@
         android:layout_toEndOf="@+id/subscriberHostView"
         android:layout_below="@+id/event_list_top_bar"
         android:layout_alignParentBottom="true">
+    </com.tokbox.android.IB.ui.CustomViewSubscriber>
 
-        <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
-            android:id="@+id/loadingSpinnerCelebrity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-
-        <RelativeLayout
-            android:id="@+id/avatar_celebrity"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/gradient_audio_only"
-            android:visibility="gone" >
-
-            <ImageView
-                android:id="@+id/avatar_img_celebrity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:src="@drawable/avatar" />
-        </RelativeLayout>
-    </RelativeLayout>
-
-    <RelativeLayout
+    <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberFanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -102,35 +46,7 @@
         android:layout_below="@+id/event_list_top_bar"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true">
-
-        <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
-            android:id="@+id/loadingSpinnerFan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-
-        <RelativeLayout
-            android:id="@+id/avatar_fan"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/gradient_audio_only"
-            android:visibility="gone" >
-
-            <ImageView
-                android:id="@+id/avatar_img_fan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:src="@drawable/avatar" />
-        </RelativeLayout>
-    </RelativeLayout>
+    </com.tokbox.android.IB.ui.CustomViewSubscriber>
 
     <RelativeLayout
         android:id="@+id/publisher_spinner_layout"
