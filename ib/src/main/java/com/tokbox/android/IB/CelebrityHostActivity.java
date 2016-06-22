@@ -138,7 +138,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_celebrity_host);
+
 
         //Creates the action bar
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
@@ -148,6 +148,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         if ( actionBar != null ){
             actionBar.hide();
         }
+
+        setContentView(R.layout.activity_celebrity_host);
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

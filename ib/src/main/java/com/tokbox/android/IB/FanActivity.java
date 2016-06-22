@@ -181,7 +181,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fan);
+
 
         //Creates the action bar
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
@@ -191,6 +191,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if ( actionBar != null ){
             actionBar.hide();
         }
+
+        setContentView(R.layout.activity_fan);
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
