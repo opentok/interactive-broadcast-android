@@ -23,6 +23,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -31,6 +32,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -180,6 +182,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fan);
+
+        //Creates the action bar
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        //Hide the bar
+        ActionBar actionBar = getSupportActionBar();
+
+        if ( actionBar != null ){
+            actionBar.hide();
+        }
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
