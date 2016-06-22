@@ -21,6 +21,7 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
@@ -29,6 +30,7 @@ import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -138,8 +140,14 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_celebrity_host);
 
+        //Creates the action bar
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
         //Hide the bar
-        getSupportActionBar().hide();
+        ActionBar actionBar = getSupportActionBar();
+
+        if ( actionBar != null ){
+            actionBar.hide();
+        }
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
