@@ -244,7 +244,7 @@
             android:text="@string/get_inline"
             android:id="@+id/btn_getinline"
             android:onClick="onGetInLineClicked"
-            android:visibility="visible"
+            android:visibility="gone"
             android:background="@drawable/get_in_line_button"
             android:textColor="@color/get_inline_text_color"
             android:textSize="15sp"
@@ -336,5 +336,35 @@
         android:layout_below="@+id/event_list_top_bar"
         android:visibility="gone">
     </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/videoViewLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:keepScreenOn="false"
+        android:layout_alignParentBottom="false"
+        android:visibility="gone"
+        android:layout_alignParentRight="false"
+        android:layout_below="@+id/event_list_top_bar">
+
+        <VideoView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/videoView"
+            android:layout_alignParentBottom="false"
+            android:visibility="visible"
+            android:layout_alignParentStart="false"
+            android:layout_centerInParent="true" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/videoViewProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="visible"
+            android:layout_marginTop="50dp" />
+    </RelativeLayout>
 
 </RelativeLayout>

@@ -46,8 +46,8 @@ public class MainActivity extends AppCompatActivity {
         IBConfig.ADMIN_ID = "0NV0";
 
         //Replace with the BACKEND URL
-        //IBConfig.BACKEND_BASE_URL = "https://spotlight-tesla-mlb.herokuapp.com";
         IBConfig.BACKEND_BASE_URL = "https://tokbox-ib-staging-tesla.herokuapp.com";
+        //IBConfig.BACKEND_BASE_URL = "https://tokbox-ib-demos-tesla.herokuapp.com";
 
         //Setting the userName
         if((!userName.getText().toString().equals(""))) {

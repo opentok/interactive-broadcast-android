@@ -27,6 +27,10 @@ public class Notification {
         showNotification(message);
     }
 
+    public void showUnableToJoinMessage() {
+        showNotification(R.string.user_limit);
+    }
+
     public void  showNotification(int message){
         Typeface font = EventUtils.getFont(mContext);
         for(int i=0;i<3;i++) {
