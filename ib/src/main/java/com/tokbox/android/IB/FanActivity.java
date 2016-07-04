@@ -154,6 +154,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private RelativeLayout mVideoViewLayout;
     private ProgressBar mVideoViewProgressBar;
     private VideoView mVideoView;
+    private RelativeLayout mAvatarPublisher;
 
 
     private Handler mHandler = new Handler();
@@ -346,6 +347,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mVideoView = (VideoView) findViewById(R.id.videoView);
         mVideoViewProgressBar = (ProgressBar) findViewById(R.id.videoViewProgressBar);
         mVideoViewLayout = (RelativeLayout) findViewById(R.id.videoViewLayout);
+        mAvatarPublisher = (RelativeLayout) findViewById(R.id.avatarPublisher);
     }
 
     private void setupFonts() {
@@ -1227,7 +1229,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mPublisherViewContainer.setAlpha(1f);
                     mPublisherViewContainer.setVisibility(View.VISIBLE);
                     mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-                    mPublisher.getView().setVisibility(View.VISIBLE);
+                    if(mAvatarPublisher.getVisibility() == View.GONE) {
+                        mPublisher.getView().setVisibility(View.VISIBLE);
+                    }
+
                 }
             }, 500);
 
@@ -1796,6 +1801,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mPublisher.getView().setVisibility(View.GONE);
                 mSubscriberFanViewContainer.displayAvatar(true);
                 mAudioOnlyFan = true;
+            }
+        } else {
+            if(mPublisherViewContainer.getVisibility() == View.VISIBLE) {
+                if(video.equals("on")) {
+                    mPublisher.getView().setVisibility(View.VISIBLE);
+                    mAvatarPublisher.setVisibility(View.GONE);
+                } else {
+                    mPublisher.getView().setVisibility(View.GONE);
+                    mAvatarPublisher.setVisibility(View.VISIBLE);
+                }
             }
         }
 

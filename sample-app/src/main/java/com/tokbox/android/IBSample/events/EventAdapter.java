@@ -97,6 +97,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
                     holder.date_status.setText(ft2.format(date).toString().toUpperCase());
                 }
                 holder.join_event.setText("Not started");
+
             } else {
                 holder.join_event.setText("Join event");
                 holder.join_event.setOnClickListener(new View.OnClickListener() {
