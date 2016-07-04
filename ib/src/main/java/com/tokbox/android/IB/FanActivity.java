@@ -15,6 +15,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
@@ -43,6 +44,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.Socket;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
 import com.opentok.android.OpenTokConfig;
@@ -68,6 +71,7 @@ import com.tokbox.android.IB.common.Notification;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.VideoView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -98,6 +102,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private boolean mConnectionError = false;
     private boolean mDisplayingUserStatus = false;
     private boolean mSubscribingError = false;
+    private boolean mInitializated = false;
+    private boolean mHls = false;
 
 
     private JSONObject mEvent;
@@ -107,6 +113,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mBackstageSessionId;
     private String mBackstageToken;
     private String mBackstageConnectionId;
+    private String mBroadcastUrl;
     private Session mSession;
     private Session mBackstageSession;
 
@@ -144,6 +151,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageView mCircleLiveButton;
     private Button mGetInLine;
     private ImageButton mUnreadCircle;
+    private RelativeLayout mVideoViewLayout;
+    private ProgressBar mVideoViewProgressBar;
+    private VideoView mVideoView;
 
 
     private Handler mHandler = new Handler();
@@ -153,6 +163,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private CustomViewSubscriber mSubscriberFanViewContainer;
     private RelativeLayout mPublisherSpinnerLayout;
     private RelativeLayout mGoLiveView;
+    private RelativeLayout mEventListTopBar;
     private FrameLayout mFragmentContainer;
 
 
@@ -178,6 +189,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private String mLogSource;
 
+    private JSONObject mBroadcastData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -198,26 +211,92 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotification = new Notification(this);
 
-        mSocket = new SocketCoordinator();
-        mSocket.connect();
+        //Get the selected event from the instance
+        getSelectedEvent(savedInstanceState);
 
         mAudioOnlyFan = false;
 
         initLayoutWidgets();
 
-        if(!InstanceApp.getInstance().getEnableGetInline()) {
-            setVisibilityGetInLine(View.GONE);
-        }
+        //Connect to socket
+        initSocket();
+
+        //Set event name and images
+        setEventUI();
 
         setupFonts();
-
-        //Get the event
-        requestEventData(savedInstanceState);
 
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
 
 
+    }
+
+    private void initSocket() {
+        mSocket = new SocketCoordinator();
+        mSocket.getSocket().on(Socket.EVENT_CONNECT,onSocketConnected);
+        mSocket.getSocket().on(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
+        mSocket.getSocket().on(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
+        if(mSocket.getSocket().connected()) {
+            init();
+        } else {
+            mSocket.connect();
+        }
+    }
+
+    private void init() {
+        if(mInitializated && mHls==false) return;
+        if(mInitializated && mHls) {
+            resumeBroadcast();
+            try {
+                mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "unexpected JSON exception - emitJoinBroadcast", e);
+            }
+            mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
+            mSocket.getSocket().on("eventEnded", onBroadcastEnd);
+            return;
+        }
+        mInitializated = true;
+        //Emit the presence signal
+        //@TODO we need a way to know if the user limit is enabled or disabled
+        if(true) {
+            try {
+                mSocket.emitJoinInteractive(mEvent.getString("stage_sessionid"));
+                mSocket.getSocket().on("ableToJoin", onAbleToJoin);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "unexpected JSON exception - emitJoinInteractive", e);
+            }
+        } else {
+            //Get the event
+            requestEventData(mEvent);
+        }
+    }
+
+    private Emitter.Listener onSocketConnected = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            init();
+        }
+    };
+
+    private Emitter.Listener onSocketConnectError = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            Log.e(LOG_TAG, "Failed to connect to the signaling server");
+        }
+    };
+
+
+    private void setEventUI(){
+        if(mEvent == null) return;
+        try {
+            updateEventName(mEvent.getString("event_name"), EventUtils.getStatusNameById(mEvent.getString("status")));
+            EventUtils.loadEventImage(this, mEvent.getString("event_image"), mEventImage);
+            EventUtils.loadEventImage(this, mEvent.getString("event_image_end"), mEventImageEnd);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception - updateEventName", e);
+        }
     }
 
 
@@ -240,6 +319,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void initLayoutWidgets() {
+        mEventListTopBar = (RelativeLayout) findViewById(R.id.event_list_top_bar);
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherView);
         mSubscriberHostViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberHostView);
         mSubscriberCelebrityViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberCelebrityView);
@@ -263,6 +343,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
+        mVideoView = (VideoView) findViewById(R.id.videoView);
+        mVideoViewProgressBar = (ProgressBar) findViewById(R.id.videoViewProgressBar);
+        mVideoViewLayout = (RelativeLayout) findViewById(R.id.videoViewLayout);
     }
 
     private void setupFonts() {
@@ -277,7 +360,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mCameraPreview2.setTypeface(font);
     }
 
-    private void requestEventData (Bundle savedInstanceState) {
+    private void getSelectedEvent (Bundle savedInstanceState) {
         int event_index = 0;
         //Parse data from activity_join
         if (savedInstanceState == null) {
@@ -292,18 +375,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if(savedInstanceState.getSerializable("event_index") == null) return;
             event_index = Integer.parseInt((String) savedInstanceState.getSerializable("event_index"));
         }
+        mEvent = InstanceApp.getInstance().getEventByIndex(event_index);
+    }
 
-        JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
+    private void requestEventData (JSONObject event) {
+
+        if(InstanceApp.getInstance().getEnableGetInline()) {
+            setVisibilityGetInLine(View.VISIBLE);
+        }
+
         try {
-
-            updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
-            EventUtils.loadEventImage(this, event.getString("event_image"), mEventImage);
-            EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
             mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
-
     }
 
 
@@ -344,7 +429,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if(!mConnectionError) mNotification.showConnectionLost();
         mGetInLine.setVisibility(View.GONE);
-        //initReconnection();
     }
 
 
@@ -447,6 +531,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
 
         reloadInterface();
+
+        //Resumes the video
+        resumeBroadcast();
     }
 
     @Override
@@ -486,7 +573,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }else {
             disconnectOnStageSession();
             disconnectBackstageSession();
-
+            mSocket.disconnect();
+            mSocket.getSocket().off("eventGoLive", onBroadcastGoLive);
+            mSocket.getSocket().off("eventEnded", onBroadcastEnd);
+            mSocket.getSocket().off("ableToJoin", onAbleToJoin);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT, onSocketConnected);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             if (mIsBound) {
                 unbindService(mConnection);
@@ -510,7 +603,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if (mSubscriberFan != null) {
                     attachSubscriberFanView();
                 }
-                updateViewsWidth();
+                if(mSession != null) {
+                    updateViewsWidth();
+                }
             }
         }, 500);
     }
@@ -978,17 +1073,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mProducerConnection = null;
 
         mAudioOnlyFan = false;
-    }
-
-    private void initReconnection() {
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.i(LOG_TAG, "Attempting to reconnect");
-                sessionConnect();
-            }
-        }, 10000);
-
     }
 
     @Override
@@ -2086,5 +2170,128 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         this.startActivity(myAppSettings);
     }
-}
 
+    private Emitter.Listener onAbleToJoin = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    Boolean ableToJoin;
+                    Boolean eventLive;
+                    String broadcastId;
+                    try {
+                        ableToJoin = data.getBoolean("ableToJoin");
+                        if(ableToJoin) {
+                            Log.i(LOG_TAG, "able to join to interactive!");
+                            requestEventData(mEvent);
+                        } else {
+                            mBroadcastData = data.getJSONObject("broadcastData");
+                            if(mBroadcastData != null){
+                                mHls = true;
+                                mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
+                                mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
+                                mSocket.getSocket().on("eventEnded", onBroadcastEnd);
+                                mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
+                                eventLive = mBroadcastData.getBoolean("eventLive");
+                                if(eventLive) {
+                                    startBroadcast();
+                                }
+                            } else {
+                                mNotification.showUnableToJoinMessage();
+                            }
+
+                        }
+                    } catch (JSONException e) {
+                        return;
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onBroadcastGoLive = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                mEvent.put("status", "L");
+                                updateEventName();
+                            } catch (JSONException ex) {
+                                Log.e(LOG_TAG, "goLivegoLive error ---> " + ex.getMessage());
+                            }
+                            startBroadcast();
+                        }
+                    }, 15 * 1000);
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onBroadcastEnd = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Show Event Image end
+                            mEventImage.setVisibility(View.GONE);
+                            mEventImageEnd.setVisibility(View.VISIBLE);
+                            mVideoView.stopPlayback();
+                            mVideoViewLayout.setVisibility(View.GONE);
+
+                            try {
+                                //Change status
+                                mEvent.put("status", "C");
+                            } catch (JSONException ex) {
+                                Log.e(LOG_TAG, ex.getMessage());
+                            }
+                            //Update event name and Status.
+                            updateEventName();
+                        }
+                    }, 15 * 1000);
+                }
+            });
+        }
+    };
+    
+    private void startBroadcast() {
+        if(!mBroadcastUrl.equals("")) {
+            mEventImage.setVisibility(View.GONE);
+            mVideoViewLayout.setVisibility(View.VISIBLE);
+            mVideoView.setVideoURI(Uri.parse(mBroadcastUrl));
+            mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    return false;
+                }
+
+            });
+
+            mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener(){
+                @Override
+                public void onPrepared(MediaPlayer m) {
+                    mHls = true;
+                    mVideoViewProgressBar.setVisibility(View.GONE);
+                }
+            });
+            mVideoView.start();
+        }
+    }
+
+    private void resumeBroadcast() {
+        if(mVideoViewLayout.getVisibility() == View.VISIBLE) {
+            //mVideoViewProgressBar.setVisibility(View.VISIBLE);
+            mVideoView.start();
+        }
+    }
+}

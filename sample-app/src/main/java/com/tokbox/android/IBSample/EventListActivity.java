@@ -88,9 +88,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
                 newStatus = data.getString("newStatus");
                 Log.i(LOG_TAG, "change" + newStatus);
 
-
-
-
                 for (int i=0; i<mArrEvents.length(); i++) {
                     if(mArrEvents.getJSONObject(i).getString("id").equals(id)) {
                         mArrEvents.getJSONObject(i).put("status", newStatus);
@@ -158,7 +155,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     @Override
     public void onDestroy() {
         super.onDestroy();
-        //mSocket.disconnect();
         if(mSocket != null) {
             mSocket.getSocket().off("change-event-status", onChangeStatus);
         }
@@ -209,6 +205,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     public void showEvent() {
+        //mSocket.disconnect();
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == "fan") {
@@ -216,6 +213,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         } else {
             localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
         }
+
         Bundle localBundle = new Bundle();
         localBundle.putString("event_index", "0");
         localIntent.putExtras(localBundle);
@@ -223,6 +221,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     public void showEvent(int event_index) {
+        mSocket.disconnect();
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == "fan") {
