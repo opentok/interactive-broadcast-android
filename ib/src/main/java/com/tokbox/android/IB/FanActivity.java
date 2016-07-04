@@ -916,7 +916,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void unSubscribeProducer() {
         if (mProducerStream!= null && mSubscriberProducer != null) {
-            hidePublisher();
             muteOnstage(false);
             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mBackstageSession.unsubscribe(mSubscriberProducer);
