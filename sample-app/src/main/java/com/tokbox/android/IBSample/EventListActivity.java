@@ -73,7 +73,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         //Init socket
         mSocket = new SocketCoordinator();
         mSocket.connect();
-        mSocket.getSocket().on("change-event-status", onChangeStatus);
+        mSocket.getSocket().on("changeStatus", onChangeStatus);
     }
 
     private Emitter.Listener onChangeStatus = new Emitter.Listener() {
@@ -156,7 +156,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     public void onDestroy() {
         super.onDestroy();
         if(mSocket != null) {
-            mSocket.getSocket().off("change-event-status", onChangeStatus);
+            mSocket.getSocket().off("changeStatus", onChangeStatus);
         }
 
 
