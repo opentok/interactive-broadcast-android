@@ -2201,8 +2201,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                             Log.i(LOG_TAG, "able to join to interactive!");
                             requestEventData(mEvent);
                         } else {
-                            mBroadcastData = data.getJSONObject("broadcastData");
-                            if(mBroadcastData != null){
+                            Log.i(LOG_TAG, "not able to join to interactive.");
+                            if(data.get("broadcastData") != JSONObject.NULL){
+                                mBroadcastData = data.getJSONObject("broadcastData");
                                 mHls = true;
                                 mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
                                 mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
