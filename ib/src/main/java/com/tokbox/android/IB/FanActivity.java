@@ -238,6 +238,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSocket.getSocket().on(Socket.EVENT_CONNECT,onSocketConnected);
         mSocket.getSocket().on(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
         mSocket.getSocket().on(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
+        mSocket.getSocket().on("changeStatus", onChangeStatus);
         if(mSocket.getSocket().connected()) {
             init();
         } else {
@@ -246,6 +247,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void init() {
+
+        //The event must be on preshow or live.
+        String status = getEventStatus();
+        if(status.equals("N") || status.equals("C")) return;
 
         //If the event is already initializated and the fan was able to join to interactive, don't do anything.
         if(mInitializated && mHls==false) return;
@@ -283,6 +288,29 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         @Override
         public void call(Object... args) {
             init();
+        }
+    };
+
+    private Emitter.Listener onChangeStatus = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            JSONObject data = (JSONObject) args[0];
+
+            String id;
+            String newStatus;
+            try {
+                id = data.getString("id");
+                newStatus = data.getString("newStatus");
+                Log.i(LOG_TAG, mEvent.getString("event_name"));
+                if(newStatus.equals("P") && id.equals(mEvent.getString("id"))) {
+                    setEventStatus("P");
+                    init();
+                }
+
+            } catch (JSONException e) {
+                return;
+            }
+
         }
     };
 
@@ -1837,18 +1865,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void goLive(){
-
-        try {
-            mEvent.put("status", "L");
-            updateEventName();
-            if(!mUserIsOnstage) {
-                if (mFanStream != null) subscribeFanToStream(mFanStream);
-                if (mHostStream != null) subscribeHostToStream(mHostStream);
-                if (mCelebrityStream != null) subscribeCelebrityToStream(mCelebrityStream);
-                updateViewsWidth();
-            }
-        } catch (JSONException ex) {
-            Log.e(LOG_TAG, "goLivegoLive error ---> " + ex.getMessage());
+        setEventStatus("L");
+        updateEventName();
+        if(!mUserIsOnstage) {
+            if (mFanStream != null) subscribeFanToStream(mFanStream);
+            if (mHostStream != null) subscribeHostToStream(mHostStream);
+            if (mCelebrityStream != null) subscribeCelebrityToStream(mCelebrityStream);
+            updateViewsWidth();
         }
     }
 
@@ -1878,6 +1901,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.e(LOG_TAG, ex.getMessage());
         }
         return status;
+    }
+
+    private void setEventStatus(String status) {
+        try {
+            mEvent.put("status", status);
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
     }
 
 
@@ -1918,12 +1949,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }, 10000);
 
-        try {
-            //Change status
-            mEvent.put("status", "C");
-        } catch (JSONException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
-        }
+        setEventStatus("C");
+
         //Update event name and Status.
         updateEventName();
     }
@@ -2216,7 +2243,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                                 mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
                                 eventLive = mBroadcastData.getBoolean("eventLive");
                                 if(eventLive) {
-                                    startBroadcast();
+                                    mHandler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            startBroadcast();
+                                        }
+                                    }, 15 * 1000);
+
                                 }
                             } else {
                                 mNotification.showUnableToJoinMessage();
@@ -2240,12 +2273,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            try {
-                                mEvent.put("status", "L");
-                                updateEventName();
-                            } catch (JSONException ex) {
-                                Log.e(LOG_TAG, "goLivegoLive error ---> " + ex.getMessage());
-                            }
+                            setEventStatus("L");
+                            updateEventName();
                             startBroadcast();
                         }
                     }, 15 * 1000);
@@ -2268,13 +2297,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                             mEventImageEnd.setVisibility(View.VISIBLE);
                             mVideoView.stopPlayback();
                             mVideoViewLayout.setVisibility(View.GONE);
-
-                            try {
-                                //Change status
-                                mEvent.put("status", "C");
-                            } catch (JSONException ex) {
-                                Log.e(LOG_TAG, ex.getMessage());
-                            }
+                            setEventStatus("C");
                             //Update event name and Status.
                             updateEventName();
                         }
