@@ -246,7 +246,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void init() {
+
+        //If the event is already initializated and the fan was able to join to interactive, don't do anything.
         if(mInitializated && mHls==false) return;
+
+        //If the event is already initializated and the fan was watching HLS, resume the broadcast
         if(mInitializated && mHls) {
             resumeBroadcast();
             try {
@@ -258,6 +262,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSocket.getSocket().on("eventEnded", onBroadcastEnd);
             return;
         }
+
         mInitializated = true;
         //Emit the presence signal
         //@TODO we need a way to know if the user limit is enabled or disabled
