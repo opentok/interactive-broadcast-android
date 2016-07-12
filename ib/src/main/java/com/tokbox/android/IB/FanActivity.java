@@ -164,7 +164,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private CustomViewSubscriber mSubscriberFanViewContainer;
     private RelativeLayout mPublisherSpinnerLayout;
     private RelativeLayout mGoLiveView;
-    private RelativeLayout mEventListTopBar;
     private FrameLayout mFragmentContainer;
 
 
@@ -353,7 +352,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void initLayoutWidgets() {
-        mEventListTopBar = (RelativeLayout) findViewById(R.id.event_list_top_bar);
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherView);
         mSubscriberHostViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberHostView);
         mSubscriberCelebrityViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberCelebrityView);
@@ -2243,13 +2241,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                                 mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
                                 eventLive = mBroadcastData.getBoolean("eventLive");
                                 if(eventLive) {
-                                    mHandler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            startBroadcast();
-                                        }
-                                    }, 15 * 1000);
-
+                                    startBroadcast();
                                 }
                             } else {
                                 mNotification.showUnableToJoinMessage();
@@ -2333,7 +2325,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void resumeBroadcast() {
         if(mVideoViewLayout.getVisibility() == View.VISIBLE) {
-            //mVideoViewProgressBar.setVisibility(View.VISIBLE);
             mVideoView.start();
         }
     }
