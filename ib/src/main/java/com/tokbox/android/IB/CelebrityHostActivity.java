@@ -163,7 +163,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
 
-        mNotification = new Notification(this);
+        mNotification = new Notification(this, null);
     }
 
     @Override

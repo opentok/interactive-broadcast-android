@@ -61,7 +61,7 @@
         android:background="@drawable/publisher_bg"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="35dp"
         android:layout_marginLeft="10dp">
 
         <TextView
@@ -181,24 +181,6 @@
         android:layout_marginRight="21dp"
         android:layout_marginBottom="22dp"
         android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="45dp"
-        android:id="@+id/user_status"
-        android:layout_alignParentBottom="false"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/user_status_button"
-        android:textSize="20sp"
-        android:textColor="@color/user_status_text_color"
-        android:layout_alignParentTop="false"
-        android:layout_below="@+id/event_list_top_bar"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
-        android:alpha="0.8"
-        android:padding="10dp"
-        android:visibility="gone" />
 
     <RelativeLayout
         android:id="@+id/goLiveView"
@@ -335,6 +317,32 @@
             android:layout_toEndOf="@+id/event_name"
             android:paddingLeft="4dp" />
 
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@color/top_bar_background_color"
+        android:id="@+id/status_bar"
+        android:layout_below="@+id/event_list_top_bar"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/status_text"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:paddingLeft="15dp"
+            android:textStyle="bold"
+            android:gravity="center_vertical|center"
+            android:typeface="normal"
+            android:visibility="visible"
+            android:layout_centerInParent="true" />
     </RelativeLayout>
 
     <ImageView
