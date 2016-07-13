@@ -100,11 +100,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private boolean mTestingOnStage = false;
     private boolean mOnstageMuted = false;
     private boolean mConnectionError = false;
-    private boolean mDisplayingUserStatus = false;
     private boolean mSubscribingError = false;
     private boolean mInitializated = false;
     private boolean mHls = false;
-
+    private boolean mOnBackstage = false;
 
     private JSONObject mEvent;
     private String mApiKey;
@@ -139,7 +138,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private TextView mEventName;
     private TextView mEventStatus;
-    private TextView mUserStatus;
     private TextView mGoLiveStatus;
     private TextView mTextUnreadMessages;
     private TextView mLiveButton;
@@ -165,6 +163,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private RelativeLayout mPublisherSpinnerLayout;
     private RelativeLayout mGoLiveView;
     private FrameLayout mFragmentContainer;
+    private RelativeLayout mStatusBar;
 
 
     // Spinning wheel for loading subscriber view
@@ -207,16 +206,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         setContentView(R.layout.activity_fan);
 
+        initLayoutWidgets();
+
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotification = new Notification(this);
+        mNotification = new Notification(this, mStatusBar);
 
         //Get the selected event from the instance
         getSelectedEvent(savedInstanceState);
 
         mAudioOnlyFan = false;
 
-        initLayoutWidgets();
+
 
         //Connect to socket
         initSocket();
@@ -362,9 +363,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisherSpinnerLayout = (RelativeLayout) findViewById(R.id.publisher_spinner_layout);
         mEventName = (TextView) findViewById(R.id.event_name);
         mEventStatus = (TextView) findViewById(R.id.event_status);
-        mUserStatus = (TextView) findViewById(R.id.user_status);
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
         mGoLiveView = (RelativeLayout) findViewById(R.id.goLiveView);
+        mStatusBar = (RelativeLayout) findViewById(R.id.status_bar);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mLiveButton = (TextView) findViewById(R.id.live_button);
         mCameraPreview1 = (TextView) findViewById(R.id.camera_preview_1);
@@ -385,12 +386,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Typeface font = EventUtils.getFont(this);
         mEventName.setTypeface(font);
         mGoLiveStatus.setTypeface(font);
-        mUserStatus.setTypeface(font);
         mEventStatus.setTypeface(font);
         mGetInLine.setTypeface(font);
         mTextUnreadMessages.setTypeface(font);
         mCameraPreview1.setTypeface(font);
         mCameraPreview2.setTypeface(font);
+        ((TextView)mStatusBar.getChildAt(0)).setTypeface(font);
     }
 
     private void getSelectedEvent (Bundle savedInstanceState) {
@@ -593,6 +594,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
         disconnectOnStageSession();
         disconnectBackstageSession();
+        disconnectSocket();
         super.onDestroy();
         finish();
     }
@@ -606,13 +608,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }else {
             disconnectOnStageSession();
             disconnectBackstageSession();
-            mSocket.disconnect();
-            mSocket.getSocket().off("eventGoLive", onBroadcastGoLive);
-            mSocket.getSocket().off("eventEnded", onBroadcastEnd);
-            mSocket.getSocket().off("ableToJoin", onAbleToJoin);
-            mSocket.getSocket().off(Socket.EVENT_CONNECT, onSocketConnected);
-            mSocket.getSocket().off(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
-            mSocket.getSocket().off(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
+            disconnectSocket();
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             if (mIsBound) {
                 unbindService(mConnection);
@@ -620,6 +616,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
 
             super.onBackPressed();
+        }
+    }
+
+    private void disconnectSocket() {
+        if(mSocket != null) {
+            mSocket.disconnect();
+            mSocket.getSocket().off("eventGoLive", onBroadcastGoLive);
+            mSocket.getSocket().off("eventEnded", onBroadcastEnd);
+            mSocket.getSocket().off("ableToJoin", onAbleToJoin);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT, onSocketConnected);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
+            mSocket = null;
         }
     }
 
@@ -779,37 +788,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    private void setUserStatus(int status) {
-        //Hide user status
-        mUserStatus.clearAnimation();
-        mUserStatus.setVisibility(View.GONE);
-        mDisplayingUserStatus = false;
-        if(status != R.string.status_onstage) {
-            mUserStatus.setText(getResources().getString(status));
-            mUserStatus.setVisibility(View.VISIBLE);
-            AlphaAnimation animation1 = new AlphaAnimation(0f, 0.8f);
-            animation1.setDuration(1000);
-            animation1.setFillAfter(true);
-            mUserStatus.startAnimation(animation1);
-            mDisplayingUserStatus = true;
-
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (mDisplayingUserStatus) {
-                        AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                        animation1.setDuration(1000);
-                        animation1.setFillAfter(true);
-                        mUserStatus.startAnimation(animation1);
-                    }
-                }
-            }, 3000);
-        } else {
-            mUserStatus.setVisibility(View.GONE);
-            mGoLiveView.setVisibility(View.VISIBLE);
-        }
-    }
-
     @Override
     public void onDisconnected(Session session) {
         Log.i(LOG_TAG, "Disconnected from the session.");
@@ -832,7 +810,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
                 String status = getEventStatus();
-
+                mNotification.hide();
                 if (mBackstageSession != null) {
                     //Logging
                     addLogEvent(OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.ATTEMPT);
@@ -943,7 +921,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
             mBackstageSession.subscribe(mSubscriberProducer);
-            setUserStatus(R.string.status_private_call);
+            mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
     }
 
@@ -953,8 +931,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mBackstageSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
-            setUserStatus(R.string.status_private_call_ended);
+            if(mOnBackstage) {
+                mNotification.showNotification(Notification.TYPE.BACKSTAGE);
+            } else {
+                mNotification.hide();
+                hidePublisher();
+            }
+
         }
+
     }
 
     private void startPrivateCall(String data) {
@@ -969,19 +954,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
-            setUserStatus(R.string.status_private_call);
+            mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         } else {
-            if(mUserIsOnstage) setUserStatus(R.string.temporarilly_muted);
+            if(mUserIsOnstage) mNotification.showNotification(Notification.TYPE.TEMPORARILLY_MUTED);
         }
         muteOnstage(true);
     }
 
     private void endPrivateCall() {
         muteOnstage(false);
+        if(mUserIsOnstage) mNotification.hide();
         if (mProducerStreamOnstage != null && mSubscriberProducerOnstage != null) {
             mSession.unsubscribe(mSubscriberProducerOnstage);
             mSubscriberProducerOnstage = null;
-            setUserStatus(R.string.status_private_call_ended);
+            mNotification.hide();
         }
 
     }
@@ -1252,17 +1238,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void showPublisher() {
         if(mPublisher != null) {
+            mPublisherViewContainer.clearAnimation();
+            mPublisherSpinnerLayout.clearAnimation();
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mPublisherViewContainer.clearAnimation();
-                    mPublisherSpinnerLayout.clearAnimation();
                     mPublisherViewContainer.setAlpha(1f);
                     mPublisherViewContainer.setVisibility(View.VISIBLE);
                     mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-                    if(mAvatarPublisher.getVisibility() == View.GONE) {
+                    //if(mAvatarPublisher.getVisibility() == View.GONE) {
                         mPublisher.getView().setVisibility(View.VISIBLE);
-                    }
+                    //}
 
                 }
             }, 500);
@@ -1275,17 +1261,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             AlphaAnimation animation1 = new AlphaAnimation(1f, 0f);
             animation1.setDuration(2000);
-            //animation1.setFillAfter(true);
             mPublisherSpinnerLayout.startAnimation(animation1);
             mPublisherViewContainer.startAnimation(animation1);
-            //mPublisher.getView().startAnimation(animation1);
-            mPublisher.getView().setVisibility(View.GONE);
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mPublisherSpinnerLayout.setVisibility(View.GONE);
-                    mPublisherViewContainer.setVisibility(View.GONE);
-
+                    if(!mOnBackstage) {
+                        mPublisher.getView().setVisibility(View.GONE);
+                        mPublisherSpinnerLayout.setVisibility(View.GONE);
+                        mPublisherViewContainer.setVisibility(View.GONE);
+                    }
                 }
             }, 1000);
         }
@@ -1538,7 +1523,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ERROR);
             mSubscribingError = true;
             sendWarningSignal();
-            if(!mConnectionError) mNotification.showConnectionLost();
+            //if(!mConnectionError) mNotification.showConnectionLost();
         } catch(Exception ex) {
             Log.e(LOG_TAG, "Catching error SubscriberKit");
         }
@@ -1662,17 +1647,22 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinBackstage() {
+        mOnBackstage = true;
+        mPublisher.setPublishVideo(true);
         showPublisher();
-        setUserStatus(R.string.status_backstage);
+        mNotification.showNotification(Notification.TYPE.BACKSTAGE);
     }
 
     private void disconnectBackstage() {
+        mOnBackstage = false;
         hidePublisher();
-        setUserStatus(R.string.status_inline);
+        mNotification.hide();
     }
 
     private void connectWithOnstage() {
+        mOnBackstage = false;
         hidePublisher();
+        mNotification.hide();
         //End the private call
         if (mProducerStream!= null && mSubscriberProducer != null) {
             muteOnstage(false);
@@ -1685,7 +1675,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.ATTEMPT);
         mBackstageSession.unpublish(mPublisher);
-        setUserStatus(R.string.status_onstage);
+        mGoLiveView.setVisibility(View.VISIBLE);
 
         mPublisherViewContainer.removeView(mPublisher.getView());
         mPublisher.destroy();
@@ -1755,13 +1745,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLiveButton.setVisibility(View.GONE);
         mCircleLiveButton.setVisibility(View.GONE);
 
+        mNotification.showThanksForParticipating();
 
-        Toast toast = Toast.makeText(getApplicationContext(), R.string.thanks_for_participating, Toast.LENGTH_LONG);
-        ViewGroup view = (ViewGroup) toast.getView();
-        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
-        TextView messageTextView = (TextView) view.getChildAt(0);
-        messageTextView.setTextSize(13);
-        toast.show();
 
         mGoLiveView.clearAnimation();
         mGoLiveView.setAlpha(1f);
@@ -2015,14 +2000,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline() {
+        mOnBackstage = false;
         setVisibilityGetInLine(View.GONE);
         mGetInLine.setText(getResources().getString(R.string.leave_line));
         mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
         if(mBackstageSessionId != null) {
-            //mPublisherViewContainer.setAlpha(1f);
-            //mPublisherViewContainer.setVisibility(View.VISIBLE);
-            //mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-            //mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
             //Send socket signal
             mSocket.emitJoinRoom(mBackstageSessionId);

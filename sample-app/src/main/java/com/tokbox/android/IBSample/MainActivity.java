@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         //IBConfig.INSTANCE_ID = "AAAA1";
 
         //Replace with the admin ID hashed
-        IBConfig.ADMIN_ID = "APO0";
+        IBConfig.ADMIN_ID = "0NV0";
 
         //Replace with the BACKEND URL
         IBConfig.BACKEND_BASE_URL = "https://tokbox-ib-staging-tesla.herokuapp.com";
