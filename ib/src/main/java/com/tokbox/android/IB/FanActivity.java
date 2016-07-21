@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -287,6 +288,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Emitter.Listener onSocketConnected = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
+            mConnectionError = false;
             init();
         }
     };
@@ -317,6 +319,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Emitter.Listener onSocketConnectError = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  if(!mConnectionError) mNotification.showHlsReconnecting();
+                                  mConnectionError = true;
+                              }
+                          });
             Log.e(LOG_TAG, "Failed to connect to the signaling server");
         }
     };

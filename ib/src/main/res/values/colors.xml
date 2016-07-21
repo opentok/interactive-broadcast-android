@@ -15,6 +15,7 @@
     <color name="status_backstage">#2BA3E4</color>
     <color name="status_private_call">#EF4836</color>
     <color name="temporarilly_muted">#EF4836</color>
+    <color name="hls_reconnecting">#EF4836</color>
 
 
     <!-- Chat colors -->
