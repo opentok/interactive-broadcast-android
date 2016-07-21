@@ -36,7 +36,7 @@ Access Key ID: AKIAIOSFODNN7EXAMPLE
 Secret Access Key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
 ```
 
-5. Choose Download Credentials, and store the keys in a secure location.
+Choose **Download Credentials**, and store the keys in a secure location.
 
 Your secret key will no longer be available through the AWS Management Console; you will have the only copy. Keep it confidential in order to protect your account, and never email it. Do not share it outside your organization, even if an inquiry appears to come from AWS or Amazon.com. No one who legitimately represents Amazon will ever ask you for your secret key.
 
@@ -48,10 +48,14 @@ You can get your Amazon S3 access key ID, secret access key, and bucket name in 
 1. Login into heroku using your credentials.
 2. Click on your heroku app, open the **Settings** tab, and select **Reveal config vars**.
 3. Create or update the following environment variables:<br/>
-          `AWS_ACCESS_KEY_ID`: S3 access key ID<br/>
-          `AWS_SECRET_ACCESS_KEY`: S3 secret access key<br/>
-          `S3_BUCKET_NAME`:  The bucket name<br/>
-          `S3_COMPOSEDVIDEO_URL`: The first part of the URL required to retrieve the file in your bucket. Use this format: `https//s3.amazonaws.com/[S3_BUCKET_NAME]`. For example, `https://s3.amazonaws.com/spotlight-tokbox/`.
+
+| Variable        | Description  |
+| ------------- | ------------- |
+| `AWS_ACCESS_KEY_ID`   | S3 access key ID.   |
+| `AWS_SECRET_ACCESS_KEY`  | S3 secret access key. |
+| `S3_BUCKET_NAME`   | The bucket name. |
+| `S3_COMPOSEDVIDEO_URL`   | The first part of the URL required to retrieve the file in your bucket. Use this format: `https//s3.amazonaws.com/[S3_BUCKET_NAME]`. For example, `https://s3.amazonaws.com/spotlight-tokbox/`. |
+
 
 
 ## Set up your AWS S3 bucket in Tokbox
@@ -60,4 +64,4 @@ You can get your Amazon S3 access key ID, secret access key, and bucket name in 
 2. Open your project.
 3. Scroll down to the **Archiving** section, and click **Set up your cloud storage now**.
 4. Click on the Amazon S3 logo.
-5. Enter your S3 data: access key, secret access key and bucket name.
+5. Enter the following S3 data: access key, secret access key and bucket name.
