@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.net.Uri;
@@ -36,7 +37,6 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,13 +63,14 @@ import com.tokbox.android.IB.common.Notification;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.tokbox.android.IB.logging.OTKAnalytics;
-import com.tokbox.android.IB.logging.OTKAnalyticsData;
+import com.tokbox.android.logging.OTKAnalytics;
+import com.tokbox.android.logging.OTKAnalyticsData;
 import com.tokbox.android.IB.logging.OTKAction;
 import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
+import java.util.UUID;
 
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -495,9 +496,21 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         Log.i(LOG_TAG, "Connected to the session.");
 
         //Init the analytics logging for onstage
-        mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSessionId,
-                mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, mLogSource).build();
-        mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
+        String source = getPackageName();
+        SharedPreferences prefs = getSharedPreferences("opentok", Context.MODE_PRIVATE);
+        String guidIB = prefs.getString("guidIB", null);
+        if (null == guidIB) {
+            guidIB = UUID.randomUUID().toString();
+            prefs.edit().putString("guidIB", guidIB).commit();
+        }
+        mOnStageAnalyticsData = new com.tokbox.android.logging.OTKAnalyticsData.Builder(IBConfig.LOG_CLIENT_VERSION, mLogSource, IBConfig.LOG_COMPONENTID, guidIB).build();
+        mOnStageAnalytics = new com.tokbox.android.logging.OTKAnalytics(mOnStageAnalyticsData);
+        mOnStageAnalyticsData.setSessionId(session.getSessionId());
+        mOnStageAnalyticsData.setConnectionId(session.getConnection().getConnectionId());
+        mOnStageAnalyticsData.setPartnerId(mApiKey);
+        mOnStageAnalytics.setData(mOnStageAnalyticsData);
+
+
         //Logging
         if(mUserIsCelebrity) {
             addLogEvent(OTKAction.CELEBRITY_CONNECTS_ONSTAGE, OTKVariation.SUCCESS);
