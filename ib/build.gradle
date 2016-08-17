@@ -65,6 +65,8 @@ android {
             exclude "com/tokbox/android/IB/socket/**"
             exclude "com/tokbox/android/IB/ui/**"
             exclude "com/tokbox/android/IB/video/**"
+            exclude "com/tokbox/android/IB/CelebrityHostActivity.java"
+            exclude "com/tokbox/android/IB/FanActivity.java"
         }
 
         def zipBundle = task("zipBundle${variant.name.capitalize()}", type: Zip) {
