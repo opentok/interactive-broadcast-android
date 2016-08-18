@@ -19,6 +19,10 @@ android {
         }
     }
 
+    lintOptions {
+        abortOnError false
+    }
+
     allprojects {
         repositories {
             jcenter()
@@ -31,11 +35,53 @@ android {
     libraryVariants.all { variant ->
         variant.outputs.each { output ->
             def outputFile = output.outputFile
-                if (outputFile != null && outputFile.name.endsWith('.aar')) {
-                    def fileName = "${archivesBaseName}-${version}.aar"
-                    output.outputFile = new File(outputFile.parent, fileName)
-                }
+            if (outputFile != null && outputFile.name.endsWith('.aar')) {
+                def fileName = "${archivesBaseName}-${version}.aar"
+                output.outputFile = new File(outputFile.parent, fileName)
             }
+        }
+
+        def specFileDir = "../"
+
+        def copyFile = task("copyFile${variant.name.capitalize()}", type: Copy) {
+            //Copy README.md
+            from '../README.md'
+            into 'build/outputs/'
+        }
+
+        def javadoc = task("generateJavaDoc${variant.name.capitalize()}", type: Javadoc, dependsOn: "generate${variant.name.capitalize()}Sources") {
+            source = 'src/main/java'
+            classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+            destinationDir = file("build/outputs/docs/")
+            title = 'OpenTok Interactive Broadcast Solution for Android'
+            exclude "com/opentok/android/**"
+            exclude "com/tokbox/android/IB/chat/**"
+            exclude "com/tokbox/android/IB/common/**"
+            exclude "com/tokbox/android/IB/events/**"
+            exclude "com/tokbox/android/IB/logging/**"
+            exclude "com/tokbox/android/IB/model/**"
+            exclude "com/tokbox/android/IB/network/**"
+            exclude "com/tokbox/android/IB/services/**"
+            exclude "com/tokbox/android/IB/socket/**"
+            exclude "com/tokbox/android/IB/ui/**"
+            exclude "com/tokbox/android/IB/video/**"
+            exclude "com/tokbox/android/IB/CelebrityHostActivity.java"
+            exclude "com/tokbox/android/IB/FanActivity.java"
+        }
+
+        def zipBundle = task("zipBundle${variant.name.capitalize()}", type: Zip) {
+            from('build/outputs')
+            include '**/aar/**'
+            include '**/docs/**'
+            include '**/README.md'
+            exclude '**/lint-results-debug_files/**'
+            destinationDir = file(".")
+            archiveName = "${archivesBaseName}-${version}.zip"
+        }
+
+        zipBundle.dependsOn build
+        zipBundle.dependsOn javadoc
+        zipBundle.dependsOn copyFile
         }
 }
 
