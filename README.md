@@ -89,8 +89,7 @@ Follow these steps to add these to your project:
 
 Now you are ready to add the Interactive Broadcast Solution user detail to your app. These will include the Instance ID and Backend Base URL you retrieved earlier (see [Prerequisites](#prerequisites)).
 
-<ol>
-<li>Ensure that you have the following import statements in MainActivity.java:
+  1. Ensure that you have the following import statements in MainActivity.java:
 
 ```java
 package com.tokbox.android.IBSample;
@@ -108,10 +107,7 @@ import android.widget.RadioButton;
 import com.tokbox.android.IB.config.IBConfig;
 ```
 
-</li>
-
-
-<li>In MainActivity.java, add the following detail to your `onStartClicked()` method:
+  2. In MainActivity.java, add the following detail to your `onStartClicked()` method:
 
 
 ```java
@@ -122,17 +118,14 @@ IBConfig.INSTANCE_ID = "";
 IBConfig.BACKEND_BASE_URL= "";
 ```
 
-</li>
-
-<li>Set the Instance ID, Backend Base URL, user type and username in the code you just added:
+  3. Set the Instance ID, Backend Base URL, user type and username in the code you just added:
 
    - The Instance ID is unique to your account. It is used to authorize your code to use the library and make requests to the backend, which is hosted at the location identified by the Backend Base URL. You can use your Instance ID for multiple events.
    - The Backend Base URL is the endpoint to the web service hosting the events, and should be provided by TokBox.
    - The user type must be assigned. You can hard code such values or set up UI controls such as radio buttons. One of the following values for the user type must be assigned: `fan`, `celebrity`, or `host`. There should only be one celebrity and host per event.
    - The Username is optional, and is displayed in chats with the producer and when fans get in line. You can set up manual entry, for example, with an editable text field.
 
-</li>
-</ol>
+
 
 
 ### Create a web service coordinator
