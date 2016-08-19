@@ -91,33 +91,32 @@ Now you are ready to add the Interactive Broadcast Solution user detail to your 
 
 1. Ensure that you have the following import statements in MainActivity.java:
 
-```java
-package com.tokbox.android.IBSample;
+        ```java
+        package com.tokbox.android.IBSample;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.RadioButton;
+        import android.Manifest;
+        import android.content.Intent;
+        import android.content.pm.PackageManager;
+        import android.os.Build;
+        import android.os.Bundle;
+        import android.support.v7.app.AppCompatActivity;
+        import android.view.View;
+        import android.widget.EditText;
+        import android.widget.RadioButton;
 
-import com.tokbox.android.IB.config.IBConfig;
-```
+        import com.tokbox.android.IB.config.IBConfig;
+        ```
 
 2. In MainActivity.java, add the following detail to your `onStartClicked()` method:
 
 
-```java
-/* Replace with your instance ID  */
-IBConfig.INSTANCE_ID = "";
+        ```java
+        /* Replace with your instance ID  */
+        IBConfig.INSTANCE_ID = "";
 
-/* Replace with the username.  */
-IBConfig.BACKEND_BASE_URL= "";
-```
-
+        /* Replace with the username.  */
+        IBConfig.BACKEND_BASE_URL= "";
+        ```
 
 3. Set the Instance ID, Backend Base URL, user type and username in the code you just added:
 
@@ -125,6 +124,8 @@ IBConfig.BACKEND_BASE_URL= "";
    - The Backend Base URL is the endpoint to the web service hosting the events, and should be provided by TokBox.
    - The user type must be assigned. You can hard code such values or set up UI controls such as radio buttons. One of the following values for the user type must be assigned: `fan`, `celebrity`, or `host`. There should only be one celebrity and host per event.
    - The Username is optional, and is displayed in chats with the producer and when fans get in line. You can set up manual entry, for example, with an editable text field.
+
+
 
 
 ### Create a web service coordinator
