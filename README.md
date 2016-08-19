@@ -89,36 +89,36 @@ Follow these steps to add these to your project:
 
 Now you are ready to add the Interactive Broadcast Solution user detail to your app. These will include the Instance ID and Backend Base URL you retrieved earlier (see [Prerequisites](#prerequisites)).
 
-  1. Ensure that you have the following import statements in MainActivity.java:
+1. Ensure that you have the following import statements in MainActivity.java:
 
-```java
-package com.tokbox.android.IBSample;
+   ```java
+   package com.tokbox.android.IBSample;
 
-import android.Manifest;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.EditText;
-import android.widget.RadioButton;
+   import android.Manifest;
+   import android.content.Intent;
+   import android.content.pm.PackageManager;
+   import android.os.Build;
+   import android.os.Bundle;
+   import android.support.v7.app.AppCompatActivity;
+   import android.view.View;
+   import android.widget.EditText;
+   import android.widget.RadioButton;
 
-import com.tokbox.android.IB.config.IBConfig;
-```
+   import com.tokbox.android.IB.config.IBConfig;
+   ```
 
-  2. In MainActivity.java, add the following detail to your `onStartClicked()` method:
+2. In MainActivity.java, add the following detail to your `onStartClicked()` method:
 
 
-```java
-/* Replace with your instance ID  */
-IBConfig.INSTANCE_ID = "";
+   ```java
+   /* Replace with your instance ID  */
+   IBConfig.INSTANCE_ID = "";
 
-/* Replace with the username.  */
-IBConfig.BACKEND_BASE_URL= "";
-```
+   /* Replace with the username.  */
+   IBConfig.BACKEND_BASE_URL= "";
+   ```
 
-  3. Set the Instance ID, Backend Base URL, user type and username in the code you just added:
+3. Set the Instance ID, Backend Base URL, user type and username in the code you just added:
 
    - The Instance ID is unique to your account. It is used to authorize your code to use the library and make requests to the backend, which is hosted at the location identified by the Backend Base URL. You can use your Instance ID for multiple events.
    - The Backend Base URL is the endpoint to the web service hosting the events, and should be provided by TokBox.
