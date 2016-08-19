@@ -45,6 +45,11 @@ public class Notification {
     public void showConnectionLost(){
         showNotification(R.string.connection_lost);
     }
+    public void showHlsReconnecting(){
+        showNotification(R.string.hls_reconnecting);
+    }
+
+
 
     public void showCantPublish(String userType){
         int message = userType.equals("host") ? R.string.cant_publish_host : R.string.cant_publish_celebrity;

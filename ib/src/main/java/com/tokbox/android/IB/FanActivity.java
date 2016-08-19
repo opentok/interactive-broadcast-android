@@ -2,7 +2,6 @@ package com.tokbox.android.IB;
 
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
@@ -12,6 +11,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Typeface;
@@ -42,7 +42,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.Socket;
@@ -69,19 +68,20 @@ import com.tokbox.android.IB.ws.WebServiceCoordinator;
 import com.tokbox.android.IB.common.Notification;
 
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.VideoView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.tokbox.android.IB.logging.OTKAnalytics;
-import com.tokbox.android.IB.logging.OTKAnalyticsData;
+import com.tokbox.android.logging.OTKAnalytics;
+import com.tokbox.android.logging.OTKAnalyticsData;
 import com.tokbox.android.IB.logging.OTKAction;
 import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
+
+import java.util.UUID;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
@@ -287,6 +287,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Emitter.Listener onSocketConnected = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
+            mConnectionError = false;
             init();
         }
     };
@@ -317,6 +318,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Emitter.Listener onSocketConnectError = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  if(!mConnectionError) mNotification.showHlsReconnecting();
+                                  mConnectionError = true;
+                              }
+                          });
             Log.e(LOG_TAG, "Failed to connect to the signaling server");
         }
     };
@@ -441,12 +449,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageToken = results.getString("tokenProducer");
             mBackstageSessionId = results.getString("sessionIdProducer");
 
-            //Set the LogSource
-            objSource.put("app", getApplicationContext().getApplicationInfo().packageName);
-            objSource.put("account", mEvent.getString("admins_name"));
-            objSource.put("event-id", mEvent.getString("id"));
-
-            mLogSource = objSource.toString();
+            //Set the LogSource:
+            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-" +
+                         mEvent.getString("admins_name") + "-" +
+                         mEvent.getString("id");
 
             updateEventName();
             sessionConnect();
@@ -777,9 +783,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         } else {
 
             //Init the analytics logging for onstage
-            mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSessionId,
-                    mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, mLogSource).build();
+            String source = getPackageName();
+            SharedPreferences prefs = getSharedPreferences("opentok", Context.MODE_PRIVATE);
+            String guidIB = prefs.getString("guidIB", null);
+            if (null == guidIB) {
+                guidIB = UUID.randomUUID().toString();
+                prefs.edit().putString("guidIB", guidIB).commit();
+            }
+            mOnStageAnalyticsData = new OTKAnalyticsData.Builder(IBConfig.LOG_CLIENT_VERSION, mLogSource, IBConfig.LOG_COMPONENTID, guidIB).build();
             mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
+            mOnStageAnalyticsData.setSessionId(session.getSessionId());
+            mOnStageAnalyticsData.setConnectionId(session.getConnection().getConnectionId());
+            mOnStageAnalyticsData.setPartnerId(mApiKey);
+            mOnStageAnalytics.setData(mOnStageAnalyticsData);
+
             //Logging
             addLogEvent(OTKAction.FAN_CONNECTS_ONSTAGE, OTKVariation.SUCCESS);
 
