@@ -13,27 +13,27 @@ gradle wrapper
 
 #Perform all actions
 if [ "$task" == "-f" ]; then
-        ./gradlew build
-        ./gradlew  test
-        ./gradlew ZipBundleRelease
+        ./gradlew build -p ib
+        ./gradlew  test -p ib
+        ./gradlew ZipBundleRelease -p ib
         exit 0
 fi
 
 #Build project
 if [ "$task" == "-b" ]; then
-        ./gradlew build
+        ./gradlew build -p ib
         exit 0
 fi
 
 #Run unit tests
 if [ "$task" == "-t" ]; then
-        ./gradlew  test
+        ./gradlew  test -p ib
         exit 0
 fi
 
 #Create zip file with binary and doc
 if [ "$task" == "-d" ]; then
-        ./gradlew ZipBundleRelease
+        ./gradlew ZipBundleRelease -p ib
         exit 0
 fi
 
