@@ -88,7 +88,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
                     SimpleDateFormat ft = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
                     SimpleDateFormat ft2 = new SimpleDateFormat("MMM dd, yyyy HH:mm");
                     try {
-                        date = ft.parse(event.getString("date_time_start").replace(".0", ""));
+                        date = ft.parse(event.getString("date_time_start"));
                     }
                     catch(ParseException pe) {
                         Log.e(LOG_TAG, pe.getMessage());
@@ -97,6 +97,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
                     holder.date_status.setText(ft2.format(date).toString().toUpperCase());
                 }
                 holder.join_event.setText("Not started");
+
             } else {
                 holder.join_event.setText("Join event");
                 holder.join_event.setOnClickListener(new View.OnClickListener() {

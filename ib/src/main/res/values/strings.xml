@@ -38,6 +38,8 @@
 
     <string name="cant_publish_host">There already is a host using this session. If this is you please close all applications or browsers sessions and try again.</string>
     <string name="cant_publish_celebrity">There already is a celebrity using this session. If this is you please close all applications or browsers sessions and try again.</string>
+    <string name="user_limit">This show is over the maximum number of participants. Please try again in a few minutes.</string>
+    <string name="hls_reconnecting">Internet connection is down. Attempting to reconnect</string>
 
 
 </resources>

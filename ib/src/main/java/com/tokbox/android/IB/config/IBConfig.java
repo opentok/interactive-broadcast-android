@@ -12,12 +12,15 @@ public class IBConfig {
     public static String FRONTEND_URL = "";
     public static String DEFAULT_EVENT_IMAGE = "";
     public static String INSTANCE_ID = "";
+    public static String ADMIN_ID = "";
     public static String USER_TYPE = "";
     public static String USER_NAME = "Anonymous";
     private String mUserType = "";
 
     // For internal use only. Please do not modify or remove this code.
-    public static final String LOG_CLIENT_VERSION = "ib-android-1.0.1";
+    public static final String LOG_CLIENT_VERSION = "android-ib-1.0.2";
+    public static final String LOG_COMPONENTID = "iBS";
+
 
     public void setUserType(String userType) {
         mUserType = userType;

@@ -12,7 +12,7 @@
         android:layout_below="@+id/event_list_top_bar"
         android:visibility="visible" />
 
-    <RelativeLayout
+    <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberHostView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -21,37 +21,9 @@
         android:layout_below="@+id/event_list_top_bar"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true">
+    </com.tokbox.android.IB.ui.CustomViewSubscriber>
 
-        <ProgressBar
-            android:id="@+id/loadingSpinnerHost"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-
-        <RelativeLayout
-            android:id="@+id/avatar_host"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/gradient_audio_only"
-            android:visibility="gone" >
-
-            <ImageView
-                android:id="@+id/avatar_img_host"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:src="@drawable/avatar" />
-        </RelativeLayout>
-    </RelativeLayout>
-
-    <RelativeLayout
+    <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberCelebrityView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -63,37 +35,9 @@
         android:layout_toEndOf="@+id/subscriberHostView"
         android:layout_below="@+id/event_list_top_bar"
         android:layout_alignParentBottom="true">
+    </com.tokbox.android.IB.ui.CustomViewSubscriber>
 
-        <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
-            android:id="@+id/loadingSpinnerCelebrity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-
-        <RelativeLayout
-            android:id="@+id/avatar_celebrity"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/gradient_audio_only"
-            android:visibility="gone" >
-
-            <ImageView
-                android:id="@+id/avatar_img_celebrity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:src="@drawable/avatar" />
-        </RelativeLayout>
-    </RelativeLayout>
-
-    <RelativeLayout
+    <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberFanView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -102,35 +46,7 @@
         android:layout_below="@+id/event_list_top_bar"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true">
-
-        <ProgressBar
-            style="?android:attr/progressBarStyleLarge"
-            android:id="@+id/loadingSpinnerFan"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:indeterminate="false"
-            android:visibility="gone" />
-
-        <RelativeLayout
-            android:id="@+id/avatar_fan"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/gradient_audio_only"
-            android:visibility="gone" >
-
-            <ImageView
-                android:id="@+id/avatar_img_fan"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:layout_centerHorizontal="true"
-                android:layout_marginBottom="30dp"
-                android:src="@drawable/avatar" />
-        </RelativeLayout>
-    </RelativeLayout>
+    </com.tokbox.android.IB.ui.CustomViewSubscriber>
 
     <RelativeLayout
         android:id="@+id/publisher_spinner_layout"
@@ -145,7 +61,7 @@
         android:background="@drawable/publisher_bg"
         android:layout_marginRight="20dp"
         android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="35dp"
         android:layout_marginLeft="10dp">
 
         <TextView
@@ -184,6 +100,23 @@
             android:layout_marginBottom="5dp"
             android:layout_marginRight="5dp">
 
+            <RelativeLayout
+                android:id="@+id/avatarPublisher"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentTop="true"
+                android:background="@drawable/gradient_audio_only"
+                android:visibility="visible" >
+
+                <ImageView
+                    android:id="@+id/avatarPublisherImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/avatar" />
+            </RelativeLayout>
         </RelativeLayout>
 
         <ProgressBar
@@ -249,24 +182,6 @@
         android:layout_marginBottom="22dp"
         android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="45dp"
-        android:id="@+id/user_status"
-        android:layout_alignParentBottom="false"
-        android:layout_centerHorizontal="true"
-        android:background="@drawable/user_status_button"
-        android:textSize="20sp"
-        android:textColor="@color/user_status_text_color"
-        android:layout_alignParentTop="false"
-        android:layout_below="@+id/event_list_top_bar"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="5dp"
-        android:layout_marginTop="5dp"
-        android:alpha="0.8"
-        android:padding="10dp"
-        android:visibility="gone" />
-
     <RelativeLayout
         android:id="@+id/goLiveView"
         android:layout_width="290dp"
@@ -328,7 +243,7 @@
             android:text="@string/get_inline"
             android:id="@+id/btn_getinline"
             android:onClick="onGetInLineClicked"
-            android:visibility="visible"
+            android:visibility="gone"
             android:background="@drawable/get_in_line_button"
             android:textColor="@color/get_inline_text_color"
             android:textSize="15sp"
@@ -404,6 +319,32 @@
 
     </RelativeLayout>
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@color/top_bar_background_color"
+        android:id="@+id/status_bar"
+        android:layout_below="@+id/event_list_top_bar"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/status_text"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:paddingLeft="15dp"
+            android:textStyle="bold"
+            android:gravity="center_vertical|center"
+            android:typeface="normal"
+            android:visibility="visible"
+            android:layout_centerInParent="true" />
+    </RelativeLayout>
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -420,5 +361,35 @@
         android:layout_below="@+id/event_list_top_bar"
         android:visibility="gone">
     </FrameLayout>
+
+    <RelativeLayout
+        android:id="@+id/videoViewLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:keepScreenOn="false"
+        android:layout_alignParentBottom="false"
+        android:visibility="gone"
+        android:layout_alignParentRight="false"
+        android:layout_below="@+id/event_list_top_bar">
+
+        <VideoView
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/videoView"
+            android:layout_alignParentBottom="false"
+            android:visibility="visible"
+            android:layout_alignParentStart="false"
+            android:layout_centerInParent="true" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleLarge"
+            android:id="@+id/videoViewProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:indeterminate="false"
+            android:visibility="visible"
+            android:layout_marginTop="50dp" />
+    </RelativeLayout>
 
 </RelativeLayout>

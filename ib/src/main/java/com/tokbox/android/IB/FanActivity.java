@@ -2,7 +2,6 @@ package com.tokbox.android.IB;
 
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
@@ -12,9 +11,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
@@ -23,6 +24,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -31,6 +33,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -39,8 +42,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.github.nkzawa.emitter.Emitter;
+import com.github.nkzawa.socketio.client.Socket;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
 import com.opentok.android.OpenTokConfig;
@@ -64,16 +68,20 @@ import com.tokbox.android.IB.ws.WebServiceCoordinator;
 import com.tokbox.android.IB.common.Notification;
 
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.VideoView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.tokbox.android.IB.logging.OTKAnalytics;
-import com.tokbox.android.IB.logging.OTKAnalyticsData;
+import com.tokbox.android.logging.OTKAnalytics;
+import com.tokbox.android.logging.OTKAnalyticsData;
 import com.tokbox.android.IB.logging.OTKAction;
 import com.tokbox.android.IB.logging.OTKVariation;
+
+import com.tokbox.android.IB.ui.CustomViewSubscriber;
+
+import java.util.UUID;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
 
@@ -92,9 +100,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private boolean mTestingOnStage = false;
     private boolean mOnstageMuted = false;
     private boolean mConnectionError = false;
-    private boolean mDisplayingUserStatus = false;
     private boolean mSubscribingError = false;
-
+    private boolean mInitializated = false;
+    private boolean mHls = false;
+    private boolean mOnBackstage = false;
 
     private JSONObject mEvent;
     private String mApiKey;
@@ -103,6 +112,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String mBackstageSessionId;
     private String mBackstageToken;
     private String mBackstageConnectionId;
+    private String mBroadcastUrl;
     private Session mSession;
     private Session mBackstageSession;
 
@@ -128,7 +138,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private TextView mEventName;
     private TextView mEventStatus;
-    private TextView mUserStatus;
     private TextView mGoLiveStatus;
     private TextView mTextUnreadMessages;
     private TextView mLiveButton;
@@ -138,27 +147,26 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ImageView mEventImage;
     private ImageView mEventImageEnd;
     private ImageView mCircleLiveButton;
-    private RelativeLayout mAvatarHost;
-    private RelativeLayout mAvatarCelebrity;
-    private RelativeLayout mAvatarFan;
     private Button mGetInLine;
     private ImageButton mUnreadCircle;
+    private RelativeLayout mVideoViewLayout;
+    private ProgressBar mVideoViewProgressBar;
+    private VideoView mVideoView;
+    private RelativeLayout mAvatarPublisher;
 
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
-    private RelativeLayout mSubscriberHostViewContainer;
-    private RelativeLayout mSubscriberCelebrityViewContainer;
-    private RelativeLayout mSubscriberFanViewContainer;
+    private CustomViewSubscriber mSubscriberHostViewContainer;
+    private CustomViewSubscriber mSubscriberCelebrityViewContainer;
+    private CustomViewSubscriber mSubscriberFanViewContainer;
     private RelativeLayout mPublisherSpinnerLayout;
     private RelativeLayout mGoLiveView;
     private FrameLayout mFragmentContainer;
+    private RelativeLayout mStatusBar;
 
 
     // Spinning wheel for loading subscriber view
-    private ProgressBar mLoadingSubCelebrity;
-    private ProgressBar mLoadingSubHost;
-    private ProgressBar mLoadingSubFan;
     private ProgressBar mLoadingSubPublisher;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
@@ -180,35 +188,157 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private String mLogSource;
 
+    private JSONObject mBroadcastData;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+        //Creates the action bar
+        getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        //Hide the bar
+        ActionBar actionBar = getSupportActionBar();
+
+        if ( actionBar != null ){
+            actionBar.hide();
+        }
+
         setContentView(R.layout.activity_fan);
-
-        mWebServiceCoordinator = new WebServiceCoordinator(this, this);
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotification = new Notification(this);
-
-        mSocket = new SocketCoordinator();
-        mSocket.connect();
-
-        mAudioOnlyFan = false;
 
         initLayoutWidgets();
 
-        if(!InstanceApp.getInstance().getEnableGetInline()) {
-            setVisibilityGetInLine(View.GONE);
-        }
+        mWebServiceCoordinator = new WebServiceCoordinator(this, this);
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotification = new Notification(this, mStatusBar);
+
+        //Get the selected event from the instance
+        getSelectedEvent(savedInstanceState);
+
+        mAudioOnlyFan = false;
+
+
+
+        //Connect to socket
+        initSocket();
+
+        //Set event name and images
+        setEventUI();
 
         setupFonts();
-
-        //Get the event
-        requestEventData(savedInstanceState);
 
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
 
 
+    }
+
+    private void initSocket() {
+        mSocket = new SocketCoordinator();
+        mSocket.getSocket().on(Socket.EVENT_CONNECT,onSocketConnected);
+        mSocket.getSocket().on(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
+        mSocket.getSocket().on(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
+        mSocket.getSocket().on("changeStatus", onChangeStatus);
+        if(mSocket.getSocket().connected()) {
+            init();
+        } else {
+            mSocket.connect();
+        }
+    }
+
+    private void init() {
+
+        //The event must be on preshow or live.
+        String status = getEventStatus();
+        if(status.equals("N") || status.equals("C")) return;
+
+        //If the event is already initializated and the fan was able to join to interactive, don't do anything.
+        if(mInitializated && mHls==false) return;
+
+        //If the event is already initializated and the fan was watching HLS, resume the broadcast
+        if(mInitializated && mHls) {
+            resumeBroadcast();
+            try {
+                mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "unexpected JSON exception - emitJoinBroadcast", e);
+            }
+            mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
+            mSocket.getSocket().on("eventEnded", onBroadcastEnd);
+            return;
+        }
+
+        mInitializated = true;
+        //Emit the presence signal
+        //@TODO we need a way to know if the user limit is enabled or disabled
+        if(true) {
+            try {
+                mSocket.emitJoinInteractive(mEvent.getString("stage_sessionid"));
+                mSocket.getSocket().on("ableToJoin", onAbleToJoin);
+            } catch (JSONException e) {
+                Log.e(LOG_TAG, "unexpected JSON exception - emitJoinInteractive", e);
+            }
+        } else {
+            //Get the event
+            requestEventData(mEvent);
+        }
+    }
+
+    private Emitter.Listener onSocketConnected = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            mConnectionError = false;
+            init();
+        }
+    };
+
+    private Emitter.Listener onChangeStatus = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            JSONObject data = (JSONObject) args[0];
+
+            String id;
+            String newStatus;
+            try {
+                id = data.getString("id");
+                newStatus = data.getString("newStatus");
+                Log.i(LOG_TAG, mEvent.getString("event_name"));
+                if(newStatus.equals("P") && id.equals(mEvent.getString("id"))) {
+                    setEventStatus("P");
+                    init();
+                }
+
+            } catch (JSONException e) {
+                return;
+            }
+
+        }
+    };
+
+    private Emitter.Listener onSocketConnectError = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                              @Override
+                              public void run() {
+                                  if(!mConnectionError) mNotification.showHlsReconnecting();
+                                  mConnectionError = true;
+                              }
+                          });
+            Log.e(LOG_TAG, "Failed to connect to the signaling server");
+        }
+    };
+
+
+    private void setEventUI(){
+        if(mEvent == null) return;
+        try {
+            updateEventName(mEvent.getString("event_name"), EventUtils.getStatusNameById(mEvent.getString("status")));
+            EventUtils.loadEventImage(this, mEvent.getString("event_image"), mEventImage);
+            EventUtils.loadEventImage(this, mEvent.getString("event_image_end"), mEventImageEnd);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception - updateEventName", e);
+        }
     }
 
 
@@ -232,21 +362,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void initLayoutWidgets() {
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherView);
-        mSubscriberHostViewContainer = (RelativeLayout) findViewById(R.id.subscriberHostView);
-        mSubscriberCelebrityViewContainer = (RelativeLayout) findViewById(R.id.subscriberCelebrityView);
-        mSubscriberFanViewContainer = (RelativeLayout) findViewById(R.id.subscriberFanView);
+        mSubscriberHostViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberHostView);
+        mSubscriberCelebrityViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberCelebrityView);
+        mSubscriberFanViewContainer = (CustomViewSubscriber) findViewById(R.id.subscriberFanView);
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
 
-        mLoadingSubCelebrity = (ProgressBar) findViewById(R.id.loadingSpinnerCelebrity);
-        mLoadingSubHost = (ProgressBar) findViewById(R.id.loadingSpinnerHost);
-        mLoadingSubFan = (ProgressBar) findViewById(R.id.loadingSpinnerFan);
         mLoadingSubPublisher = (ProgressBar) findViewById(R.id.loadingSpinnerPublisher);
         mPublisherSpinnerLayout = (RelativeLayout) findViewById(R.id.publisher_spinner_layout);
         mEventName = (TextView) findViewById(R.id.event_name);
         mEventStatus = (TextView) findViewById(R.id.event_status);
-        mUserStatus = (TextView) findViewById(R.id.user_status);
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
         mGoLiveView = (RelativeLayout) findViewById(R.id.goLiveView);
+        mStatusBar = (RelativeLayout) findViewById(R.id.status_bar);
         mTextUnreadMessages = (TextView) findViewById(R.id.unread_messages);
         mLiveButton = (TextView) findViewById(R.id.live_button);
         mCameraPreview1 = (TextView) findViewById(R.id.camera_preview_1);
@@ -257,26 +384,25 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mChatButton = (ImageButton) findViewById(R.id.chat_button);
         mGetInLine = (Button) findViewById(R.id.btn_getinline);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
-
-        mAvatarCelebrity = (RelativeLayout) findViewById(R.id.avatar_celebrity);
-        mAvatarFan = (RelativeLayout) findViewById(R.id.avatar_fan);
-        mAvatarHost = (RelativeLayout) findViewById(R.id.avatar_host);
-
+        mVideoView = (VideoView) findViewById(R.id.videoView);
+        mVideoViewProgressBar = (ProgressBar) findViewById(R.id.videoViewProgressBar);
+        mVideoViewLayout = (RelativeLayout) findViewById(R.id.videoViewLayout);
+        mAvatarPublisher = (RelativeLayout) findViewById(R.id.avatarPublisher);
     }
 
     private void setupFonts() {
         Typeface font = EventUtils.getFont(this);
         mEventName.setTypeface(font);
         mGoLiveStatus.setTypeface(font);
-        mUserStatus.setTypeface(font);
         mEventStatus.setTypeface(font);
         mGetInLine.setTypeface(font);
         mTextUnreadMessages.setTypeface(font);
         mCameraPreview1.setTypeface(font);
         mCameraPreview2.setTypeface(font);
+        ((TextView)mStatusBar.getChildAt(0)).setTypeface(font);
     }
 
-    private void requestEventData (Bundle savedInstanceState) {
+    private void getSelectedEvent (Bundle savedInstanceState) {
         int event_index = 0;
         //Parse data from activity_join
         if (savedInstanceState == null) {
@@ -291,23 +417,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             if(savedInstanceState.getSerializable("event_index") == null) return;
             event_index = Integer.parseInt((String) savedInstanceState.getSerializable("event_index"));
         }
+        mEvent = InstanceApp.getInstance().getEventByIndex(event_index);
+    }
 
-        JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
+    private void requestEventData (JSONObject event) {
+
+        if(InstanceApp.getInstance().getEnableGetInline()) {
+            setVisibilityGetInLine(View.VISIBLE);
+        }
+
         try {
-
-            updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
-            EventUtils.loadEventImage(this, event.getString("event_image"), mEventImage);
-            EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
-            if(InstanceApp.getInstance().getEnableAnalytics()) {
-                mWebServiceCoordinator.createFanTokenAnalytics(event.getString("fan_url"));
-            } else {
-                mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
-            }
-
+            mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
-
     }
 
 
@@ -317,6 +440,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onDataReady(JSONObject results) {
         mConnectionError = false;
+        JSONObject objSource = new JSONObject();
         try {
             mEvent = results.getJSONObject("event");
             mApiKey = results.getString("apiKey");
@@ -325,8 +449,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageToken = results.getString("tokenProducer");
             mBackstageSessionId = results.getString("sessionIdProducer");
 
-            //Set the LogSource
-            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-event-" + mEvent.getString("id");
+            //Set the LogSource:
+            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-" +
+                         mEvent.getString("admins_name") + "-" +
+                         mEvent.getString("id");
 
             updateEventName();
             sessionConnect();
@@ -343,7 +469,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if(!mConnectionError) mNotification.showConnectionLost();
         mGetInLine.setVisibility(View.GONE);
-        //initReconnection();
     }
 
 
@@ -446,6 +571,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
 
         reloadInterface();
+
+        //Resumes the video
+        resumeBroadcast();
     }
 
     @Override
@@ -472,6 +600,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
         disconnectOnStageSession();
         disconnectBackstageSession();
+        disconnectSocket();
         super.onDestroy();
         finish();
     }
@@ -485,25 +614,27 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }else {
             disconnectOnStageSession();
             disconnectBackstageSession();
-
+            disconnectSocket();
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             if (mIsBound) {
                 unbindService(mConnection);
                 mIsBound = false;
             }
 
-            if(mWebServiceCoordinator.isConnected()) {
-                if(InstanceApp.getInstance().getEnableAnalytics()) {
-                    try {
-                        mWebServiceCoordinator.leaveEvent(mEvent.getString("id"));
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-                    }
-                }
-            }
-
-
             super.onBackPressed();
+        }
+    }
+
+    private void disconnectSocket() {
+        if(mSocket != null) {
+            mSocket.disconnect();
+            mSocket.getSocket().off("eventGoLive", onBroadcastGoLive);
+            mSocket.getSocket().off("eventEnded", onBroadcastEnd);
+            mSocket.getSocket().off("ableToJoin", onAbleToJoin);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT, onSocketConnected);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
+            mSocket.getSocket().off(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
+            mSocket = null;
         }
     }
 
@@ -520,7 +651,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 if (mSubscriberFan != null) {
                     attachSubscriberFanView();
                 }
-                updateViewsWidth();
+                if(mSession != null) {
+                    updateViewsWidth();
+                }
             }
         }, 500);
     }
@@ -577,7 +710,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     if (mUserIsOnstage) {
 
                         if (mAudioOnlyFan) {
-                            mAvatarFan.setVisibility(View.VISIBLE);
+                            mSubscriberFanViewContainer.displayAvatar(true);
                         } else {
                             mPublisher.getView().setVisibility(View.VISIBLE);
                         }
@@ -650,46 +783,26 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         } else {
 
             //Init the analytics logging for onstage
-            mOnStageAnalyticsData = new OTKAnalyticsData.Builder(mSessionId,
-                    mApiKey, mSession.getConnection().getConnectionId(), IBConfig.LOG_CLIENT_VERSION, mLogSource).build();
+            String source = getPackageName();
+            SharedPreferences prefs = getSharedPreferences("opentok", Context.MODE_PRIVATE);
+            String guidIB = prefs.getString("guidIB", null);
+            if (null == guidIB) {
+                guidIB = UUID.randomUUID().toString();
+                prefs.edit().putString("guidIB", guidIB).commit();
+            }
+            mOnStageAnalyticsData = new OTKAnalyticsData.Builder(IBConfig.LOG_CLIENT_VERSION, mLogSource, IBConfig.LOG_COMPONENTID, guidIB).build();
             mOnStageAnalytics = new OTKAnalytics(mOnStageAnalyticsData);
+            mOnStageAnalyticsData.setSessionId(session.getSessionId());
+            mOnStageAnalyticsData.setConnectionId(session.getConnection().getConnectionId());
+            mOnStageAnalyticsData.setPartnerId(mApiKey);
+            mOnStageAnalytics.setData(mOnStageAnalyticsData);
+
             //Logging
             addLogEvent(OTKAction.FAN_CONNECTS_ONSTAGE, OTKVariation.SUCCESS);
 
             mGetInLine.setVisibility(View.VISIBLE);
         }
 
-    }
-
-    private void setUserStatus(int status) {
-        //Hide user status
-        mUserStatus.clearAnimation();
-        mUserStatus.setVisibility(View.GONE);
-        mDisplayingUserStatus = false;
-        if(status != R.string.status_onstage) {
-            mUserStatus.setText(getResources().getString(status));
-            mUserStatus.setVisibility(View.VISIBLE);
-            AlphaAnimation animation1 = new AlphaAnimation(0f, 0.8f);
-            animation1.setDuration(1000);
-            animation1.setFillAfter(true);
-            mUserStatus.startAnimation(animation1);
-            mDisplayingUserStatus = true;
-
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (mDisplayingUserStatus) {
-                        AlphaAnimation animation1 = new AlphaAnimation(0.8f, 0f);
-                        animation1.setDuration(1000);
-                        animation1.setFillAfter(true);
-                        mUserStatus.startAnimation(animation1);
-                    }
-                }
-            }, 3000);
-        } else {
-            mUserStatus.setVisibility(View.GONE);
-            mGoLiveView.setVisibility(View.VISIBLE);
-        }
     }
 
     @Override
@@ -714,7 +827,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
                 String status = getEventStatus();
-
+                mNotification.hide();
                 if (mBackstageSession != null) {
                     //Logging
                     addLogEvent(OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.ATTEMPT);
@@ -777,7 +890,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mOnstageMuted) mSubscriberHost.setSubscribeToAudio(false);
         if (stream.hasVideo()) {
             // start loading spinning
-            mLoadingSubHost.setVisibility(View.VISIBLE);
+            mSubscriberHostViewContainer.displaySpinner(true);
         }
         else {
             enableAudioOnlyView( mSubscriberHost.getStream().getConnection().getConnectionId(), true);
@@ -794,7 +907,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mOnstageMuted) mSubscriberCelebrity.setSubscribeToAudio(false);
         if (stream.hasVideo()) {
             // start loading spinning
-            mLoadingSubCelebrity.setVisibility(View.VISIBLE);
+            mSubscriberCelebrityViewContainer.displaySpinner(true);
         }
         else {
             enableAudioOnlyView( mSubscriberCelebrity.getStream().getConnection().getConnectionId(), true);
@@ -811,7 +924,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mOnstageMuted) mSubscriberFan.setSubscribeToAudio(false);
         if (stream.hasVideo()) {
             // start loading spinning
-            mLoadingSubFan.setVisibility(View.VISIBLE);
+            mSubscriberFanViewContainer.displaySpinner(true);
         }
         else {
             enableAudioOnlyView( mSubscriberFan.getStream().getConnection().getConnectionId(), true);
@@ -825,19 +938,25 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
             mBackstageSession.subscribe(mSubscriberProducer);
-            setUserStatus(R.string.status_private_call);
+            mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
     }
 
     private void unSubscribeProducer() {
         if (mProducerStream!= null && mSubscriberProducer != null) {
-            hidePublisher();
             muteOnstage(false);
             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mBackstageSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
-            setUserStatus(R.string.status_private_call_ended);
+            if(mOnBackstage) {
+                mNotification.showNotification(Notification.TYPE.BACKSTAGE);
+            } else {
+                mNotification.hide();
+                hidePublisher();
+            }
+
         }
+
     }
 
     private void startPrivateCall(String data) {
@@ -852,19 +971,20 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
-            setUserStatus(R.string.status_private_call);
+            mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         } else {
-            if(mUserIsOnstage) setUserStatus(R.string.temporarilly_muted);
+            if(mUserIsOnstage) mNotification.showNotification(Notification.TYPE.TEMPORARILLY_MUTED);
         }
         muteOnstage(true);
     }
 
     private void endPrivateCall() {
         muteOnstage(false);
+        if(mUserIsOnstage) mNotification.hide();
         if (mProducerStreamOnstage != null && mSubscriberProducerOnstage != null) {
             mSession.unsubscribe(mSubscriberProducerOnstage);
             mSubscriberProducerOnstage = null;
-            setUserStatus(R.string.status_private_call_ended);
+            mNotification.hide();
         }
 
     }
@@ -877,29 +997,29 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void unsubscribeHostFromStream(Stream stream) {
-        if (mSubscriberHost.getStream().equals(stream)) {
+        if (mSubscriberHost != null && mSubscriberHost.getStream().equals(stream)) {
             mSubscriberHostViewContainer.removeView(mSubscriberHost.getView());
             //mSession.unsubscribe(mSubscriberHost);
             mSubscriberHost = null;
-            mLoadingSubHost.setVisibility(View.GONE);
+            mSubscriberHostViewContainer.displaySpinner(false);
         }
     }
 
     private void unsubscribeCelebrityFromStream(Stream stream) {
-        if (mSubscriberCelebrity.getStream().equals(stream)) {
+        if (mSubscriberCelebrity != null && mSubscriberCelebrity.getStream().equals(stream)) {
             mSubscriberCelebrityViewContainer.removeView(mSubscriberCelebrity.getView());
             //mSession.unsubscribe(mSubscriberCelebrity);
             mSubscriberCelebrity = null;
-            mLoadingSubCelebrity.setVisibility(View.GONE);
+            mSubscriberCelebrityViewContainer.displaySpinner(false);
         }
     }
 
     private void unsubscribeFanFromStream(Stream stream) {
-        if (mSubscriberFan.getStream().equals(stream)) {
+        if (mSubscriberCelebrity != null && mSubscriberFan.getStream().equals(stream)) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
             //mSession.unsubscribe(mSubscriberFan);
             mSubscriberFan = null;
-            mLoadingSubFan.setVisibility(View.GONE);
+            mSubscriberFanViewContainer.displaySpinner(false);
         }
     }
 
@@ -988,17 +1108,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mProducerConnection = null;
 
         mAudioOnlyFan = false;
-    }
-
-    private void initReconnection() {
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.i(LOG_TAG, "Attempting to reconnect");
-                sessionConnect();
-            }
-        }, 10000);
-
     }
 
     @Override
@@ -1146,15 +1255,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void showPublisher() {
         if(mPublisher != null) {
+            mPublisherViewContainer.clearAnimation();
+            mPublisherSpinnerLayout.clearAnimation();
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mPublisherViewContainer.clearAnimation();
-                    mPublisherSpinnerLayout.clearAnimation();
                     mPublisherViewContainer.setAlpha(1f);
                     mPublisherViewContainer.setVisibility(View.VISIBLE);
                     mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-                    mPublisher.getView().setVisibility(View.VISIBLE);
+                    //if(mAvatarPublisher.getVisibility() == View.GONE) {
+                        mPublisher.getView().setVisibility(View.VISIBLE);
+                    //}
+
                 }
             }, 500);
 
@@ -1166,16 +1278,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             AlphaAnimation animation1 = new AlphaAnimation(1f, 0f);
             animation1.setDuration(2000);
-            //animation1.setFillAfter(true);
             mPublisherSpinnerLayout.startAnimation(animation1);
             mPublisherViewContainer.startAnimation(animation1);
-            mPublisher.getView().startAnimation(animation1);
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    mPublisherSpinnerLayout.setVisibility(View.GONE);
-                    mPublisherViewContainer.setVisibility(View.GONE);
-                    mPublisher.getView().setVisibility(View.GONE);
+                    if(!mOnBackstage) {
+                        mPublisher.getView().setVisibility(View.GONE);
+                        mPublisherSpinnerLayout.setVisibility(View.GONE);
+                        mPublisherViewContainer.setVisibility(View.GONE);
+                    }
                 }
             }, 1000);
         }
@@ -1290,7 +1402,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.SUCCESS);
 
             // stop loading spinning
-            mLoadingSubFan.setVisibility(View.GONE);
+            mSubscriberFanViewContainer.displaySpinner(false);
             attachSubscriberFanView();
         } else if(subscriber.getStream().getConnection().getData().equals("usertype=host")) {
 
@@ -1298,7 +1410,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.SUCCESS);
 
             // stop loading spinning
-            mLoadingSubHost.setVisibility(View.GONE);
+            mSubscriberHostViewContainer.displaySpinner(false);
             attachSubscriberHostView();
 
 
@@ -1308,7 +1420,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.SUCCESS);
 
             // stop loading spinning
-            mLoadingSubCelebrity.setVisibility(View.GONE);
+            mSubscriberCelebrityViewContainer.displaySpinner(false);
             attachSubscriberCelebrityView();
         } else if(subscriber.getStream().getConnection().getData().equals("usertype=producer")) {
             Boolean bIsOnStage = subscriber.getSession().getSessionId().equals(mSessionId);
@@ -1339,32 +1451,32 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(subscriberConnectionId.equals(host)) {
             if (show) {
                 mSubscriberHost.getView().setVisibility(View.GONE);
-                mAvatarHost.setVisibility(View.VISIBLE);
+                mSubscriberHostViewContainer.displayAvatar(true);
             }
             else {
                 mSubscriberHost.getView().setVisibility(View.VISIBLE);
-                mAvatarHost.setVisibility(View.GONE);
+                mSubscriberHostViewContainer.displayAvatar(false);
             }
         }
         if(subscriberConnectionId.equals(celebrity)) {
             if (show) {
                 mSubscriberCelebrity.getView().setVisibility(View.GONE);
-                mAvatarCelebrity.setVisibility(View.VISIBLE);
+                mSubscriberCelebrityViewContainer.displayAvatar(true);
             }
             else {
                 mSubscriberCelebrity.getView().setVisibility(View.VISIBLE);
-                mAvatarCelebrity.setVisibility(View.GONE);
+                mSubscriberCelebrityViewContainer.displayAvatar(false);
             }
         }
         if(subscriberConnectionId.equals(fan)) {
             if (show) {
                 mSubscriberFan.getView().setVisibility(View.GONE);
-                mAvatarFan.setVisibility(View.VISIBLE);
+                mSubscriberFanViewContainer.displayAvatar(true);
                 mAudioOnlyFan = true;
             }
             else {
                 mSubscriberFan.getView().setVisibility(View.VISIBLE);
-                mAvatarFan.setVisibility(View.GONE);
+                mSubscriberFanViewContainer.displayAvatar(false);
                 mAudioOnlyFan = false;
             }
         }
@@ -1428,7 +1540,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ERROR);
             mSubscribingError = true;
             sendWarningSignal();
-            if(!mConnectionError) mNotification.showConnectionLost();
+            //if(!mConnectionError) mNotification.showConnectionLost();
         } catch(Exception ex) {
             Log.e(LOG_TAG, "Catching error SubscriberKit");
         }
@@ -1537,9 +1649,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         Log.i(LOG_TAG, "send warning signal");
                         sendWarningSignal();
                     }
-
-                    //Send get in line
-                    sendGetInLine();
                 }
             });
         } else {
@@ -1555,17 +1664,22 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinBackstage() {
+        mOnBackstage = true;
+        mPublisher.setPublishVideo(true);
         showPublisher();
-        setUserStatus(R.string.status_backstage);
+        mNotification.showNotification(Notification.TYPE.BACKSTAGE);
     }
 
     private void disconnectBackstage() {
+        mOnBackstage = false;
         hidePublisher();
-        setUserStatus(R.string.status_inline);
+        mNotification.hide();
     }
 
     private void connectWithOnstage() {
+        mOnBackstage = false;
         hidePublisher();
+        mNotification.hide();
         //End the private call
         if (mProducerStream!= null && mSubscriberProducer != null) {
             muteOnstage(false);
@@ -1578,7 +1692,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.ATTEMPT);
         mBackstageSession.unpublish(mPublisher);
-        setUserStatus(R.string.status_onstage);
+        mGoLiveView.setVisibility(View.VISIBLE);
 
         mPublisherViewContainer.removeView(mPublisher.getView());
         mPublisher.destroy();
@@ -1622,7 +1736,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void disconnectFromOnstage() {
         mUserIsOnstage = false;
-        mAvatarFan.setVisibility(View.GONE);
+        mSubscriberFanViewContainer.displayAvatar(false);
 
         //Unpublish
         addLogEvent(OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.ATTEMPT);
@@ -1648,13 +1762,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLiveButton.setVisibility(View.GONE);
         mCircleLiveButton.setVisibility(View.GONE);
 
+        mNotification.showThanksForParticipating();
 
-        Toast toast = Toast.makeText(getApplicationContext(), R.string.thanks_for_participating, Toast.LENGTH_LONG);
-        ViewGroup view = (ViewGroup) toast.getView();
-        view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.countdown_background_color));
-        TextView messageTextView = (TextView) view.getChildAt(0);
-        messageTextView.setTextSize(13);
-        toast.show();
 
         mGoLiveView.clearAnimation();
         mGoLiveView.setAlpha(1f);
@@ -1719,12 +1828,22 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mUserIsOnstage) {
             if(video.equals("on")) {
                 mPublisher.getView().setVisibility(View.VISIBLE);
-                mAvatarFan.setVisibility(View.GONE);
+                mSubscriberFanViewContainer.displayAvatar(false);
                 mAudioOnlyFan = false;
             } else {
                 mPublisher.getView().setVisibility(View.GONE);
-                mAvatarFan.setVisibility(View.VISIBLE);
+                mSubscriberFanViewContainer.displayAvatar(true);
                 mAudioOnlyFan = true;
+            }
+        } else {
+            if(mPublisherViewContainer.getVisibility() == View.VISIBLE) {
+                if(video.equals("on")) {
+                    mPublisher.getView().setVisibility(View.VISIBLE);
+                    mAvatarPublisher.setVisibility(View.GONE);
+                } else {
+                    mPublisher.getView().setVisibility(View.GONE);
+                    mAvatarPublisher.setVisibility(View.VISIBLE);
+                }
             }
         }
 
@@ -1746,19 +1865,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void goLive(){
-
-        try {
-            sendGoLiveMetrics();
-            mEvent.put("status", "L");
-            updateEventName();
-            if(!mUserIsOnstage) {
-                if (mFanStream != null) subscribeFanToStream(mFanStream);
-                if (mHostStream != null) subscribeHostToStream(mHostStream);
-                if (mCelebrityStream != null) subscribeCelebrityToStream(mCelebrityStream);
-                updateViewsWidth();
-            }
-        } catch (JSONException ex) {
-            Log.e(LOG_TAG, "goLivegoLive error ---> " + ex.getMessage());
+        setEventStatus("L");
+        updateEventName();
+        if(!mUserIsOnstage) {
+            if (mFanStream != null) subscribeFanToStream(mFanStream);
+            if (mHostStream != null) subscribeHostToStream(mHostStream);
+            if (mCelebrityStream != null) subscribeCelebrityToStream(mCelebrityStream);
+            updateViewsWidth();
         }
     }
 
@@ -1790,6 +1903,14 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         return status;
     }
 
+    private void setEventStatus(String status) {
+        try {
+            mEvent.put("status", status);
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+    }
+
 
 
     private void finishEvent() {
@@ -1802,9 +1923,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mSubscriberCelebrityViewContainer.setVisibility(View.GONE);
         mSubscriberFanViewContainer.setVisibility(View.GONE);
         mSubscriberHostViewContainer.setVisibility(View.GONE);
-        mAvatarFan.setVisibility(View.GONE);
-        mAvatarCelebrity.setVisibility(View.GONE);
-        mAvatarHost.setVisibility(View.GONE);
+        mSubscriberFanViewContainer.displayAvatar(false);
+        mSubscriberCelebrityViewContainer.displayAvatar(false);
+        mSubscriberHostViewContainer.displayAvatar(false);
 
         //Hide chat
         mChatButton.setVisibility(View.GONE);
@@ -1828,12 +1949,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }, 10000);
 
-        try {
-            //Change status
-            mEvent.put("status", "C");
-        } catch (JSONException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
-        }
+        setEventStatus("C");
+
         //Update event name and Status.
         updateEventName();
     }
@@ -1900,14 +2017,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void initGetInline() {
+        mOnBackstage = false;
         setVisibilityGetInLine(View.GONE);
         mGetInLine.setText(getResources().getString(R.string.leave_line));
         mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
         if(mBackstageSessionId != null) {
-            //mPublisherViewContainer.setAlpha(1f);
-            //mPublisherViewContainer.setVisibility(View.VISIBLE);
-            //mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-            //mLoadingSubPublisher.setVisibility(View.VISIBLE);
 
             //Send socket signal
             mSocket.emitJoinRoom(mBackstageSessionId);
@@ -1937,37 +2051,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    private void sendGetInLine(){
-        if(InstanceApp.getInstance().getEnableAnalytics()) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        mWebServiceCoordinator.sendGetInLine(mEvent.getString("id"));
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-                    }
-                }
-            });
-        }
-    }
-
-    private void sendGoLiveMetrics(){
-        if(InstanceApp.getInstance().getEnableAnalytics()) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String is_on_stage = String.valueOf(mUserIsOnstage);
-                        String is_in_line = (mUserIsOnstage || isInLine()) ? "true" : "false";
-                        mWebServiceCoordinator.sendGoLiveMetrics(mEvent.getString("id"), is_on_stage, is_in_line);
-                    } catch (JSONException e) {
-                        Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-                    }
-                }
-            });
-        }
-    }
     private void sendNewFanSignal() {
 
         if(mProducerConnection != null && mBackstageSession != null){
@@ -2130,5 +2213,118 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         this.startActivity(myAppSettings);
     }
-}
 
+    private Emitter.Listener onAbleToJoin = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    JSONObject data = (JSONObject) args[0];
+                    Boolean ableToJoin;
+                    Boolean eventLive;
+                    String broadcastId;
+                    try {
+                        ableToJoin = data.getBoolean("ableToJoin");
+                        if(ableToJoin) {
+                            Log.i(LOG_TAG, "able to join to interactive!");
+                            requestEventData(mEvent);
+                        } else {
+                            Log.i(LOG_TAG, "not able to join to interactive.");
+                            if(data.get("broadcastData") != JSONObject.NULL){
+                                mBroadcastData = data.getJSONObject("broadcastData");
+                                mHls = true;
+                                mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
+                                mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
+                                mSocket.getSocket().on("eventEnded", onBroadcastEnd);
+                                mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
+                                eventLive = mBroadcastData.getBoolean("eventLive");
+                                if(eventLive) {
+                                    startBroadcast();
+                                }
+                            } else {
+                                mNotification.showUnableToJoinMessage();
+                            }
+
+                        }
+                    } catch (JSONException e) {
+                        return;
+                    }
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onBroadcastGoLive = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            setEventStatus("L");
+                            updateEventName();
+                            startBroadcast();
+                        }
+                    }, 15 * 1000);
+                }
+            });
+        }
+    };
+
+    private Emitter.Listener onBroadcastEnd = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Show Event Image end
+                            mEventImage.setVisibility(View.GONE);
+                            mEventImageEnd.setVisibility(View.VISIBLE);
+                            mVideoView.stopPlayback();
+                            mVideoViewLayout.setVisibility(View.GONE);
+                            setEventStatus("C");
+                            //Update event name and Status.
+                            updateEventName();
+                        }
+                    }, 15 * 1000);
+                }
+            });
+        }
+    };
+    
+    private void startBroadcast() {
+        if(!mBroadcastUrl.equals("")) {
+            mEventImage.setVisibility(View.GONE);
+            mVideoViewLayout.setVisibility(View.VISIBLE);
+            mVideoView.setVideoURI(Uri.parse(mBroadcastUrl));
+            mVideoView.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    return false;
+                }
+
+            });
+
+            mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener(){
+                @Override
+                public void onPrepared(MediaPlayer m) {
+                    mHls = true;
+                    mVideoViewProgressBar.setVisibility(View.GONE);
+                }
+            });
+            mVideoView.start();
+        }
+    }
+
+    private void resumeBroadcast() {
+        if(mVideoViewLayout.getVisibility() == View.VISIBLE) {
+            mVideoView.start();
+        }
+    }
+}

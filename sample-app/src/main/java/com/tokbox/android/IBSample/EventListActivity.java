@@ -50,7 +50,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
 
         super.onCreate(savedInstanceState);
 
-        if(IBConfig.INSTANCE_ID == null || IBConfig.INSTANCE_ID.equals("")) {
+        if(IBConfig.ADMIN_ID == null || IBConfig.ADMIN_ID.equals("")) {
             goToMainActivity();
         }
         setContentView(R.layout.event_list_activity);
@@ -66,14 +66,14 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         startLoadingAnimation();
 
         //
-        getInstanceId();
+        getEventsByAdmin();
     }
 
     private void initSocket() {
         //Init socket
         mSocket = new SocketCoordinator();
         mSocket.connect();
-        mSocket.getSocket().on("change-event-status", onChangeStatus);
+        mSocket.getSocket().on("changeStatus", onChangeStatus);
     }
 
     private Emitter.Listener onChangeStatus = new Emitter.Listener() {
@@ -87,9 +87,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
                 id = data.getString("id");
                 newStatus = data.getString("newStatus");
                 Log.i(LOG_TAG, "change" + newStatus);
-
-
-
 
                 for (int i=0; i<mArrEvents.length(); i++) {
                     if(mArrEvents.getJSONObject(i).getString("id").equals(id)) {
@@ -144,7 +141,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
             mListActivities.setAdapter(null);
             //start the progress bar
             startLoadingAnimation();
-            getInstanceId();
+            getEventsByAdmin();
         }
 
     }
@@ -158,17 +155,16 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     @Override
     public void onDestroy() {
         super.onDestroy();
-        //mSocket.disconnect();
         if(mSocket != null) {
-            mSocket.getSocket().off("change-event-status", onChangeStatus);
+            mSocket.getSocket().off("changeStatus", onChangeStatus);
         }
 
 
     }
 
-    public void getInstanceId() {
+    public void getEventsByAdmin() {
         try {
-            mWebServiceCoordinator.getInstanceById();
+            mWebServiceCoordinator.getEventsByAdmin();
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -209,6 +205,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     public void showEvent() {
+        //mSocket.disconnect();
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == "fan") {
@@ -216,6 +213,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         } else {
             localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
         }
+
         Bundle localBundle = new Bundle();
         localBundle.putString("event_index", "0");
         localIntent.putExtras(localBundle);
@@ -223,6 +221,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     public void showEvent(int event_index) {
+        mSocket.disconnect();
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == "fan") {
@@ -285,7 +284,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                getInstanceId();
+                getEventsByAdmin();
             }
         }, 5000);
     }
