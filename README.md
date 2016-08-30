@@ -7,7 +7,7 @@ This document describes how to create a OpenTok Interactive Broadcast Solution m
 This guide has the following sections:
 
 * [Prerequisites](#prerequisites): A checklist of everything you need to get started.
-* [Create your first Interactive Broadcast Solution application](#createfirstapp): A step by step tutorial to help you develop a basic Interactive Broadcast Solution application.
+* [Quickstart](#quickstart): A step by step tutorial to help you develop a basic Interactive Broadcast Solution application.
 * [Complete code example](#complete-code-example): This is the complete code example that you will develop in this tutorial. You can skip the tutorial and use this example to get started quickly with your own application development.
 
 _**NOTE:** The **Interactive Broadcast Solution** only supports landscape orientation on mobile devices._
@@ -19,19 +19,17 @@ _**IMPORTANT:** In order to deploy the OpenTok Interactive Broadcast Solution, y
 
 To be prepared to develop your first Interactive Broadcast Solution mobile app:
 
-1. Install [Android Studio](http://developer.android.com/intl/es/sdk/index.html)
-2. Download the **Interactive Broadcast Solution Library AAR** file provided by TokBox.
-3. You will need the **Instance ID** and **Backend Base URL** provided by TokBox.
-4. Download the [OpenTok Android SDK](https://tokbox.com/developer/sdks/android/#developerandclientrequirements)
-5. Review the [OpenTok Android SDK Requirements](https://tokbox.com/developer/sdks/android/#developerandclientrequirements).
+1. Install [Android Studio](http://developer.android.com/intl/es/sdk/index.html).
+2. Review the [OpenTok Android SDK Requirements](https://tokbox.com/developer/sdks/android/#developerandclientrequirements).
+3. Your app will need a **Session ID**, **Token**, and **API Key**, which you can get at the [OpenTok Developer Dashboard](https://dashboard.tokbox.com/).
 
-_**NOTE:** To get the **Interactive Broadcast Solution Library AAR**, **Instance ID**, and **Backend Base URL**, contact <a mailto:"bizdev@tokbox.com">bizdev@tokbox.com</a>._
+_**NOTE**: The OpenTok Developer Dashboard allows you to quickly run this sample program. For production deployment, you must generate the **Session ID** and **Token** values using one of the [OpenTok Server SDKs](https://tokbox.com/developer/sdks/server/)._
 
-<h2 id=createfirstapp>Create your first Interactive Broadcast Solution application</h2>
+## Quickstart
 
-To get up and running quickly with your first app, go through the following steps in the tutorial provided below:
+To get up and running quickly with your app, go through the following steps in the tutorial provided below:
 
-1. [Create an Android Studio project](#create-an-android-studio-project)
+1. [Importing the Android Studio Project](#importing-the-android-studio-project)
 2. [Add the OpenTok Interactive Broadcast Solution library](#addlibrary)
 3. [Add the OpenTok Android SDK](#add-the-opentok-android-sdk)
 4. [Configure the Interactive Broadcast Solution user](#configure-the-interactive-broadcast-solution-user)
@@ -40,7 +38,7 @@ To get up and running quickly with your first app, go through the following step
 
 View the [Complete code example](#complete-code-example).
 
-### Create an Android Studio project
+### Importing the Android Studio Project
 
 In Android Studio, configure a new project.
 
@@ -54,10 +52,59 @@ In Android Studio, configure a new project.
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     ```
 
 
 <h3 id=addlibrary> Add the OpenTok Interactive Broadcast Solution library</h3>
+
+There are 3 options for installing the OpenTok Interactive Broadcast Solution library:
+
+  - [Using the repository](#using-the-repository)
+  - [Using Maven](#using-maven)
+  - [Downloading and Installing the AAR File](#downloading-and-installing-the-aar-file)
+
+
+#### Using the repository
+
+1. Clone the [OpenTok Interactive Broadcast Solution repo](https://github.com/opentok/spotlight-android).
+2. From the OpenTok Interactive Broadcast Solution Sample app project, right-click the app name and select **New > Module > Import Gradle Project**.
+3. Navigate to the directory in which you cloned **OpenTok Interactive Broadcast Solution**, select **sample-app**, and click **Finish**.
+4. Open the **build.gradle** file for the app and ensure the following line has been added to the `dependencies` section:
+
+```
+compile 'com.opentok.android:opentok-android-sdk:2.8.+'
+```
+
+#### Using Maven
+
+<ol>
+
+<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled 'repositories’:
+
+<code>
+maven { url  "http://tokbox.bintray.com/maven" }
+</code>
+
+</li>
+
+<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled 'dependencies’: 
+
+
+<code>
+compile com.opentok.android:opentok-android-sdk:2.8.+'
+</code>
+
+</li>
+
+</ol>
+
+  _**NOTE**: Since dependencies are transitive with Maven, it is not necessary to explicitly reference the TokBox Common Accelerator Session Pack and the Annotations Kit with this option._
+
+
+
+#### Downloading and Installing the AAR File
 
 1.  Right-click the app name and select **New > Module**
 2.  Select **Import .JAR / .AAR Package** and click **Next**.
