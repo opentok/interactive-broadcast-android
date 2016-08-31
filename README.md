@@ -64,7 +64,7 @@ In Android Studio, configure a new project.
     requestPermissions(permissions, permsRequestCode);
     ```
 
-    For more information, see <a href=“https://developer.android.com/training/permissions/requesting.html”>Requesting Permissions at Run Time</a>.
+    For more information, see [Requesting Permissions at Run Time](https://developer.android.com/training/permissions/requesting.html).
 
 
 <h3 id=addlibrary> Add the OpenTok Interactive Broadcast Solution library</h3>
@@ -73,7 +73,7 @@ To installing the OpenTok Interactive Broadcast Solution library:
 
 <ol>
 
-<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled 'repositories’:
+<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled `repositories`:
 
 <code>
 maven { url  "http://tokbox.bintray.com/maven" }
@@ -81,7 +81,7 @@ maven { url  "http://tokbox.bintray.com/maven" }
 
 </li>
 
-<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled 'dependencies’: 
+<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled `dependencies`: 
 
 
 <code>
@@ -102,7 +102,7 @@ To add the OpenTok Android SDK to your project:
 
 <ol>
 
-<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled 'repositories’:
+<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled `repositories`:
 
 <code>
 maven { url  "http://tokbox.bintray.com/maven" }
@@ -110,7 +110,7 @@ maven { url  "http://tokbox.bintray.com/maven" }
 
 </li>
 
-<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled 'dependencies’: 
+<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled `dependencies`: 
 
 
 <code>
@@ -121,7 +121,7 @@ compile com.opentok.android:opentok-android-sdk:2.8.+'
 
 </ol>
 
-For more information, see <a href=“https://tokbox.com/developer/sdks/android/#creating-your-own-app-using-the-opentok-android-sdk”>Creating your own app using the OpenTok Android SDK</a>.
+For more information, see [Creating your own app using the OpenTok Android SDK](https://tokbox.com/developer/sdks/android/#creating-your-own-app-using-the-opentok-android-sdk).
 
 
 ### Configure the Interactive Broadcast Solution user
