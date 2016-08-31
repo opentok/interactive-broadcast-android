@@ -73,7 +73,7 @@ To installing the OpenTok Interactive Broadcast Solution library:
 
 <ol>
 
-<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled `repositories`:
+<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled <b>repositories</b>:
 
 <code>
 maven { url  "http://tokbox.bintray.com/maven" }
@@ -81,7 +81,7 @@ maven { url  "http://tokbox.bintray.com/maven" }
 
 </li>
 
-<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled `dependencies`: 
+<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled <b>dependencies</b>: 
 
 
 <code>
@@ -102,7 +102,7 @@ To add the OpenTok Android SDK to your project:
 
 <ol>
 
-<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled `repositories`:
+<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled <b>repositories</b>:
 
 <code>
 maven { url  "http://tokbox.bintray.com/maven" }
@@ -110,7 +110,7 @@ maven { url  "http://tokbox.bintray.com/maven" }
 
 </li>
 
-<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled `dependencies`: 
+<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled <b>dependencies</b>: 
 
 
 <code>
