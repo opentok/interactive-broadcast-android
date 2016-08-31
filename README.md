@@ -56,28 +56,49 @@ In Android Studio, configure a new project.
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     ```
 
+    **NOTE**: If you are using Android Marshmallow or later, you must manage the permissions for the microphone and camera at runtime:
+
+    ```java
+    private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
+
+    requestPermissions(permissions, permsRequestCode);
+    ```
+
+    For more information, see <a href=“https://developer.android.com/training/permissions/requesting.html”>Requesting Permissions at Run Time</a>.
+
 
 <h3 id=addlibrary> Add the OpenTok Interactive Broadcast Solution library</h3>
 
-There are 3 options for installing the OpenTok Interactive Broadcast Solution library:
+To installing the OpenTok Interactive Broadcast Solution library:
 
-  - [Using the repository](#using-the-repository)
-  - [Using Maven](#using-maven)
-  - [Downloading and Installing the AAR File](#downloading-and-installing-the-aar-file)
+<ol>
+
+<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled 'repositories’:
+
+<code>
+maven { url  "http://tokbox.bintray.com/maven" }
+</code>
+
+</li>
+
+<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled 'dependencies’: 
 
 
-#### Using the repository
+<code>
+compile 'com.mcxiaoke.volley:library:1.0.19'
+</code>
 
-1. Clone the [OpenTok Interactive Broadcast Solution repo](https://github.com/opentok/spotlight-android).
-2. From the OpenTok Interactive Broadcast Solution Sample app project, right-click the app name and select **New > Module > Import Gradle Project**.
-3. Navigate to the directory in which you cloned **OpenTok Interactive Broadcast Solution**, select **sample-app**, and click **Finish**.
-4. Open the **build.gradle** file for the app and ensure the following line has been added to the `dependencies` section:
+</li>
 
-```
-compile 'com.opentok.android:opentok-android-sdk:2.8.+'
-```
+</ol>
 
-#### Using Maven
+  _**NOTE**: Since dependencies are transitive with Maven, it is not necessary to explicitly reference the TokBox Common Accelerator Session Pack and the Annotations Kit with this option._
+
+
+
+### Add the OpenTok Android SDK
+
+To add the OpenTok Android SDK to your project:
 
 <ol>
 
@@ -100,36 +121,7 @@ compile com.opentok.android:opentok-android-sdk:2.8.+'
 
 </ol>
 
-  _**NOTE**: Since dependencies are transitive with Maven, it is not necessary to explicitly reference the TokBox Common Accelerator Session Pack and the Annotations Kit with this option._
-
-
-
-#### Downloading and Installing the AAR File
-
-1.  Right-click the app name and select **New > Module**
-2.  Select **Import .JAR / .AAR Package** and click **Next**.
-3.  Browse to the **Interactive Broadcast Solution library AAR** and click **Finish**.
-4.  Right-click the app name and select **Open Module Settings**.
-5.  Select the app module and **Dependencies** tab.
-6.  Click **+** to add a dependency, select **Module Dependency**, select the module name for your Interactive Broadcast Solution AAR, and click **OK**.
-7.  Edit the **build.gradle** file for your app module and add the following dependency, which sends requests to the backend web server instance:
-
-    ```
-    compile 'com.mcxiaoke.volley:library:1.0.19'
-    ```
-
-
-### Add the OpenTok Android SDK
-
-To add the OpenTok Android SDK to your project, unzip the file containing OpenTok SDK that you downloaded earlier (see [Prerequisites](#prerequisites)), and expand the folders.
-
-The **libs** folder contains a JAR file (**opentok-android-sdk-x.y.z.jar**, where **x.y.z** indicates the current SDK version) and several subfolders (**armeabi, armeabi-v71, x86**).
-
-Follow these steps to add these to your project:
-
-1.  Select the Project view and drag the JAR file to the **app/libs** directory. Then right-click the JAR file and select **Add as library**.
-2.  Right-click the **app/src/main** directory, select **New > Directory**, enter **jniLibs** as the directory name, and click **OK**.
-3.  Drag the **armeabi**, **armeabi-v71**, and **x86** directories into the new **jniLibs** directory.
+For more information, see <a href=“https://tokbox.com/developer/sdks/android/#creating-your-own-app-using-the-opentok-android-sdk”>Creating your own app using the OpenTok Android SDK</a>.
 
 
 ### Configure the Interactive Broadcast Solution user
