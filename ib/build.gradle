@@ -89,7 +89,7 @@ dependencies {
     provided fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.opentok.android:opentok-android-sdk:2.8.+'
+    compile 'com.opentok.android:opentok-android-sdk:2.9.+'
     compile 'com.opentok.android:opentok-solutions-logging:+'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
     compile 'com.squareup.picasso:picasso:2.5.2'
