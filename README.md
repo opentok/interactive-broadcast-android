@@ -91,10 +91,13 @@ _**NOTE**: Since some dependencies are not transitive, it is necessary to explic
 
 <code>
     compile 'com.squareup.picasso:picasso:2.5.2'
+
     compile 'com.android.volley:volley:1.0.0'
+    
     compile('com.github.nkzawa:socket.io-client:0.4.1') {
         exclude group: 'org.json', module: 'json'
     }
+    
 </code>
 
 </li>
