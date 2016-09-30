@@ -71,50 +71,33 @@ In Android Studio, configure a new project.
 
 To installing the OpenTok Interactive Broadcast Solution library:
 
+#### Downloading and Installing the AAR File
+
+1.  Download the [OpenTok Interactive Broadcast Solution AAR].
+1. Extract the **opentok-ib-android-1.0.3.aar** file.
+1. Right-click the app name, select **Open Module Settings**, and click **+**.
+1. Select **Import .JAR/.AAR Package** and click  **Next**.
+1. Browse to the **OpenTok Interactive Broadcast Solution AAR** and click **Finish**.
+1. Right-click the app name and select Open Module Settings.
+1. Select the app module and Dependencies tab.
+1. Click + to add a dependency, select Module Dependency, select the module name for your Interactive Broadcasting Solution AAR, and click OK.
+
+
+_**NOTE**: Since some dependencies are not transitive, it is necessary to explicitly reference them._
+
 <ol>
-
-<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled <b>repositories</b>:
-
-<code>
-maven { url  "http://tokbox.bintray.com/maven" }
-</code>
-
-</li>
 
 <li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled <b>dependencies</b>: <br/>
 
-
 <code>
-compile 'com.mcxiaoke.volley:library:1.0.19'
-</code>
+    compile 'com.squareup.picasso:picasso:2.5.2'
 
-</li>
-
-</ol>
-
-  _**NOTE**: Since dependencies are transitive with Maven, it is not necessary to explicitly reference the TokBox Common Accelerator Session Pack and the Annotations Kit with this option._
-
-
-
-### Add the OpenTok Android SDK
-
-To add the OpenTok Android SDK to your project:
-
-<ol>
-
-<li>Modify the <b>build.gradle</b> for your solution and add the following code snippet to the section labeled <b>repositories</b>:
-
-<code>
-maven { url  "http://tokbox.bintray.com/maven" }
-</code>
-
-</li>
-
-<li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled <b>dependencies</b>:<br/> 
-
-
-<code>
-compile com.opentok.android:opentok-android-sdk:2.8.+'
+    compile 'com.android.volley:volley:1.0.0'
+    
+    compile('com.github.nkzawa:socket.io-client:0.4.1') {
+        exclude group: 'org.json', module: 'json'
+    }
+    
 </code>
 
 </li>
