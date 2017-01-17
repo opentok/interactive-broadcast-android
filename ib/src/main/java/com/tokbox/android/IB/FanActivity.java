@@ -1515,11 +1515,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
         }
 
-
         if(!subscriberKit.getStream().hasVideo()) {
             enableAudioOnlyView(subscriberKit.getStream().getConnection().getConnectionId(), true);
         }
-
     }
 
     @Override
@@ -1617,10 +1615,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         break;
                 }
             }
+            else {
+                if (!connection.getData().equals("usertype=fan") && !connection.getData().equals("usertype=host")
+                        && !connection.getData().equals("usertype=celebrity"))
+                    Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
+            }
         }
-        else {
-            Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
-        }
+
         //TODO: onChangeVolumen
     }
 

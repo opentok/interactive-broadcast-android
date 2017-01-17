@@ -945,7 +945,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 }
             }
             else {
-                Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
+                if (!connection.getData().equals("usertype=fan") && !connection.getData().equals("usertype=host")
+                        && !connection.getData().equals("usertype=celebrity"))
+                    Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
             }
         }
         //TODO: onChangeVolumen
