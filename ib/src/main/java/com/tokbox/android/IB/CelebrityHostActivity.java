@@ -916,32 +916,38 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
 
         if(type != null) {
-            switch(type) {
-                case "chatMessage":
-                    handleNewMessage(data, connection);
-                    break;
-                case "videoOnOff":
-                    videoOnOff(data);
-                    break;
-                case "muteAudio":
-                    muteAudio(data);
-                    break;
-                case "goLive":
-                    goLive();
-                    break;
-                case "finishEvent":
-                    finishEvent();
-                    break;
-                case "newBackstageFan":
-                    newBackstageFan();
-                    break;
-                case "privateCall":
-                    startPrivateCall(data);
-                    break;
-                case "endPrivateCall":
-                    endPrivateCall();
-                    break;
-
+            if (connection.getData().equals("usertype=producer")) {
+                switch(type) {
+                    case "chatMessage":
+                        handleNewMessage(data, connection);
+                        break;
+                    case "videoOnOff":
+                        videoOnOff(data);
+                        break;
+                    case "muteAudio":
+                        muteAudio(data);
+                        break;
+                    case "goLive":
+                        goLive();
+                        break;
+                    case "finishEvent":
+                        finishEvent();
+                        break;
+                    case "newBackstageFan":
+                        newBackstageFan();
+                        break;
+                    case "privateCall":
+                        startPrivateCall(data);
+                        break;
+                    case "endPrivateCall":
+                        endPrivateCall();
+                        break;
+                }
+            }
+            else {
+                if (!connection.getData().equals("usertype=fan") && !connection.getData().equals("usertype=host")
+                        && !connection.getData().equals("usertype=celebrity"))
+                    Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
             }
         }
         //TODO: onChangeVolumen

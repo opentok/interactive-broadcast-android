@@ -1515,11 +1515,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
         }
 
-
         if(!subscriberKit.getStream().hasVideo()) {
             enableAudioOnlyView(subscriberKit.getStream().getConnection().getConnectionId(), true);
         }
-
     }
 
     @Override
@@ -1553,71 +1551,78 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         Log.i(LOG_TAG, "New signal:" + type);
         if(type != null) {
-            switch(type) {
-                case "chatMessage":
-                    handleNewMessage(data, connection);
-                    break;
-                case "videoOnOff":
-                    videoOnOff(data);
-                    break;
-                case "muteAudio":
-                    muteAudio(data);
-                    break;
-                case "startEvent":
-                    startEvent();
-                    break;
-                case "goLive":
-                    goLive();
-                    break;
-                case "finishEvent":
-                    finishEvent();
-                    break;
-                //backstage
-                case "resendNewFanSignal":
-                    if (!mNewFanSignalAckd) sendNewFanSignal();
-                    break;
-                case "joinProducer":
-                    subscribeProducer();
-                    break;
-                case "disconnectProducer":
-                    unSubscribeProducer();
-                    break;
-                case "joinHost":
-                    connectWithOnstage();
-                    break;
-                case "closeChat":
-                    hideChat();
-                    mChatButton.setVisibility(View.GONE);
-                    break;
-                case "joinHostNow":
-                    joinHostNow();
-                    break;
-                case "disconnect":
-                    disconnectFromOnstage();
-                    break;
-                case "joinBackstage":
-                    joinBackstage();
-                    break;
-                case "disconnectBackstage":
-                    disconnectBackstage();
-                    break;
-                case "newFanAck":
-                    ackNewFanSignal();
-                    break;
-                case "producerLeaving":
-                    mNewFanSignalAckd = false;
-                    break;
-                case "privateCall":
-                    startPrivateCall(data);
-                    break;
-                case "endPrivateCall":
-                    endPrivateCall();
-                    break;
+            //Check the origin of the signal
+            if (connection.getData().equals("usertype=producer")) {
+                switch (type) {
+                    case "chatMessage":
+                        handleNewMessage(data, connection);
+                        break;
+                    case "videoOnOff":
+                        videoOnOff(data);
+                        break;
+                    case "muteAudio":
+                        muteAudio(data);
+                        break;
+                    case "startEvent":
+                        startEvent();
+                        break;
+                    case "goLive":
+                        goLive();
+                        break;
+                    case "finishEvent":
+                        finishEvent();
+                        break;
+                    //backstage
+                    case "resendNewFanSignal":
+                        if (!mNewFanSignalAckd) sendNewFanSignal();
+                        break;
+                    case "joinProducer":
+                        subscribeProducer();
+                        break;
+                    case "disconnectProducer":
+                        unSubscribeProducer();
+                        break;
+                    case "joinHost":
+                        connectWithOnstage();
+                        break;
+                    case "closeChat":
+                        hideChat();
+                        mChatButton.setVisibility(View.GONE);
+                        break;
+                    case "joinHostNow":
+                        joinHostNow();
+                        break;
+                    case "disconnect":
+                        disconnectFromOnstage();
+                        break;
+                    case "joinBackstage":
+                        joinBackstage();
+                        break;
+                    case "disconnectBackstage":
+                        disconnectBackstage();
+                        break;
+                    case "newFanAck":
+                        ackNewFanSignal();
+                        break;
+                    case "producerLeaving":
+                        mNewFanSignalAckd = false;
+                        break;
+                    case "privateCall":
+                        startPrivateCall(data);
+                        break;
+                    case "endPrivateCall":
+                        endPrivateCall();
+                        break;
+                }
+            }
+            else {
+                if (!connection.getData().equals("usertype=fan") && !connection.getData().equals("usertype=host")
+                        && !connection.getData().equals("usertype=celebrity"))
+                    Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
             }
         }
+
         //TODO: onChangeVolumen
-
-
     }
 
     private void ackNewFanSignal() {
