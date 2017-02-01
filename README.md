@@ -1,6 +1,6 @@
 ![logo](tokbox-logo.png)
 
-# OpenTok Interactive Broadcast Solution for Android<br/>Version 1.0
+# OpenTok Interactive Broadcast Solution for Android<br/>Version 1.0.4
 
 This document describes how to create a OpenTok Interactive Broadcast Solution mobile app for Android. You will learn how to set up the API calls to use the instance ID for the backend account, set up the role and name of the mobile participant, and connect the participant with a specified event.
 
@@ -74,7 +74,7 @@ To installing the OpenTok Interactive Broadcast Solution library:
 #### Downloading and Installing the AAR File
 
 1.  Download the [OpenTok Interactive Broadcast Solution AAR].
-1. Extract the **opentok-ib-android-1.0.3.aar** file.
+1. Extract the **opentok-ib-android-1.0.4.aar** file.
 1. Right-click the app name, select **Open Module Settings**, and click **+**.
 1. Select **Import .JAR/.AAR Package** and click  **Next**.
 1. Browse to the **OpenTok Interactive Broadcast Solution AAR** and click **Finish**.

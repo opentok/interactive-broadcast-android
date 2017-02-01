@@ -18,7 +18,7 @@ public class IBConfig {
     private String mUserType = "";
 
     // For internal use only. Please do not modify or remove this code.
-    public static final String LOG_CLIENT_VERSION = "android-ib-1.0.3";
+    public static final String LOG_CLIENT_VERSION = "android-ib-1.0.4";
     public static final String LOG_COMPONENTID = "iBS";
 
 
