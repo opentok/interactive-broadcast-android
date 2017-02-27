@@ -1,6 +1,9 @@
 ![logo](tokbox-logo.png)
 
-# OpenTok Interactive Broadcast Solution for Android<br/>Version 1.0.4
+
+------
+
+# OpenTok Interactive Broadcast Solution for Android
 
 This document describes how to create a OpenTok Interactive Broadcast Solution mobile app for Android. You will learn how to set up the API calls to use the instance ID for the backend account, set up the role and name of the mobile participant, and connect the participant with a specified event.
 
