@@ -1964,7 +1964,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     /* Connection Listener methods */
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
-        if(mProducerConnection == null && connection.getData().equals("usertype=producer") && session.getSessionId().equals(mBackstageSessionId)) {
+        if(mProducerConnection == null && connection.getData() != null && connection.getData().equals("usertype=producer") && mBackstageSessionId != null && session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = connection;
         }
     }

@@ -1175,7 +1175,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     /* Connection Listener methods */
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
-        if(connection.getData().equals("usertype=producer")) {
+        if(connection.getData() != null && connection.getData().equals("usertype=producer")) {
 
             mProducerConnection = connection;
             mChatButton.setVisibility(View.VISIBLE);
