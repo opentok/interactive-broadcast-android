@@ -323,7 +323,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             runOnUiThread(new Runnable() {
                               @Override
                               public void run() {
-                                  if(!mConnectionError) mNotification.show(R.string.hls_reconnecting);
+                                  //if(!mConnectionError) mNotification.show(R.string.hls_reconnecting); //reconnection callback
                                   mConnectionError = true;
                               }
                           });
@@ -1261,10 +1261,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onReconnecting(Session session) {
         Log.i(LOG_TAG, "Session is reconnecting");
-        mReconnectionsDialog = new ProgressDialog(this);
-        mReconnectionsDialog.setTitle(getString(R.string.session_reconnecting_title));
-        mReconnectionsDialog.setMessage(getString(R.string.session_reconnecting));
-        mReconnectionsDialog.show();
+        if (mReconnectionsDialog == null){
+            mReconnectionsDialog = new ProgressDialog(this);
+            mReconnectionsDialog.setTitle(getString(R.string.session_reconnecting_title));
+            mReconnectionsDialog.setMessage(getString(R.string.session_reconnecting));
+            mReconnectionsDialog.show();
+        }
     }
 
     @Override
