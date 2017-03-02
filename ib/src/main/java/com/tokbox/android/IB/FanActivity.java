@@ -321,7 +321,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             runOnUiThread(new Runnable() {
                               @Override
                               public void run() {
-                                  if(!mConnectionError) mNotification.showHlsReconnecting();
+                                  if(!mConnectionError) mNotification.show(R.string.hls_reconnecting);
                                   mConnectionError = true;
                               }
                           });
@@ -467,7 +467,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onWebServiceCoordinatorError(Exception error) {
         Log.e(LOG_TAG, "Web Service error: " + error.getMessage());
 
-        if(!mConnectionError) mNotification.showConnectionLost();
+        if(!mConnectionError) mNotification.show(R.string.connection_lost);
         mGetInLine.setVisibility(View.GONE);
     }
 
@@ -1079,7 +1079,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mCircleLiveButton.setVisibility(View.GONE);
             }
             cleanViews();
-            if(!mConnectionError) mNotification.showConnectionLost();
+            if(!mConnectionError) mNotification.show(R.string.connection_lost);
             mGetInLine.setVisibility(View.GONE);
             mEventImage.setVisibility(View.VISIBLE);
             mConnectionError = true;
@@ -1767,8 +1767,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLiveButton.setVisibility(View.GONE);
         mCircleLiveButton.setVisibility(View.GONE);
 
-        mNotification.showThanksForParticipating();
-
+        mNotification.show(R.string.thanks_for_participating);
 
         mGoLiveView.clearAnimation();
         mGoLiveView.setAlpha(1f);
@@ -2248,7 +2247,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                                     startBroadcast();
                                 }
                             } else {
-                                mNotification.showUnableToJoinMessage();
+                                mNotification.show(R.string.user_limit);
                             }
 
                         }

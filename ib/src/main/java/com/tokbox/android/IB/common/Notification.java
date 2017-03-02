@@ -1,11 +1,14 @@
 package com.tokbox.android.IB.common;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
@@ -37,47 +40,24 @@ public class Notification {
         }
     }
 
-    public Notification(Context context, RelativeLayout statusBar){
+    public Notification(Context context, RelativeLayout statusBar) {
         this.mContext = context;
         this.mStatusBar = statusBar;
     }
 
-    public void showConnectionLost(){
-        showNotification(R.string.connection_lost);
-    }
-    public void showHlsReconnecting(){
-        showNotification(R.string.hls_reconnecting);
-    }
-
-
-
-    public void showCantPublish(String userType){
+    public void showCantPublish(String userType) {
         int message = userType.equals("host") ? R.string.cant_publish_host : R.string.cant_publish_celebrity;
         showNotification(message);
     }
 
-    public void showUnableToJoinMessage() {
-        showNotification(R.string.user_limit);
-    }
 
-    public void showThanksForParticipating() {
+    public void showNotification(int message) {
         Typeface font = EventUtils.getFont(mContext);
-        Toast toast = Toast.makeText(mContext, R.string.thanks_for_participating, Toast.LENGTH_LONG);
-        ViewGroup view = (ViewGroup) toast.getView();
-        view.setBackgroundColor(ContextCompat.getColor(mContext, R.color.countdown_background_color));
-        TextView messageTextView = (TextView) view.getChildAt(0);
-        messageTextView.setTextSize(13);
-        messageTextView.setTypeface(font);
-        toast.show();
-    }
-
-    public void  showNotification(int message){
-        Typeface font = EventUtils.getFont(mContext);
-        for(int i=0;i<3;i++) {
+        for (int i = 0; i < 3; i++) {
             Toast toast = Toast.makeText(mContext, message, Toast.LENGTH_LONG);
             ViewGroup view = (ViewGroup) toast.getView();
             view.setBackgroundColor(ContextCompat.getColor(mContext, R.color.countdown_background_color));
-            view.setPadding(20,10,20,10);
+            view.setPadding(20, 10, 20, 10);
             TextView messageTextView = (TextView) view.getChildAt(0);
             messageTextView.setTextSize(13);
             messageTextView.setTypeface(font);
@@ -85,11 +65,11 @@ public class Notification {
         }
     }
 
-    public void showNotification(TYPE type){
+    public void showNotification(TYPE type) {
         //mStatusBar.setBackground();
         TextView statusTextView = (TextView) mStatusBar.getChildAt(0);
         String text = mContext.getResources().getString(type.text);
-        if(text.length() > 50) {
+        if (text.length() > 50) {
             statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
         } else {
             statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
@@ -99,7 +79,7 @@ public class Notification {
         mStatusBar.setBackgroundColor(ContextCompat.getColor(mContext, type.color));
         mStatusBar.setVisibility(View.VISIBLE);
 
-        if(type.delaySeconds > 0) {
+        if (type.delaySeconds > 0) {
             mCanHide = false;
             mHandler.postDelayed(new Runnable() {
                 @Override
@@ -111,10 +91,26 @@ public class Notification {
         }
     }
 
-    public void hide(){
-        if(mCanHide) {
+    public void hide() {
+        if (mCanHide) {
             mStatusBar.setVisibility(View.GONE);
         }
 
+    }
+
+   public void show(int message) {
+        LayoutInflater inflater = ((Activity)mContext).getLayoutInflater();
+        View toastLayout =
+                inflater.inflate(R.layout.toast, (ViewGroup) ((Activity)mContext).findViewById(R.id.toast_layout_root));
+        TextView text = (TextView) toastLayout.findViewById(R.id.toast_text);
+        text.setText(mContext.getResources().getString(message));
+
+        Toast toast = new Toast(((Activity)mContext).getApplicationContext());
+        if (R.layout.toast != 0) {
+            toast.setGravity(Gravity.BOTTOM, 0, 140);
+        }
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(toastLayout);
+        toast.show();
     }
 }
