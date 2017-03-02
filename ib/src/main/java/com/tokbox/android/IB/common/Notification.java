@@ -56,7 +56,7 @@ public class Notification {
         for (int i = 0; i < 3; i++) {
             Toast toast = Toast.makeText(mContext, message, Toast.LENGTH_LONG);
             ViewGroup view = (ViewGroup) toast.getView();
-            view.setBackgroundColor(ContextCompat.getColor(mContext, R.color.countdown_background_color));
+            view.setBackgroundColor(ContextCompat.getColor(mContext, R.color.top_bar_text_color));
             view.setPadding(20, 10, 20, 10);
             TextView messageTextView = (TextView) view.getChildAt(0);
             messageTextView.setTextSize(13);

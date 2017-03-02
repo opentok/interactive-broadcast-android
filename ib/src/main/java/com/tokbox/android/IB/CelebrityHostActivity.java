@@ -39,7 +39,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
@@ -302,7 +301,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onWebServiceCoordinatorError(Exception error) {
         Log.e(LOG_TAG, "Web Service error: " + error.getMessage());
-        mNotification.show(R.string.server_connection_error);
+        mNotification.show(R.string.connection_lost);
     }
 
     @Override
