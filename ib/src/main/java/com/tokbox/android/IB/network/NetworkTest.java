@@ -38,7 +38,7 @@ public class NetworkTest {
     private NetworkTestListener mListener;
 
     private VideoUtils.Size videoResolution;
-    private double videoFrameRate;
+    private double videoFrameRate = 0.0;
 
     private boolean mAudioOnly = false;
 
@@ -190,7 +190,7 @@ public class NetworkTest {
             this.getPCStats();
 
             //check values
-            if (videoResolution.equals(1280,720)){
+            if (videoResolution != null && videoResolution.equals(1280,720)){
                 if (videoFrameRate <= 30 && videoFrameRate >=23) {
                     checkHDand30fps();
                 }
@@ -206,7 +206,7 @@ public class NetworkTest {
                 }
             }
             else {
-                if (videoResolution.equals(640,480)){
+                if (videoResolution != null && videoResolution.equals(640,480)){
                     if (videoFrameRate <= 30 && videoFrameRate >=23) {
                         checkVGAand30fps();
                     }
@@ -222,7 +222,7 @@ public class NetworkTest {
                     }
                 }
                 else {
-                    if (videoResolution.equals(320,240)){
+                    if (videoResolution != null && videoResolution.equals(320,240)){
                         if (videoFrameRate <= 30 && videoFrameRate >=23) {
                             checkQVGAand30fps();
                         }

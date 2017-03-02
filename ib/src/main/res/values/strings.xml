@@ -16,7 +16,7 @@
     <string name="ok">OK</string>
     <string name="cancel">CANCEL</string>
     <string name="going_on_stage">Going On Stage</string>
-    <string name="thanks_for_participating">Thank you for participating, you are no longer sharing video/voice. You can continue to watch the session at your leisure.</string>
+    <string name="thanks_for_participating">Thank you for participating, you are no longer sharing video/voice. You can continue watching the session at your leisure.</string>
 
 
     <!-- User status -->
@@ -29,16 +29,14 @@
     <string name="temporarilly_muted">Other participants are in a private call. They may not be able to hear you.</string>
     <string name="status_private_call">You are in a private call with the producer</string>
     <string name="status_private_call_ended">Private call with producer ended</string>
-
+    <string name="user_limit">This show is over the maximum number of participants. Please try again in a few minutes.</string>
 
     <!-- Event list -->
     <string name="join_event_btn">Join Event</string>
 
     <string name="connection_lost">You are experiencing network connectivity issues. Please try closing the application and coming back to the event</string>
-
     <string name="cant_publish_host">There already is a host using this session. If this is you please close all applications or browsers sessions and try again.</string>
     <string name="cant_publish_celebrity">There already is a celebrity using this session. If this is you please close all applications or browsers sessions and try again.</string>
-    <string name="user_limit">This show is over the maximum number of participants. Please try again in a few minutes.</string>
     <string name="hls_reconnecting">Internet connection is down. Attempting to reconnect</string>
     <string name="session_reconnecting_title">Call disconnected</string>
     <string name="session_reconnecting">Attempting to reconnect you...</string>
