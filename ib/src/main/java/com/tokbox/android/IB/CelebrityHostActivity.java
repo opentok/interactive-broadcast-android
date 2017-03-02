@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -74,8 +75,7 @@ import java.util.UUID;
 
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
-
-        Session.SessionListener, Session.ConnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
+        Session.SessionListener, Session.ConnectionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
         Session.SignalListener,Subscriber.VideoListener,
         TextChatFragment.TextChatListener{
 
@@ -110,12 +110,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private ImageButton mUnreadCircle;
     private Boolean mAllowPublish = true;
 
-
     private Handler mHandler = new Handler();
     private CustomViewSubscriber mPublisherViewContainer;
     private CustomViewSubscriber mSubscriberViewContainer;
     private CustomViewSubscriber mSubscriberFanViewContainer;
     private FrameLayout mFragmentContainer;
+
+    private ProgressDialog mReconnectionsDialog;
 
     // Spinning wheel for loading subscriber view
     private boolean resumeHasRun = false;
@@ -487,6 +488,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
             mSession.setConnectionListener(this);
+            mSession.setReconnectionListener(this);
             mSession.connect(mToken);
         }
     }
@@ -529,6 +531,24 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         loadTextChatFragment();
     }
 
+    /* Reconnections events */
+    @Override
+    public void onReconnecting(Session session) {
+        Log.i(LOG_TAG, "Session is reconnecting");
+        mReconnectionsDialog = new ProgressDialog(this);
+        mReconnectionsDialog.setTitle(getString(R.string.session_reconnecting_title));
+        mReconnectionsDialog.setMessage(getString(R.string.session_reconnecting));
+        mReconnectionsDialog.show();
+    }
+
+    @Override
+    public void onReconnected(Session session) {
+        Log.i(LOG_TAG, "Session has been reconnected");
+        if (mReconnectionsDialog != null) {
+            mReconnectionsDialog.dismiss();
+            mReconnectionsDialog = null;
+        }
+    }
     private void doPublish(){
         mHandler.postDelayed(new Runnable() {
             @Override
@@ -1291,6 +1311,4 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         myAppSettings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         this.startActivity(myAppSettings);
     }
-
-
 }

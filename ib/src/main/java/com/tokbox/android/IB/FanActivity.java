@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -69,6 +70,7 @@ import com.tokbox.android.IB.common.Notification;
 
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import org.json.JSONException;
@@ -84,8 +86,7 @@ import com.tokbox.android.IB.ui.CustomViewSubscriber;
 import java.util.UUID;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
-
-        Session.SessionListener, Session.ConnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
+        Session.SessionListener, Session.ConnectionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
         Session.SignalListener,Subscriber.VideoListener,
         TextChatFragment.TextChatListener, NetworkTest.NetworkTestListener{
 
@@ -168,6 +169,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     // Spinning wheel for loading subscriber view
     private ProgressBar mLoadingSubPublisher;
+    private ProgressDialog mReconnectionsDialog;
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
     private boolean mIsOnPause = false;
@@ -738,6 +740,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
             mSession.setConnectionListener(this);
+            mSession.setReconnectionListener(this);
             mSession.connect(mToken);
         }
     }
@@ -749,6 +752,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mBackstageSession.setSessionListener(this);
             mBackstageSession.setSignalListener(this);
             mBackstageSession.setConnectionListener(this);
+            mBackstageSession.setReconnectionListener(this);
 
             //Logging
             addLogEvent(OTKAction.FAN_CONNECTS_BACKSTAGE, OTKVariation.ATTEMPT);
@@ -1253,6 +1257,25 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
+    /* Reconnections events */
+    @Override
+    public void onReconnecting(Session session) {
+        Log.i(LOG_TAG, "Session is reconnecting");
+        mReconnectionsDialog = new ProgressDialog(this);
+        mReconnectionsDialog.setTitle(getString(R.string.session_reconnecting_title));
+        mReconnectionsDialog.setMessage(getString(R.string.session_reconnecting));
+        mReconnectionsDialog.show();
+    }
+
+    @Override
+    public void onReconnected(Session session) {
+        Log.i(LOG_TAG, "Session has been reconnected");
+        if (mReconnectionsDialog != null) {
+            mReconnectionsDialog.dismiss();
+            mReconnectionsDialog = null;
+        }
+    }
+
     private void showPublisher() {
         if(mPublisher != null) {
             mPublisherViewContainer.clearAnimation();
@@ -1295,7 +1318,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void stopTestingConnectionQuality() {
-
         if(mTestSubscriber == null) return;
         if(!mTestingOnStage) { //if autoselfsubscribe
             if(mTestSubscriber.getSession().getSessionId().equals(mSessionId)) {
@@ -1313,7 +1335,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void testStreamConnectionQuality(Stream stream) {
-
         if(!mTestingOnStage) {
             autoselfSubscribe(stream);
             if(stream.getSession().getSessionId().equals(mBackstageSessionId)) {
@@ -1371,7 +1392,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
-
         if(publisher.getSession().getSessionId().equals(mSessionId)) {
             addLogEvent(OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
         } else {
@@ -1707,7 +1727,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void joinHostNow() {
-
         Log.i(LOG_TAG, "joinHostNow!");
         publishOnStage();
     }
