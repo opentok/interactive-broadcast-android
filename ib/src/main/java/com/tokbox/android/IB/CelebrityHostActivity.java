@@ -534,10 +534,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onReconnecting(Session session) {
         Log.i(LOG_TAG, "Session is reconnecting");
-        mReconnectionsDialog = new ProgressDialog(this);
-        mReconnectionsDialog.setTitle(getString(R.string.session_reconnecting_title));
-        mReconnectionsDialog.setMessage(getString(R.string.session_reconnecting));
-        mReconnectionsDialog.show();
+        if (mReconnectionsDialog == null) {
+            mReconnectionsDialog = new ProgressDialog(this);
+            mReconnectionsDialog.setTitle(getString(R.string.session_reconnecting_title));
+            mReconnectionsDialog.setMessage(getString(R.string.session_reconnecting));
+            mReconnectionsDialog.show();
+        }
     }
 
     @Override
