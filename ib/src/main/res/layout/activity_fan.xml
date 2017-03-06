@@ -12,6 +12,18 @@
         android:layout_below="@+id/event_list_top_bar"
         android:visibility="visible" />
 
+    <TextView
+        android:id="@+id/quality_warning"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/alert_bar_height"
+        android:background="@color/quality_warning"
+        android:gravity="center"
+        android:text="@string/network_quality"
+        android:textColor="@color/warning_text"
+        android:textSize="@dimen/alert_text"
+        android:layout_below="@+id/event_list_top_bar"
+        android:visibility="gone"></TextView>
+
     <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberHostView"
         android:layout_width="match_parent"

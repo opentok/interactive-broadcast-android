@@ -40,4 +40,6 @@
     <string name="hls_reconnecting">Internet connection is down. Attempting to reconnect</string>
     <string name="session_reconnecting_title">Reconnecting</string>
     <string name="session_reconnecting">The connection has been lost. Attempting to reconnect you...</string>
+    <string name="network_quality">Network connection is unstable.</string>
+
 </resources>

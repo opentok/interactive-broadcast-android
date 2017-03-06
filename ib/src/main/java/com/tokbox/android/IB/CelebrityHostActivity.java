@@ -15,6 +15,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -103,10 +104,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private TextView mGoLiveStatus;
     private TextView mGoLiveNumber;
     private TextView mUserStatus;
+    private TextView mWarningAlert;
     private ImageButton mChatButton;
     private Button mLiveButton;
     private ImageView mEventImageEnd;
     private ImageButton mUnreadCircle;
+
     private Boolean mAllowPublish = true;
 
     private Handler mHandler = new Handler();
@@ -201,6 +204,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
         mUnreadCircle = (ImageButton) findViewById(R.id.unread_circle);
+        mWarningAlert = (TextView) findViewById(R.id.quality_warning);
     }
 
     private void requestEventData (Bundle savedInstanceState) {
@@ -891,6 +895,17 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         Log.i(LOG_TAG,
                 "Video disabled:" + reason);
         enableAudioOnlyView(subscriber.getStream().getConnection().getConnectionId(), true);
+        if (reason.equals("quality")) {
+            mWarningAlert.setBackgroundResource(R.color.quality_alert);
+            mWarningAlert.setTextColor(Color.WHITE);
+            mWarningAlert.bringToFront();
+            mWarningAlert.setVisibility(View.VISIBLE);
+            mWarningAlert.postDelayed(new Runnable() {
+                public void run() {
+                    mWarningAlert.setVisibility(View.GONE);
+                }
+            }, 7000);
+        }
     }
 
     @Override
@@ -901,8 +916,16 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onVideoDisableWarning(SubscriberKit subscriber) {
-
         Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here." + subscriber.getStream().getConnection().getData());
+        mWarningAlert.setBackgroundResource(R.color.quality_warning);
+        mWarningAlert.setTextColor(CelebrityHostActivity.this.getResources().getColor(R.color.warning_text));
+        mWarningAlert.bringToFront();
+        mWarningAlert.setVisibility(View.VISIBLE);
+        mWarningAlert.postDelayed(new Runnable() {
+            public void run() {
+                mWarningAlert.setVisibility(View.GONE);
+            }
+        }, 7000);
     }
 
     @Override
