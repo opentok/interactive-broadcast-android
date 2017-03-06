@@ -1124,45 +1124,49 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Video height:" + String.valueOf(stream.getVideoHeight()));
         Log.i(LOG_TAG, "Video width:" + String.valueOf(stream.getVideoWidth()));
         Log.i(LOG_TAG, "Video type:" + String.valueOf(stream.getStreamVideoType().name()));
+        try {
+            switch (stream.getConnection().getData()) {
+                case "usertype=fan":
+                    if (mFanStream == null && bIsOnStage) {
+                        mFanStream = stream;
+                        if (status.equals("L")) {
+                            subscribeFanToStream(stream);
+                            updateViewsWidth();
+                        }
+                    }
+                    break;
+                case "usertype=celebrity":
+                    if (mCelebrityStream == null) {
+                        mCelebrityStream = stream;
+                        if (status.equals("L") || mUserIsOnstage) {
+                            subscribeCelebrityToStream(stream);
+                            updateViewsWidth();
+                        }
+                    }
+                    break;
+                case "usertype=host":
+                    if (mHostStream == null) {
+                        mHostStream = stream;
+                        if (status.equals("L") || mUserIsOnstage) {
+                            subscribeHostToStream(stream);
+                            updateViewsWidth();
+                        }
+                    }
+                    break;
+                case "usertype=producer":
+                    if (mProducerStream == null && !bIsOnStage) {
+                        mProducerStream = stream;
+                    }
+                    if (mProducerStreamOnstage == null && bIsOnStage) {
+                        mProducerStreamOnstage = stream;
+                    }
+                    break;
 
-        switch(stream.getConnection().getData()) {
-            case "usertype=fan":
-                if (mFanStream == null && bIsOnStage) {
-                    mFanStream = stream;
-                    if(status.equals("L")) {
-                        subscribeFanToStream(stream);
-                        updateViewsWidth();
-                    }
-                }
-                break;
-            case "usertype=celebrity":
-                if (mCelebrityStream == null) {
-                    mCelebrityStream = stream;
-                    if(status.equals("L") || mUserIsOnstage) {
-                        subscribeCelebrityToStream(stream);
-                        updateViewsWidth();
-                    }
-                }
-                break;
-            case "usertype=host":
-                if (mHostStream == null) {
-                    mHostStream = stream;
-                    if(status.equals("L") || mUserIsOnstage) {
-                        subscribeHostToStream(stream);
-                        updateViewsWidth();
-                    }
-                }
-                break;
-            case "usertype=producer":
-                if(mProducerStream == null  && !bIsOnStage){
-                    mProducerStream = stream;
-                }
-                if(mProducerStreamOnstage == null  && bIsOnStage) {
-                    mProducerStreamOnstage = stream;
-                }
-                break;
-
+            }
+        } catch (Exception ex) {
+            Log.e(LOG_TAG, "Catching error onStreamReceived");
         }
+
     }
 
     @Override
@@ -1170,52 +1174,57 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         String status = getEventStatus();
         String streamConnectionId = stream.getConnection().getConnectionId();
         Boolean bIsOnStage = session.getSessionId().equals(mSessionId);
-        switch(stream.getConnection().getData()) {
-            case "usertype=fan":
-                if(mFanStream != null && bIsOnStage && mFanStream.getConnection().getConnectionId().equals(streamConnectionId)) {
-                    mFanStream = null;
-                    if(status.equals("L") || status.equals("C")) {
-                        unsubscribeFanFromStream(stream);
-                        updateViewsWidth();
+        try {
+            switch(stream.getConnection().getData()) {
+                case "usertype=fan":
+                    if(mFanStream != null && bIsOnStage && mFanStream.getConnection().getConnectionId().equals(streamConnectionId)) {
+                        mFanStream = null;
+                        if(status.equals("L") || status.equals("C")) {
+                            unsubscribeFanFromStream(stream);
+                            updateViewsWidth();
+                        }
                     }
-                }
-                break;
-            case "usertype=celebrity":
-                if(mCelebrityStream != null && mCelebrityStream.getConnection().getConnectionId().equals(streamConnectionId)) {
-                    mCelebrityStream = null;
-                    if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
-                        unsubscribeCelebrityFromStream(stream);
-                        updateViewsWidth();
+                    break;
+                case "usertype=celebrity":
+                    if(mCelebrityStream != null && mCelebrityStream.getConnection().getConnectionId().equals(streamConnectionId)) {
+                        mCelebrityStream = null;
+                        if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
+                            unsubscribeCelebrityFromStream(stream);
+                            updateViewsWidth();
+                        }
                     }
-                }
-                break;
-            case "usertype=host":
-                if(mHostStream != null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
-                    mHostStream = null;
-                    if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
-                        unsubscribeHostFromStream(stream);
-                        updateViewsWidth();
+                    break;
+                case "usertype=host":
+                    if(mHostStream != null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
+                        mHostStream = null;
+                        if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
+                            unsubscribeHostFromStream(stream);
+                            updateViewsWidth();
+                        }
                     }
-                }
-            case "usertype=producer":
-                if(!bIsOnStage) {
-                    if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
-                        addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
-                        unSubscribeProducer();
-                        mProducerStream = null;
+                case "usertype=producer":
+                    if(!bIsOnStage) {
+                        if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
+                            addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
+                            unSubscribeProducer();
+                            mProducerStream = null;
+                        }
+                    } else {
+                        if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId().equals(streamConnectionId)) {
+                            addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
+                            endPrivateCall();
+                            mProducerStreamOnstage = null;
+                        }
                     }
-                } else {
-                    if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId().equals(streamConnectionId)) {
-                        addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
-                        endPrivateCall();
-                        mProducerStreamOnstage = null;
-                    }
-                }
-                break;
+                    break;
+            }
+            if(!stream.hasVideo()) {
+                enableAudioOnlyView(stream.getConnection().getConnectionId(), false);
+            }
+        } catch(Exception ex) {
+            Log.e(LOG_TAG, "Catching error onStreamDropped ");
         }
-        if(!stream.hasVideo()) {
-            enableAudioOnlyView(stream.getConnection().getConnectionId(), false);
-        }
+
     }
 
     @Override
