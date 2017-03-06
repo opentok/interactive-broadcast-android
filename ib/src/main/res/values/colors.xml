@@ -16,6 +16,9 @@
     <color name="status_private_call">#EF4836</color>
     <color name="temporarilly_muted">#EF4836</color>
     <color name="hls_reconnecting">#EF4836</color>
+    <color name="quality_alert">#cb1e28</color>
+    <color name="quality_warning">#fef9c8</color>
+    <color name="warning_text">#ad7212</color>
 
     <!-- Chat colors -->
     <color name="lighter_bkgd">#f4f4f4</color>

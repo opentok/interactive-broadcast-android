@@ -8,4 +8,8 @@
     <!-- phones -->
     <dimen name="video_width">325dp</dimen>
 
+    <!-- warning notifications -->
+    <dimen name="alert_bar_height">30dp</dimen>
+    <dimen name="alert_text">14sp</dimen>
+
 </resources>

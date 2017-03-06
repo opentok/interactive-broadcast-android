@@ -15,6 +15,7 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -154,7 +155,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ProgressBar mVideoViewProgressBar;
     private VideoView mVideoView;
     private RelativeLayout mAvatarPublisher;
-
+    private TextView mWarningAlert;
 
     private Handler mHandler = new Handler();
     private RelativeLayout mPublisherViewContainer;
@@ -390,6 +391,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mVideoViewProgressBar = (ProgressBar) findViewById(R.id.videoViewProgressBar);
         mVideoViewLayout = (RelativeLayout) findViewById(R.id.videoViewLayout);
         mAvatarPublisher = (RelativeLayout) findViewById(R.id.avatarPublisher);
+        mWarningAlert = (TextView) findViewById(R.id.quality_warning);
     }
 
     private void setupFonts() {
@@ -1464,6 +1466,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mTestSubscriber != null && mTestSubscriber.getStream().getConnection().getConnectionId() == subscriber.getStream().getConnection().getConnectionId()) {
             mTest.updateTest(true);
         }
+        if (reason.equals("quality")) {
+            mWarningAlert.setBackgroundResource(R.color.quality_alert);
+            mWarningAlert.setTextColor(Color.WHITE);
+            mWarningAlert.bringToFront();
+            mWarningAlert.setVisibility(View.VISIBLE);
+            mWarningAlert.postDelayed(new Runnable() {
+                public void run() {
+                    mWarningAlert.setVisibility(View.GONE);
+                }
+            }, 7000);
+        }
     }
 
     private void enableAudioOnlyView(String subscriberConnectionId, boolean show) {
@@ -1517,6 +1530,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onVideoDisableWarning(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here.");
+        mWarningAlert.setBackgroundResource(R.color.quality_warning);
+        mWarningAlert.setTextColor(FanActivity.this.getResources().getColor(R.color.warning_text));
+        mWarningAlert.bringToFront();
+        mWarningAlert.setVisibility(View.VISIBLE);
+        mWarningAlert.postDelayed(new Runnable() {
+            public void run() {
+                mWarningAlert.setVisibility(View.GONE);
+            }
+        }, 7000);
     }
 
     @Override
@@ -2004,7 +2026,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     /* Chat methods */
     public void onChatButtonClicked(View v) {
-        toggleChat();
+      toggleChat();
     }
 
     private void toggleChat() {

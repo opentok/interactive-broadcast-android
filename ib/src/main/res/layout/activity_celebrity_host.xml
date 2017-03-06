@@ -5,6 +5,18 @@ android:layout_width="match_parent"
 android:layout_height="match_parent"
 android:background="#000000" >
 
+    <TextView
+        android:id="@+id/quality_warning"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/alert_bar_height"
+        android:background="@color/quality_warning"
+        android:gravity="center"
+        android:text="@string/network_quality"
+        android:textColor="@color/warning_text"
+        android:textSize="@dimen/alert_text"
+        android:layout_below="@+id/top_bar"
+        android:visibility="gone"></TextView>
+
     <com.tokbox.android.IB.ui.CustomViewSubscriber
         android:id="@+id/subscriberview"
         android:layout_width="match_parent"
