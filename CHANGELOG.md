@@ -3,8 +3,10 @@ All notable changes to this project will be documented in this file.
 
 --------------------------------------
 ####[1.0.4]
+
 * [CHANGED] Updated OpenTok sdk version to 2.10.0
 * [ADDED] Reconnections
+* [ADDED] Connection quality UI
 * [FIXED] Data from session is null
 
 ####[1.0.3]
