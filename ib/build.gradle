@@ -88,6 +88,7 @@ android {
         zipBundle.dependsOn build
         zipBundle.dependsOn javadoc
         zipBundle.dependsOn copyFile
+        zipBundle.dependsOn copyChangeLog
         }
 }
 
