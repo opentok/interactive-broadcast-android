@@ -49,6 +49,12 @@ android {
             into 'build/outputs/'
         }
 
+        def copyChangeLog = task("copyFile${variant.name.capitalize()}", type: Copy) {
+            //Copy README.md
+            from '../CHANGELOG.md'
+            into 'build/outputs/'
+        }
+
         def javadoc = task("generateJavaDoc${variant.name.capitalize()}", type: Javadoc, dependsOn: "generate${variant.name.capitalize()}Sources") {
             source = 'src/main/java'
             classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
