@@ -36,9 +36,7 @@ To get up and running quickly with your app, go through the following steps in t
 
 View the [Complete code example](#complete-code-example).
 
-### Create a new android studio project
-
-
+### Create a new Android Studio Project
 
 1. Configure a new project.
 2. Edit **AndroidManifest.xml** and add the following permissions:
@@ -86,13 +84,17 @@ _**NOTE**: Since some dependencies are not transitive, it is necessary to explic
 <li>Modify the <b>build.gradle</b> for your activity and add the following code snippet to the section labeled <b>dependencies</b>: <br/>
 
 <code>
+
     compile 'com.squareup.picasso:picasso:2.5.2'
 
+
     compile 'com.android.volley:volley:1.0.0'
+
     
     compile('com.github.nkzawa:socket.io-client:0.4.1') {
         exclude group: 'org.json', module: 'json'
     }
+
     
 </code>
 
@@ -103,7 +105,7 @@ _**NOTE**: Since some dependencies are not transitive, it is necessary to explic
 
 ### Configure the Interactive Broadcast Solution user
 
-Now you are ready to add the Interactive Broadcast Solution user detail to your app. These will include the Instance ID and Backend Base URL you retrieved earlier (see [Prerequisites](#prerequisites)).
+Now you are ready to add the Interactive Broadcast Solution instance details to your app. These will include the Admin ID and Backend Base URL you retrieved earlier (see [Prerequisites](#prerequisites)).
 
 1. Ensure that you have the following import statements in MainActivity.java:
 
@@ -153,7 +155,7 @@ Now that you have configured the user, you can set up the code required for the 
 
    ```java
    private WebServiceCoordinator mWebServiceCoordinator;
-   private static final String LOG_TAG = "Event Log";
+   private static final String LOG_TAG = EventListActivity.class.getSimpleName();
    ```
 
 
@@ -191,6 +193,9 @@ The `WebServiceCoordinator.Listener` interface supports the `WebServiceCoordinat
     /**
     * Web Service Coordinator delegate methods
     */
+    /**
+     * Web Service Coordinator delegate methods
+     */
     @Override
     public void onDataReady(JSONObject instanceAppData) {
         //Set instanceApp Data
@@ -205,7 +210,6 @@ The `WebServiceCoordinator.Listener` interface supports the `WebServiceCoordinat
             }
 
             if(bSuccess) {
-
                 //init socket
                 initSocket();
 
@@ -220,14 +224,13 @@ The `WebServiceCoordinator.Listener` interface supports the `WebServiceCoordinat
                     }
                 }
             } else {
-                Toast.makeText(getApplicationContext(),"Invalid instance ID", Toast.LENGTH_SHORT).show();
+                Log.e(LOG_TAG, "Invalid instance ID");
             }
         } catch(JSONException e) {
             Log.e(LOG_TAG, "parsing instanceAppData error", e);
         } finally {
             stopLoadingAnimation();
         }
-
     }
     ```
 
@@ -242,11 +245,10 @@ The `WebServiceCoordinator.Listener` interface supports the `WebServiceCoordinat
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                getInstanceId();
+                getEventsByAdmin();
             }
         }, 5000);
     }
-
     ```
 
 
