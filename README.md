@@ -41,7 +41,7 @@ View the [Complete code example](#complete-code-example).
 1. Configure a new project.
 2. Edit **AndroidManifest.xml** and add the following permissions:
 
-    ```
+    ```java
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
