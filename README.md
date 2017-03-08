@@ -252,7 +252,7 @@ The `WebServiceCoordinator.Listener` interface supports the `WebServiceCoordinat
     ```
 
 
-4. Note that the methods to display the events are not shown in this example. You can implement your own versions of these, and you can view the complete sample app by extracting it from the .zip file provided by TokBox.
+4. Note that the methods to display the events are not shown in this example. You can implement your own versions of these.
 
 
 ## Complete code example
