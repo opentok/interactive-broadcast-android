@@ -1,21 +1,19 @@
 ![logo](tokbox-logo.png)
 
-
 ------
 
 # OpenTok Interactive Broadcast Solution for Android
 
-This document describes how to create a OpenTok Interactive Broadcast Solution mobile app for Android. You will learn how to set up the API calls to use the instance ID for the backend account, set up the role and name of the mobile participant, and connect the participant with a specified event.
+This document describes how to create a OpenTok Interactive Broadcast Solution mobile app for Android. 
+
+You will learn how to set up the API calls to use the admin ID for the backend account, set up the role and name of the mobile participant, and connect the participant with a specified event.
 
 This guide has the following sections:
 
 * [Prerequisites](#prerequisites): A checklist of everything you need to get started.
 * [Quickstart](#quickstart): A step by step tutorial to help you develop a basic Interactive Broadcast Solution application.
-* [Complete code example](#complete-code-example): This is the complete code example that you will develop in this tutorial. You can skip the tutorial and use this example to get started quickly with your own application development.
 
 _**NOTE:** The **Interactive Broadcast Solution** only supports landscape orientation on mobile devices._
-
-_**IMPORTANT:** In order to deploy the OpenTok Interactive Broadcast Solution, your web domain must use HTTPS._
 
 
 ## Prerequisites
@@ -24,9 +22,6 @@ To be prepared to develop your first Interactive Broadcast Solution mobile app:
 
 1. Install [Android Studio](http://developer.android.com/intl/es/sdk/index.html).
 2. Review the [OpenTok Android SDK Requirements](https://tokbox.com/developer/sdks/android/#developerandclientrequirements).
-3. Your app will need a **Session ID**, **Token**, and **API Key**, which you can get at the [OpenTok Developer Dashboard](https://dashboard.tokbox.com/).
-
-_**NOTE**: The OpenTok Developer Dashboard allows you to quickly run this sample program. For production deployment, you must generate the **Session ID** and **Token** values using one of the [OpenTok Server SDKs](https://tokbox.com/developer/sdks/server/)._
 
 ## Quickstart
 
@@ -76,7 +71,7 @@ To installing the OpenTok Interactive Broadcast Solution library:
 
 #### Downloading and Installing the AAR File
 
-1.  Download the [OpenTok Interactive Broadcast Solution AAR].
+1.  Download the [OpenTok Interactive Broadcast Solution AAR](https://s3.amazonaws.com/artifact.tokbox.com/solution/rel/ibs/android/opentok-ib-android-1.0.4.zip).
 1. Extract the **opentok-ib-android-1.0.4.aar** file.
 1. Right-click the app name, select **Open Module Settings**, and click **+**.
 1. Select **Import .JAR/.AAR Package** and click  **Next**.
@@ -107,8 +102,6 @@ _**NOTE**: Since some dependencies are not transitive, it is necessary to explic
 
 </ol>
 
-For more information, see [Creating your own app using the OpenTok Android SDK](https://tokbox.com/developer/sdks/android/#creating-your-own-app-using-the-opentok-android-sdk).
-
 
 ### Configure the Interactive Broadcast Solution user
 
@@ -137,15 +130,15 @@ Now you are ready to add the Interactive Broadcast Solution user detail to your 
 
         ```java
         /* Replace with your instance ID  */
-        IBConfig.INSTANCE_ID = "";
+        IBConfig.ADMIN_ID = "";
 
         /* Replace with the username.  */
         IBConfig.BACKEND_BASE_URL= "";
         ```
 
-3. Set the Instance ID, Backend Base URL, user type and username in the code you just added:
+3. Set the ADMIN ID, Backend Base URL, user type and username in the code you just added:
 
-   - The Instance ID is unique to your account. It is used to authorize your code to use the library and make requests to the backend, which is hosted at the location identified by the Backend Base URL. You can use your Instance ID for multiple events.
+   - The ADMIN ID is unique to your account. It is used to authorize your code to use the library and make requests to the backend, which is hosted at the location identified by the Backend Base URL. You can use your ADMIN ID for multiple events.
    - The Backend Base URL is the endpoint to the web service hosting the events, and should be provided by TokBox.
    - The user type must be assigned. You can hard code such values or set up UI controls such as radio buttons. One of the following values for the user type must be assigned: `fan`, `celebrity`, or `host`. There should only be one celebrity and host per event.
    - The Username is optional, and is displayed in chats with the producer and when fans get in line. You can set up manual entry, for example, with an editable text field.
@@ -265,8 +258,3 @@ The `WebServiceCoordinator.Listener` interface supports the `WebServiceCoordinat
 ## Complete code example
 
 You have completed the task of setting up a fully working example that uses the OpenTok Interactive Broadcast Solution! You can add processing for events and errors, and begin using your program.
-
-
-## Additional information
-
-For information on how to set up archiving on an Interactive Broadcast (IB) instance, click <a href="./ARCHIVING.md">here</a>.
