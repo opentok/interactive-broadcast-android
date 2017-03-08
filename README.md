@@ -27,7 +27,7 @@ To be prepared to develop your first Interactive Broadcast Solution mobile app:
 
 To get up and running quickly with your app, go through the following steps in the tutorial provided below:
 
-1. [Importing the Android Studio Project](#importing-the-android-studio-project)
+1. [Create a new Android Studio Project](#create-a-new-android-studio-project)
 2. [Add the OpenTok Interactive Broadcast Solution library](#addlibrary)
 3. [Add the OpenTok Android SDK](#add-the-opentok-android-sdk)
 4. [Configure the Interactive Broadcast Solution user](#configure-the-interactive-broadcast-solution-user)
@@ -36,14 +36,12 @@ To get up and running quickly with your app, go through the following steps in t
 
 View the [Complete code example](#complete-code-example).
 
-### Importing the Android Studio Project
+### Create a new android studio project
 
-In Android Studio, configure a new project.
 
-1. Specify your **Application Name**, **Company Domain**, and **Project Location**.
-2. Using the **Phone and Tablet** platform, select **API 16** as the **Minimum SDK**.
-3. Add a **Blank Activity**. You can use the default values and click **Finish**.
-4. Edit **AndroidManifest.xml** and add the following permissions:
+
+1. Configure a new project.
+2. Edit **AndroidManifest.xml** and add the following permissions:
 
     ```
     <uses-permission android:name="android.permission.CAMERA" />
