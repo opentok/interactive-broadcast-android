@@ -80,6 +80,7 @@ android {
             include '**/aar/**'
             include '**/docs/**'
             include '**/README.md'
+            include '**/CHANGELOG.md'
             exclude '**/lint-results-debug_files/**'
             destinationDir = file(".")
             archiveName = "${archivesBaseName}-${version}.zip"
