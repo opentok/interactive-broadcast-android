@@ -61,6 +61,7 @@ import com.tokbox.android.IB.services.ClearNotificationService;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
 import com.tokbox.android.IB.common.Notification;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -227,13 +228,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
 
         try {
-            updateEventName(event.getString("event_name"), EventUtils.getStatusNameById(event.getString("status")));
-            EventUtils.loadEventImage(this, event.getString("event_image_end"), mEventImageEnd);
-            if(mUserIsCelebrity) {
-                mWebServiceCoordinator.createCelebrityToken(event.getString("celebrity_url"));
-            } else {
-                mWebServiceCoordinator.createHostToken(event.getString("host_url"));
-            }
+            updateEventName(event.getString("name"), EventUtils.getStatusNameById(event.getString("status")));
+            EventUtils.loadEventImage(this, event.has("endImage") ? event.getString("endImage") : "", mEventImageEnd);
+            mWebServiceCoordinator.createToken(mUserIsCelebrity ? event.getString("celebrityUrl") : event.getString("hostUrl"));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -242,7 +239,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void updateEventName() {
         try {
-            mEventName.setText(EventUtils.ellipsize(mEvent.getString("event_name"), 40));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString("name"), 40));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -259,7 +256,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     }
 
     private String getEventStatus() {
-        String status = "N";
+        String status = "notStarted";
         try {
             status = mEvent.getString("status");
         } catch (JSONException ex) {
@@ -275,14 +272,14 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void onDataReady(JSONObject results) {
         JSONObject objSource = new JSONObject();
         try {
-            mEvent = results.getJSONObject("event");
+            mEvent = new JSONObject( results.toString() );
             mApiKey = results.getString("apiKey");
-            mToken = results.getString("tokenHost");
-            mSessionId = results.getString("sessionIdHost");
+            mToken = results.getString("stageToken");
+            mSessionId = results.getString("stageSessionId");
 
             //Set the LogSource
             objSource.put("app", getApplicationContext().getApplicationInfo().packageName);
-            objSource.put("account", mEvent.getString("admins_name"));
+            objSource.put("account", mEvent.getString("adminId"));
             objSource.put("event-id", mEvent.getString("id"));
 
             mLogSource = objSource.toString();
@@ -721,8 +718,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onStreamReceived(Session session, Stream stream) {
         Log.i(LOG_TAG, "onStreamReceived:" + stream.getConnection().getData());
-        switch(stream.getConnection().getData()) {
-            case "usertype=fan":
+        switch(EventUtils.getUserType(stream.getConnection().getData())) {
+            case "fan":
                 if (mFanStream == null) {
                     if(mUserIsCelebrity) {
                         addLogEvent(OTKAction.CELEBRITY_SUBSCRIBES_FAN, OTKVariation.ATTEMPT);
@@ -734,7 +731,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     updateViewsWidth();
                 }
                 break;
-            case "usertype=celebrity":
+            case "celebrity":
                 Log.i(LOG_TAG, "Celebrity!");
                 if(mUserIsCelebrity) mAllowPublish = false;
                 if (mCelebirtyStream == null && !mUserIsCelebrity) {
@@ -744,7 +741,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     updateViewsWidth();
                 }
                 break;
-            case "usertype=host":
+            case "host":
                 if(!mUserIsCelebrity) mAllowPublish = false;
                 if (mHostStream == null && mUserIsCelebrity) {
                     addLogEvent(OTKAction.CELEBRITY_SUBSCRIBES_HOST, OTKVariation.ATTEMPT);
@@ -753,7 +750,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     updateViewsWidth();
                 }
                 break;
-            case "usertype=producer":
+            case "producer":
                 if(mProducerStream == null && session.getSessionId().equals(mSessionId)){
                     Log.i(LOG_TAG, "producer stream in");
                     mProducerStream = stream;
@@ -767,28 +764,28 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void onStreamDropped(Session session, Stream stream) {
         Log.i(LOG_TAG, "New stream dropped:" + stream.getConnection().getData());
         String streamConnectionId = stream.getConnection().getConnectionId();
-        switch(stream.getConnection().getData()) {
-            case "usertype=fan":
+        switch(EventUtils.getUserType(stream.getConnection().getData())) {
+            case "fan":
                 if(mFanStream != null && mFanStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     unsubscribeFanFromStream(stream);
                     mFanStream = null;
                     updateViewsWidth();
                 }
                 break;
-            case "usertype=celebrity":
+            case "celebrity":
                 if(mCelebirtyStream != null && mCelebirtyStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     unsubscribeFromStream(stream);
                     mCelebirtyStream = null;
                     updateViewsWidth();
                 }
                 break;
-            case "usertype=host":
+            case "host":
                 if(mHostStream!= null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     unsubscribeFromStream(stream);
                     mHostStream = null;
                     updateViewsWidth();
                 }
-            case "usertype=producer":
+            case "producer":
                 if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     mProducerStream = null;
                     Log.i(LOG_TAG, "producer stream out");
@@ -839,7 +836,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     @Override
     public void onVideoDataReceived(SubscriberKit subscriber) {
-        if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
+        String userType = EventUtils.getUserType(subscriber.getStream().getConnection().getData());
+        if(userType.equals("fan")) {
 
             if(mUserIsCelebrity) {
                 addLogEvent(OTKAction.CELEBRITY_SUBSCRIBES_FAN, OTKVariation.SUCCESS);
@@ -938,7 +936,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onConnected(SubscriberKit subscriberKit) {
         //Log.i(LOG_TAG, "Subscriber Connected");
-        if(subscriberKit.getStream().getConnection().getData() == "usertype=fan") {
+        String userType = EventUtils.getUserType(subscriberKit.getStream().getConnection().getData());
+        if(userType.equals("fan")) {
             mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
         } else {
             mSubscriberViewContainer.addView(mSubscriber.getView());
@@ -958,9 +957,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     /* Signal Listener methods */
     @Override
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
-
+        String userType = EventUtils.getUserType(connection.getData());
         if(type != null) {
-            if (connection.getData().equals("usertype=producer")) {
+            if (userType.equals("producer")) {
                 switch(type) {
                     case "chatMessage":
                         handleNewMessage(data, connection);
@@ -989,8 +988,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 }
             }
             else {
-                if (!connection.getData().equals("usertype=fan") && !connection.getData().equals("usertype=host")
-                        && !connection.getData().equals("usertype=celebrity"))
+                if (!userType.equals("fan") && !userType.equals("host")
+                        && !userType.equals("celebrity"))
                     Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
             }
         }
@@ -1119,7 +1118,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     public void goLive(){
         try {
-            mEvent.put("status", "L");
+            mEvent.put("status", "live");
             updateEventName();
             showCountDown();
         } catch (JSONException ex) {
@@ -1207,7 +1206,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         try {
             //Change status
-            mEvent.put("status", "C");
+            mEvent.put("status", "closed");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
@@ -1219,7 +1218,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     /* Connection Listener methods */
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
-        if(connection.getData() != null && connection.getData().equals("usertype=producer")) {
+        if(connection.getData() != null && EventUtils.getUserType(connection.getData()).equals("producer")) {
 
             mProducerConnection = connection;
             mChatButton.setVisibility(View.VISIBLE);
@@ -1229,7 +1228,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     @Override
     public void onConnectionDestroyed(Session session, Connection connection)
     {
-        if(connection.getData().equals("usertype=producer")) {
+        if(EventUtils.getUserType(connection.getData()).equals("producer")) {
             mProducerConnection = null;
             mChatButton.setVisibility(View.GONE);
         }
@@ -1336,3 +1335,4 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         this.startActivity(myAppSettings);
     }
 }
+

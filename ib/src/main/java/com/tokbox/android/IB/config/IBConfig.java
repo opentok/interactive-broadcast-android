@@ -8,13 +8,10 @@ public class IBConfig {
     public static String BACKEND_BASE_URL = "https://tokbox-ib-staging-tesla.herokuapp.com";
 
     // Replace with the signaling URL
-    public static String SIGNALING_URL = "";
-    public static String FRONTEND_URL = "";
-    public static String DEFAULT_EVENT_IMAGE = "";
-    public static String INSTANCE_ID = "";
     public static String ADMIN_ID = "";
     public static String USER_TYPE = "";
     public static String USER_NAME = "Anonymous";
+    public static String AUTH_TOKEN = "";
     private String mUserType = "";
 
     // For internal use only. Please do not modify or remove this code.

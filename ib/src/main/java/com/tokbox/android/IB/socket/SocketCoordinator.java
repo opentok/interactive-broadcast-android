@@ -18,7 +18,7 @@ public class SocketCoordinator {
     private Socket mSocket;
     {
         try {
-            mSocket = IO.socket(IBConfig.SIGNALING_URL);
+            mSocket = IO.socket(IBConfig.BACKEND_BASE_URL);
         } catch (URISyntaxException e) {
             Log.i(LOG_TAG, e.getMessage());
         }

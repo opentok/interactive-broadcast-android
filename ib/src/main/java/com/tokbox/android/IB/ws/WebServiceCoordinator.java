@@ -1,21 +1,29 @@
 package com.tokbox.android.IB.ws;
 
 import android.content.Context;
+import android.hardware.fingerprint.FingerprintManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.tokbox.android.IB.config.IBConfig;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  Represents an object to communicate with the backend web service and handle events on behalf of the user.
@@ -23,6 +31,7 @@ import org.json.JSONObject;
 public class WebServiceCoordinator {
 
     private static final String BACKEND_BASE_URL = IBConfig.BACKEND_BASE_URL;
+    private static final String BACKEND_API_PREFIX = "/api/";
     private static final String LOG_TAG = WebServiceCoordinator.class.getSimpleName();
 
     private final Context context;
@@ -50,6 +59,15 @@ public class WebServiceCoordinator {
     }
 
     /**
+     * Interface for the Authentication process
+     *
+     */
+    public interface AuthenticationCallback {
+         void onLoginSuccess();
+         void onLoginError(String result);
+    }
+
+    /**
      * Use this constructor to create a WebServiceCoordinator instance.
      *
      * @param context   The Android application context associated with this process.
@@ -73,59 +91,10 @@ public class WebServiceCoordinator {
 
 
     /**
-     * Returns the InstanceData filtering by ID
-     */
-    public void getInstanceById() throws JSONException {
-
-        JSONObject jsonBody = null;
-        try {
-            jsonBody = new JSONObject("{\"instance_id\":\""+ IBConfig.INSTANCE_ID +"\"}");
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "unexpected JSON exception", e);
-        }
-
-        this.fetchInstanceAppData(jsonBody, BACKEND_BASE_URL + "/get-instance-by-id");
-    }
-
-    /**
      * Returns the events list filtering by Admin
      */
     public void getEventsByAdmin() throws JSONException {
-
-        JSONObject jsonBody = null;
-        try {
-            jsonBody = new JSONObject("{\"id\":\""+ IBConfig.ADMIN_ID +"\"}");
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "unexpected JSON exception", e);
-        }
-
-        this.fetchInstanceAppData(jsonBody, BACKEND_BASE_URL + "/get-events-by-admin");
-    }
-
-    /**
-     * Create the OpenTok token for the Celebrity role
-     */
-    public void createCelebrityToken(String celebrity_url) throws JSONException {
-        String url = "";
-        if(IBConfig.ADMIN_ID != "") {
-            url = BACKEND_BASE_URL + "/create-token-celebrity/" + IBConfig.ADMIN_ID + "/" + celebrity_url;
-        } else {
-            url = BACKEND_BASE_URL + "/create-token-celebrity/" + celebrity_url;
-        }
-        createToken(url);
-    }
-
-    /**
-     * Create the OpenTok token for the Host role
-     */
-    public void createHostToken(String host_url) throws JSONException {
-        String url = "";
-        if(IBConfig.ADMIN_ID != "") {
-            url = BACKEND_BASE_URL + "/create-token-host/" + IBConfig.ADMIN_ID + "/" + host_url;
-        } else {
-            url = BACKEND_BASE_URL + "/create-token-host/" + host_url;
-        }
-        createToken(url);
+        this.fetchInstanceAppData("event/get-events-by-admin?adminId=" + IBConfig.ADMIN_ID);
     }
 
     /**
@@ -143,7 +112,7 @@ public class WebServiceCoordinator {
             public void onResponse(JSONObject response) {
                 Log.i(LOG_TAG, response.toString());
                 mConnected = true;
-                delegate.onDataReady(response);
+                //delegate.onDataReady(response);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -156,6 +125,65 @@ public class WebServiceCoordinator {
 
         reqQueue.add(jor);
 
+    }
+
+    /**
+     * Create the OpenTok token for every role
+     */
+    public void createToken(String userUrl) {
+
+        final String url = "event/create-token-" + IBConfig.USER_TYPE;
+        final JSONObject jsonBody = new JSONObject();
+        String authUrl = buildUrl("auth/token-" + IBConfig.USER_TYPE);
+
+        try {
+            jsonBody.put(IBConfig.USER_TYPE + "Url", userUrl);
+            jsonBody.put("adminId", IBConfig.ADMIN_ID);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception", e);
+        }
+
+        getAuthToken(authUrl, jsonBody.toString(), new AuthenticationCallback() {
+
+            @Override
+            public void onLoginError(String result) {
+                Log.d(LOG_TAG, result);
+            }
+
+            @Override
+            public void onLoginSuccess() {
+                RequestQueue reqQueue = Volley.newRequestQueue(context);
+                JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, buildUrl(url), jsonBody, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        delegate.onDataReady(response);
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        delegate.onWebServiceCoordinatorError(error);
+                    }
+                }
+                )
+                {
+                    @Override
+                    public Map<String, String> getHeaders() throws AuthFailureError {
+                        Map<String, String>  params = new HashMap<String, String>();
+                        params.put("Content-Type", "application/json");
+                        params.put("Authorization", "Bearer " + IBConfig.AUTH_TOKEN);
+                        return params;
+                    }
+                };
+
+                jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
+                reqQueue.add(jor);
+            }
+        });
+    }
+
+    // Get a JWT from the server
+    private void getAuthToken(String stringUrl, String jsonBody, AuthenticationCallback callback) {
+        new AuthTokenTask(callback, context).execute(stringUrl, jsonBody);
     }
 
     private JSONObject getFanParams(String fan_url) {
@@ -176,35 +204,20 @@ public class WebServiceCoordinator {
         return jsonBody;
     }
 
-    private void createToken(String url) {
+    private void fetchInstanceAppData(String url) {
         RequestQueue reqQueue = Volley.newRequestQueue(context);
 
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        JsonArrayRequest jor = new JsonArrayRequest(Request.Method.GET, buildUrl(url), null, new Response.Listener<JSONArray>() {
             @Override
-            public void onResponse(JSONObject response) {
+            public void onResponse(JSONArray response) {
                 Log.i(LOG_TAG, response.toString());
-                delegate.onDataReady(response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                delegate.onWebServiceCoordinatorError(error);
-            }
-        });
-
-        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        reqQueue.add(jor);
-    }
-
-    private void fetchInstanceAppData(JSONObject jsonBody, String url) {
-        RequestQueue reqQueue = Volley.newRequestQueue(context);
-
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.i(LOG_TAG, response.toString());
-                delegate.onDataReady(response);
+                JSONObject result = new JSONObject();
+                try {
+                    result.put("events", response);
+                } catch (JSONException ex ) {
+                    Log.d(LOG_TAG, ex.getMessage().toString());
+                }
+                delegate.onDataReady(result);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -225,7 +238,7 @@ public class WebServiceCoordinator {
             @Override
             public void onResponse(JSONObject response) {
                 Log.i(LOG_TAG, response.toString());
-                delegate.onDataReady(response);
+                //delegate.onDataReady(response);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -243,5 +256,7 @@ public class WebServiceCoordinator {
         return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
+    private String buildUrl (String url) {
+        return BACKEND_BASE_URL + BACKEND_API_PREFIX + url;
+    }
 }
-

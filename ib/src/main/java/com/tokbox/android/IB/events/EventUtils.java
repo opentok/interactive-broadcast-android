@@ -5,8 +5,12 @@ import android.graphics.Typeface;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.tokbox.android.IB.R;
 import com.tokbox.android.IB.config.IBConfig;
 import com.squareup.picasso.Picasso;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class EventUtils {
 
@@ -16,14 +20,14 @@ public class EventUtils {
     public static String getStatusNameById(String statusId) {
         String statusName = "";
         switch(statusId) {
-            case "N":
-            case "P":
+            case "notStarted":
+            case "preshow":
                 statusName = "Not started";
                 break;
-            case "L":
+            case "live":
                 statusName = "Live";
                 break;
-            case "C":
+            case "closed":
                 statusName = "Closed";
                 break;
         }
@@ -31,10 +35,13 @@ public class EventUtils {
     }
 
     public static void loadEventImage(Context context, String image, ImageView imgView) {
-        if(image.equals("null") || image.equals("")) image = IBConfig.DEFAULT_EVENT_IMAGE;
-        image = IBConfig.FRONTEND_URL + image;
-        Log.i(LOG_TAG, "loadEventImage.." + image);
-        Picasso.with(context).load(image).fit().centerCrop().into(imgView);
+        if(image.equals("")) {
+            /* Load the default img */
+            Picasso.with(context).load(R.drawable.default_event_img).fit().centerCrop().into(imgView);
+        } else {
+            /* Load the img from firebase */
+            Picasso.with(context).load(image).fit().centerCrop().into(imgView);
+        }
     }
 
     public static Typeface getFont(Context context) {
@@ -71,5 +78,18 @@ public class EventUtils {
         } while (textWidth(text.substring(0, newEnd) + "...") < max);
 
         return text.substring(0, end) + "...";
+    }
+
+    public static String getUserType(String connectionData) {
+        String userType = "";
+        try {
+            JSONObject data = new JSONObject(connectionData);
+            userType = data.getString("userType");
+        } catch (JSONException ex) {
+            Log.d(LOG_TAG, ex.getMessage());
+        } finally {
+            return userType;
+        }
+
     }
 }

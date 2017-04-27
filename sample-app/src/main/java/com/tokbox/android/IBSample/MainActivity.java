@@ -38,16 +38,11 @@ public class MainActivity extends AppCompatActivity {
             IBConfig.USER_TYPE = "celebrity";
         }
 
-        //Replace with the instance ID
-        //IBConfig.INSTANCE_ID = "spotlight-mlb-210216";
-        //IBConfig.INSTANCE_ID = "AAAA1";
-
         //Replace with the admin ID hashed
-        IBConfig.ADMIN_ID = "APO0";
+        IBConfig.ADMIN_ID = "fBLBS9NPHYUitE3KtVghn4yI9ke2";
 
         //Replace with the BACKEND URL
-        IBConfig.BACKEND_BASE_URL = "https://tokbox-ib-staging-tesla.herokuapp.com";
-        //IBConfig.BACKEND_BASE_URL = "https://tokbox-ib-demos-tesla.herokuapp.com";
+        IBConfig.BACKEND_BASE_URL = "http://172.17.0.107:3001";
 
         //Setting the userName
         if((!userName.getText().toString().equals(""))) {

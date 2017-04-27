@@ -74,21 +74,21 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
 
         try {
             if(holder.name.getText().equals("")) {
-                EventUtils.loadEventImage(getContext(), event.getString("event_image"), holder.event_img);
+                EventUtils.loadEventImage(getContext(), event.has("startImage") ? event.getString("startImage") : "", holder.event_img);
             }
-            holder.name.setText(EventUtils.ellipsize(event.getString("event_name"), 14));
+            holder.name.setText(EventUtils.ellipsize(event.getString("name"), 14));
             holder.date_status.setText(EventUtils.getStatusNameById(event.getString("status")));
-            if(event.getString("status").equals("N")) {
+            if(event.getString("status").equals("notStarted")) {
                 //holder.join_event.setVisibility(View.GONE);
 
                 if(!event.getString("date_time_start").equals("null")){
-                    holder.date_status.setText(event.getString("date_time_start"));
+                    holder.date_status.setText(event.getString("dateTimeStart"));
                     Date date = new Date();
                     //msg time
                     SimpleDateFormat ft = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
                     SimpleDateFormat ft2 = new SimpleDateFormat("MMM dd, yyyy HH:mm");
                     try {
-                        date = ft.parse(event.getString("date_time_start"));
+                        date = ft.parse(event.getString("dateTimeStart"));
                     }
                     catch(ParseException pe) {
                         Log.e(LOG_TAG, pe.getMessage());

@@ -244,31 +244,26 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         //Set instanceApp Data
         InstanceApp.getInstance().setData(instanceAppData);
 
-        Boolean bSuccess = false;
         mArrEvents = new JSONArray();
         try {
-            bSuccess = (Boolean)instanceAppData.get("success");
             if(instanceAppData.has("events")) {
                 mArrEvents = instanceAppData.getJSONArray("events");
             }
 
-            if(bSuccess) {
-                //init socket
-                initSocket();
+            //init socket
+            initSocket();
 
-                //Check the count of events.
-                if(mArrEvents.length() > 1) {
-                    showEventList();
-                } else {
-                    if(mArrEvents.length() == 1) {
-                        showEvent();
-                    } else {
-                        Toast.makeText(getApplicationContext(),"No events were found", Toast.LENGTH_LONG).show();
-                    }
-                }
+            //Check the count of events.
+            if(mArrEvents.length() > 1) {
+                showEventList();
             } else {
-                Log.e(LOG_TAG, "Invalid instance ID");
+                if(mArrEvents.length() == 1) {
+                    showEvent();
+                } else {
+                    Toast.makeText(getApplicationContext(),"No events were found", Toast.LENGTH_LONG).show();
+                }
             }
+
         } catch(JSONException e) {
             Log.e(LOG_TAG, "parsing instanceAppData error", e);
         } finally {

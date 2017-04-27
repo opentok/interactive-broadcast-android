@@ -81,14 +81,6 @@ public class InstanceApp {
     }
 
     public void setData(JSONObject value){
-
         mData = value;
-        try {
-            IBConfig.FRONTEND_URL = (String)mData.get("frontend_url");
-            IBConfig.SIGNALING_URL = (String)mData.get("signaling_url");
-            IBConfig.DEFAULT_EVENT_IMAGE = (String)mData.get("default_event_image");
-        } catch(JSONException e) {
-            Log.e("instanceApp.setData", e.getMessage());
-        }
     }
 }
