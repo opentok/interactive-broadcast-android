@@ -220,10 +220,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         mAudioOnlyFan = false;
 
-
-
-        //Connect to socket
-        initSocket();
+        requestEventData();
 
         //Set event name and images
         setEventUI();
@@ -250,42 +247,50 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void init() {
-
-        //The event must be on preshow or live.
-        String status = getEventStatus();
-        if(status.equals("N") || status.equals("C")) return;
-
-        //If the event is already initializated and the fan was able to join to interactive, don't do anything.
-        if(mInitializated && mHls==false) return;
-
-        //If the event is already initializated and the fan was watching HLS, resume the broadcast
-        if(mInitializated && mHls) {
-            resumeBroadcast();
-            try {
-                mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "unexpected JSON exception - emitJoinBroadcast", e);
-            }
-            mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
-            mSocket.getSocket().on("eventEnded", onBroadcastEnd);
-            return;
-        }
-
-        mInitializated = true;
-        //Emit the presence signal
-        //@TODO we need a way to know if the user limit is enabled or disabled
-        if(true) {
-            try {
-                mSocket.emitJoinInteractive(mEvent.getString("stage_sessionid"));
-                mSocket.getSocket().on("ableToJoin", onAbleToJoin);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "unexpected JSON exception - emitJoinInteractive", e);
-            }
-        } else {
-            //Get the event
-            requestEventData(mEvent);
-        }
+        mSocket.authenticate();
+        mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
+        mSocket.getSocket().on("authenticated", onSocketAuthenticated);
+        mSocket.getSocket().on("unauthorized", onSocketUnauthorized);
     }
+
+    private Emitter.Listener onSocketAuthenticated = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            //The event must be on preshow or live.
+            String status = getEventStatus();
+            if(status.equals("notStarted") || status.equals("closed")) return;
+
+            //If the event is already initializated and the fan was able to join to interactive, don't do anything.
+            if(mInitializated && mHls==false) return;
+
+            //If the event is already initializated and the fan was watching HLS, resume the broadcast
+            if(mInitializated && mHls) {
+                resumeBroadcast();
+                try {
+                    mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
+                } catch (JSONException e) {
+                    Log.e(LOG_TAG, "unexpected JSON exception - emitJoinBroadcast", e);
+                }
+                mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
+                mSocket.getSocket().on("eventEnded", onBroadcastEnd);
+                return;
+            }
+
+            mInitializated = true;
+
+            //Emit the presence signal
+            mSocket.emitJoinInteractive(mEvent);
+            mSocket.getSocket().on("ableToJoin", onAbleToJoin);
+
+        }
+    };
+
+    private Emitter.Listener onSocketUnauthorized = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+
+        }
+    };
 
     private Emitter.Listener onSocketConnected = new Emitter.Listener() {
         @Override
@@ -305,9 +310,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             try {
                 id = data.getString("id");
                 newStatus = data.getString("newStatus");
-                Log.i(LOG_TAG, mEvent.getString("event_name"));
-                if(newStatus.equals("P") && id.equals(mEvent.getString("id"))) {
-                    setEventStatus("P");
+                Log.i(LOG_TAG, mEvent.getString("eventName"));
+                if(newStatus.equals("preshow") && id.equals(mEvent.getString("id"))) {
+                    setEventStatus("preshow");
                     init();
                 }
 
@@ -324,7 +329,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             runOnUiThread(new Runnable() {
                               @Override
                               public void run() {
-                                  //if(!mConnectionError) mNotification.show(R.string.hls_reconnecting); //reconnection callback
                                   mConnectionError = true;
                               }
                           });
@@ -336,9 +340,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void setEventUI(){
         if(mEvent == null) return;
         try {
-            updateEventName(mEvent.getString("event_name"), EventUtils.getStatusNameById(mEvent.getString("status")));
-            EventUtils.loadEventImage(this, mEvent.getString("event_image"), mEventImage);
-            EventUtils.loadEventImage(this, mEvent.getString("event_image_end"), mEventImageEnd);
+            updateEventName(mEvent.getString("name"), EventUtils.getStatusNameById(mEvent.getString("status")));
+            EventUtils.loadEventImage(this, mEvent.has("startImage") ? mEvent.getString("startImage"): "", mEventImage);
+            EventUtils.loadEventImage(this, mEvent.has("endImage") ? mEvent.getString("endImage") : "", mEventImageEnd);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - updateEventName", e);
         }
@@ -424,14 +428,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mEvent = InstanceApp.getInstance().getEventByIndex(event_index);
     }
 
-    private void requestEventData (JSONObject event) {
+    private void requestEventData () {
+
 
         if(InstanceApp.getInstance().getEnableGetInline()) {
             setVisibilityGetInLine(View.VISIBLE);
         }
 
         try {
-            mWebServiceCoordinator.createFanToken(event.getString("fan_url"));
+            mWebServiceCoordinator.createAuthToken(mEvent.getString("fanUrl"));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -443,28 +448,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
      */
     @Override
     public void onDataReady(JSONObject results) {
-        mConnectionError = false;
-        JSONObject objSource = new JSONObject();
-        try {
-            mEvent = results.getJSONObject("event");
-            mApiKey = results.getString("apiKey");
-            mToken = results.getString("tokenHost");
-            mSessionId = results.getString("sessionIdHost");
-            mBackstageToken = results.getString("tokenProducer");
-            mBackstageSessionId = results.getString("sessionIdProducer");
 
-            //Set the LogSource:
-            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-" +
-                         mEvent.getString("admins_name") + "-" +
-                         mEvent.getString("id");
-
-            updateEventName();
-            sessionConnect();
-
-        } catch(JSONException ex) {
-            Log.e(LOG_TAG, ex.getMessage());
-            //@TODO: Do something when this error happens
-        }
+        // Once the authToken is ready, let's connect to socket
+        initSocket();
     }
 
     @Override
@@ -853,7 +839,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
 
-                if (!status.equals("C")) {
+                if (!status.equals("closed")) {
                     setVisibilityGetInLine(View.VISIBLE);
                 } else {
                     setVisibilityGetInLine(View.GONE);
@@ -1124,36 +1110,38 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Video height:" + String.valueOf(stream.getVideoHeight()));
         Log.i(LOG_TAG, "Video width:" + String.valueOf(stream.getVideoWidth()));
         Log.i(LOG_TAG, "Video type:" + String.valueOf(stream.getStreamVideoType().name()));
+        Log.i(LOG_TAG, "Video userType:" + EventUtils.getUserType(stream.getConnection().getData()));
+
         try {
-            switch (stream.getConnection().getData()) {
-                case "usertype=fan":
+            switch (EventUtils.getUserType(stream.getConnection().getData())) {
+                case "fan":
                     if (mFanStream == null && bIsOnStage) {
                         mFanStream = stream;
-                        if (status.equals("L")) {
+                        if (status.equals("live")) {
                             subscribeFanToStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "usertype=celebrity":
+                case "celebrity":
                     if (mCelebrityStream == null) {
                         mCelebrityStream = stream;
-                        if (status.equals("L") || mUserIsOnstage) {
+                        if (status.equals("live") || mUserIsOnstage) {
                             subscribeCelebrityToStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "usertype=host":
+                case "host":
                     if (mHostStream == null) {
                         mHostStream = stream;
-                        if (status.equals("L") || mUserIsOnstage) {
+                        if (status.equals("live") || mUserIsOnstage) {
                             subscribeHostToStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "usertype=producer":
+                case "producer":
                     if (mProducerStream == null && !bIsOnStage) {
                         mProducerStream = stream;
                     }
@@ -1175,34 +1163,34 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         String streamConnectionId = stream.getConnection().getConnectionId();
         Boolean bIsOnStage = session.getSessionId().equals(mSessionId);
         try {
-            switch(stream.getConnection().getData()) {
-                case "usertype=fan":
+            switch(EventUtils.getUserType(stream.getConnection().getData())) {
+                case "fan":
                     if(mFanStream != null && bIsOnStage && mFanStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                         mFanStream = null;
-                        if(status.equals("L") || status.equals("C")) {
+                        if(status.equals("live") || status.equals("closed")) {
                             unsubscribeFanFromStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "usertype=celebrity":
+                case "celebrity":
                     if(mCelebrityStream != null && mCelebrityStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                         mCelebrityStream = null;
-                        if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
+                        if(status.equals("live") || status.equals("closed") || mUserIsOnstage) {
                             unsubscribeCelebrityFromStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "usertype=host":
+                case "host":
                     if(mHostStream != null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                         mHostStream = null;
-                        if(status.equals("L") || status.equals("C") || mUserIsOnstage) {
+                        if(status.equals("live") || status.equals("closed") || mUserIsOnstage) {
                             unsubscribeHostFromStream(stream);
                             updateViewsWidth();
                         }
                     }
-                case "usertype=producer":
+                case "producer":
                     if(!bIsOnStage) {
                         if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
@@ -1253,11 +1241,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_PUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
         }
 
-        if(mHostStream != null && (getEventStatus().equals("L") || mUserIsOnstage)) {
+        if(mHostStream != null && (getEventStatus().equals("live") || mUserIsOnstage)) {
             Log.i("NetworkTest", "mtestinghost");
             mTestingOnStage = true;
             testStreamConnectionQuality(mHostStream);
-        } else if(mCelebrityStream != null  && (getEventStatus().equals("L") || mUserIsOnstage)) {
+        } else if(mCelebrityStream != null  && (getEventStatus().equals("live") || mUserIsOnstage)) {
             Log.i("NetworkTest", "mCelebritytest");
             mTestingOnStage = true;
             testStreamConnectionQuality(mCelebrityStream);
@@ -1427,52 +1415,49 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onVideoDataReceived(SubscriberKit subscriber) {
-        Log.i(LOG_TAG, "First frame received");
-        Log.i(LOG_TAG, "onVideoDataReceived " + subscriber.getStream().getConnection().getData());
-        if(subscriber.getStream().getConnection().getData().equals("usertype=fan")) {
+        String connectionData = subscriber.getStream().getConnection().getData();
+        String userType = EventUtils.getUserType(connectionData);
 
-            //Logging
-            addLogEvent(OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.SUCCESS);
+        switch(userType) {
 
-            // stop loading spinning
-            mSubscriberFanViewContainer.displaySpinner(false);
-            attachSubscriberFanView();
-        } else if(subscriber.getStream().getConnection().getData().equals("usertype=host")) {
+            case "fan":
+                //Logging
+                addLogEvent(OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.SUCCESS);
+                // stop loading spinning
+                mSubscriberFanViewContainer.displaySpinner(false);
+                attachSubscriberFanView();
+                break;
 
-            //Logging
-            addLogEvent(OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.SUCCESS);
-
-            // stop loading spinning
-            mSubscriberHostViewContainer.displaySpinner(false);
-            attachSubscriberHostView();
-
-
-        } else if(subscriber.getStream().getConnection().getData().equals("usertype=celebrity")) {
-
-            //Logging
-            addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.SUCCESS);
-
-            // stop loading spinning
-            mSubscriberCelebrityViewContainer.displaySpinner(false);
-            attachSubscriberCelebrityView();
-        } else if(subscriber.getStream().getConnection().getData().equals("usertype=producer")) {
-            Boolean bIsOnStage = subscriber.getSession().getSessionId().equals(mSessionId);
-            if(!bIsOnStage) {
-                addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
-            } else {
-                addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
-            }
-
+            case "host":
+                //Logging
+                addLogEvent(OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.SUCCESS);
+                // stop loading spinning
+                mSubscriberHostViewContainer.displaySpinner(false);
+                attachSubscriberHostView();
+                break;
+            case "celebrity":
+                //Logging
+                addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.SUCCESS);
+                // stop loading spinning
+                mSubscriberCelebrityViewContainer.displaySpinner(false);
+                attachSubscriberCelebrityView();
+                break;
+            case "producer":
+                Boolean bIsOnStage = subscriber.getSession().getSessionId().equals(mSessionId);
+                if(!bIsOnStage) {
+                    addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
+                } else {
+                    addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
+                }
+                break;
         }
     }
 
     @Override
     public void onVideoDisabled(SubscriberKit subscriber, String reason) {
-        Log.i(LOG_TAG,
-                "Video disabled:" + reason);
         enableAudioOnlyView(subscriber.getStream().getConnection().getConnectionId(), true);
 
-        if (mTestSubscriber != null && mTestSubscriber.getStream().getConnection().getConnectionId() == subscriber.getStream().getConnection().getConnectionId()) {
+        if (mTestSubscriber != null && mTestSubscriber.getStream().getConnection().getConnectionId().equals(subscriber.getStream().getConnection().getConnectionId())) {
             mTest.updateTest(true);
         }
         if (reason.equals("quality")) {
@@ -1559,13 +1544,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onConnected(SubscriberKit subscriberKit) {
-        //Log.i(LOG_TAG, "Subscriber Connected");
-        if(subscriberKit.getStream().getConnection().getData() == "usertype=fan") {
-            mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
-        } else if(subscriberKit.getStream().getConnection().getData() == "usertype=host") {
-            mSubscriberHostViewContainer.addView(mSubscriberHost.getView());
-        } else if(subscriberKit.getStream().getConnection().getData() == "usertype=celebrity") {
-            mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
+        String connectionData = subscriberKit.getStream().getConnection().getData();
+        String userType = EventUtils.getUserType(connectionData);
+        switch(userType) {
+            case "fan":
+                mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
+                break;
+            case "host":
+                mSubscriberHostViewContainer.addView(mSubscriberHost.getView());
+                break;
+            case "celebrity":
+                mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
+                break;
         }
 
         if(!subscriberKit.getStream().hasVideo()) {
@@ -1603,9 +1593,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onSignalReceived(Session session, String type, String data, Connection connection) {
 
         Log.i(LOG_TAG, "New signal:" + type);
+        String userType = EventUtils.getUserType(connection.getData());
+
         if(type != null) {
             //Check the origin of the signal
-            if (connection.getData().equals("usertype=producer")) {
+            if (userType.equals("producer")) {
                 switch (type) {
                     case "chatMessage":
                         handleNewMessage(data, connection);
@@ -1669,9 +1661,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }
             else {
-                if (!connection.getData().equals("usertype=fan") && !connection.getData().equals("usertype=host")
-                        && !connection.getData().equals("usertype=celebrity"))
+                if (!userType.equals("fan") && !userType.equals("host") && !userType.equals("celebrity")) {
                     Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
+                }
             }
         }
 
@@ -1703,7 +1695,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mSocket.SendSnapShot(obj);
 
                     //Send warning signal
-                    if(mSession == null || (status.equals("L") && mSubscribingError)) {
+                    if(mSession == null || (status.equals("live") && mSubscribingError)) {
                         Log.i(LOG_TAG, "send warning signal");
                         sendWarningSignal();
                     }
@@ -1921,7 +1913,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void goLive(){
-        setEventStatus("L");
+        setEventStatus("live");
         updateEventName();
         if(!mUserIsOnstage) {
             if (mFanStream != null) subscribeFanToStream(mFanStream);
@@ -1933,7 +1925,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void updateEventName() {
         try {
-            mEventName.setText(EventUtils.ellipsize(mEvent.getString("event_name"), 20));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString("name"), 20));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, "updateEventName ---> " + ex.getMessage());
@@ -1950,7 +1942,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private String getEventStatus() {
-        String status = "N";
+        String status = "notStarted";
         try {
             status = mEvent.getString("status");
         } catch (JSONException ex) {
@@ -2005,7 +1997,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }, 10000);
 
-        setEventStatus("C");
+        setEventStatus("closed");
 
         //Update event name and Status.
         updateEventName();
@@ -2015,7 +2007,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     /* Connection Listener methods */
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
-        if(mProducerConnection == null && connection.getData() != null && connection.getData().equals("usertype=producer") && mBackstageSessionId != null && session.getSessionId().equals(mBackstageSessionId)) {
+        if(mProducerConnection == null && connection.getData() != null &&
+                EventUtils.getUserType(connection.getData()).equals("producer") &&
+                mBackstageSessionId != null &&
+                session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = connection;
         }
     }
@@ -2025,9 +2020,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     {
         if(mProducerConnection != null &&
                 mProducerConnection.getConnectionId().equals(connection.getConnectionId()) &&
-                connection.getData().equals("usertype=producer") &&
+                EventUtils.getUserType(connection.getData()).equals("producer") &&
                 session.getSessionId().equals(mBackstageSessionId)) {
-
             mProducerConnection = null;
             mNewFanSignalAckd = false;
         }
@@ -2279,12 +2273,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     JSONObject data = (JSONObject) args[0];
                     Boolean ableToJoin;
                     Boolean eventLive;
-                    String broadcastId;
+
                     try {
                         ableToJoin = data.getBoolean("ableToJoin");
                         if(ableToJoin) {
                             Log.i(LOG_TAG, "able to join to interactive!");
-                            requestEventData(mEvent);
+                            mEvent = new JSONObject(data.getJSONObject("eventData").toString());
+                            initEvent();
                         } else {
                             Log.i(LOG_TAG, "not able to join to interactive.");
                             if(data.get("broadcastData") != JSONObject.NULL){
@@ -2320,7 +2315,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            setEventStatus("L");
+                            setEventStatus("live");
                             updateEventName();
                             startBroadcast();
                         }
@@ -2344,7 +2339,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                             mEventImageEnd.setVisibility(View.VISIBLE);
                             mVideoView.stopPlayback();
                             mVideoViewLayout.setVisibility(View.GONE);
-                            setEventStatus("C");
+                            setEventStatus("closed");
                             //Update event name and Status.
                             updateEventName();
                         }
@@ -2381,6 +2376,30 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void resumeBroadcast() {
         if(mVideoViewLayout.getVisibility() == View.VISIBLE) {
             mVideoView.start();
+        }
+    }
+
+    private void initEvent() {
+        mConnectionError = false;
+
+        try {
+            mApiKey = mEvent.getString("apiKey");
+            mToken = mEvent.getString("stageToken");
+            mSessionId = mEvent.getString("stageSessionId");
+            mBackstageToken = mEvent.getString("backstageToken");
+            mBackstageSessionId = mEvent.getString("sessionId");
+
+            //Set the LogSource:
+            mLogSource = getApplicationContext().getApplicationInfo().packageName + "-" +
+                    mEvent.getString("adminId") + "-" +
+                    mEvent.getString("id");
+
+            updateEventName();
+            sessionConnect();
+
+        } catch(JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+            //@TODO: Do something when this error happens
         }
     }
 }
