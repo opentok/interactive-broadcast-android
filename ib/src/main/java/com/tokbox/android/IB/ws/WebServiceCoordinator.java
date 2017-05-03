@@ -64,7 +64,7 @@ public class WebServiceCoordinator {
      */
     public interface AuthenticationCallback {
          void onLoginSuccess();
-         void onLoginError(String result);
+         void onLoginError(Exception error);
     }
 
     /**
@@ -96,6 +96,7 @@ public class WebServiceCoordinator {
     public void getEventsByAdmin() throws JSONException {
         this.fetchInstanceAppData("event/get-events-by-admin?adminId=" + IBConfig.ADMIN_ID);
     }
+
 
     /**
      * Create the OpenTok token for the Fan role
@@ -146,8 +147,8 @@ public class WebServiceCoordinator {
         getAuthToken(authUrl, jsonBody.toString(), new AuthenticationCallback() {
 
             @Override
-            public void onLoginError(String result) {
-                Log.d(LOG_TAG, result);
+            public void onLoginError(Exception error) {
+                Log.d(LOG_TAG, error.getMessage());
             }
 
             @Override
@@ -177,6 +178,36 @@ public class WebServiceCoordinator {
 
                 jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                 reqQueue.add(jor);
+            }
+        });
+    }
+
+    /**
+     * Create the OpenTok token for every role
+     */
+    public void createAuthToken(String userUrl) {
+
+        final String url = "event/create-token-" + IBConfig.USER_TYPE;
+        final JSONObject jsonBody = new JSONObject();
+        String authUrl = buildUrl("auth/token-" + IBConfig.USER_TYPE);
+
+        try {
+            jsonBody.put(IBConfig.USER_TYPE + "Url", userUrl);
+            jsonBody.put("adminId", IBConfig.ADMIN_ID);
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception", e);
+        }
+
+        getAuthToken(authUrl, jsonBody.toString(), new AuthenticationCallback() {
+
+            @Override
+            public void onLoginError(Exception error) {
+                delegate.onWebServiceCoordinatorError(error);
+            }
+
+            @Override
+            public void onLoginSuccess() {
+                delegate.onDataReady(null);
             }
         });
     }
