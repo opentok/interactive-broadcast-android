@@ -7,9 +7,12 @@ import com.github.nkzawa.socketio.client.IO;
 import com.github.nkzawa.socketio.client.Socket;
 import com.tokbox.android.IB.config.IBConfig;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
+
+import static android.webkit.ConsoleMessage.MessageLevel.LOG;
 
 
 public class SocketCoordinator {
@@ -43,12 +46,34 @@ public class SocketCoordinator {
         }
     }
 
-    public void emitJoinInteractive(String onStageSessionId) {
-        mSocket.emit("joinInteractive", onStageSessionId);
+    public void emitJoinInteractive(JSONObject event) {
+        JSONObject jsonData = new JSONObject();
+        try {
+            jsonData.put("fanUrl", event.getString("fanUrl"));
+            jsonData.put("adminId", event.getString("adminId"));
+        } catch (JSONException ex) {
+            Log.d(LOG_TAG, ex.getMessage());
+        }
+        mSocket.emit("joinInteractive", jsonData);
         if(mSocket.connected()) {
             Log.i(LOG_TAG, "joinInteractive emitted");
         } else {
             Log.i(LOG_TAG, "joinInteractive not emitted");
+        }
+    }
+
+    public void authenticate() {
+        JSONObject jsonData = new JSONObject();
+        try {
+            jsonData.put("token", IBConfig.AUTH_TOKEN);
+        } catch(JSONException ex) {
+          Log.d(LOG_TAG, ex.getMessage());
+        }
+        mSocket.emit("authenticate", jsonData);
+        if(mSocket.connected()) {
+            Log.i(LOG_TAG, "authenticate emitted");
+        } else {
+            Log.i(LOG_TAG, "authenticate not emitted");
         }
     }
 
