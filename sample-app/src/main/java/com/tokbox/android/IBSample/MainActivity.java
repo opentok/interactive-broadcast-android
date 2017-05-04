@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         IBConfig.ADMIN_ID = "fBLBS9NPHYUitE3KtVghn4yI9ke2";
 
         //Replace with the BACKEND URL
-        IBConfig.BACKEND_BASE_URL = "http://172.17.0.107:3001";
+        IBConfig.BACKEND_BASE_URL = "http://192.168.0.14:3001";
 
         //Setting the userName
         if((!userName.getText().toString().equals(""))) {

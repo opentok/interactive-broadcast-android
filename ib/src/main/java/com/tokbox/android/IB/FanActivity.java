@@ -60,6 +60,8 @@ import com.opentok.android.SubscriberKit;
 import com.tokbox.android.IB.chat.ChatMessage;
 import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventRole;
+import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.network.NetworkTest;
@@ -258,7 +260,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         public void call(Object... args) {
             //The event must be on preshow or live.
             String status = getEventStatus();
-            if(status.equals("notStarted") || status.equals("closed")) return;
+            if(status.equals(EventStatus.NOT_STARTED) || status.equals(EventStatus.CLOSED)) return;
 
             //If the event is already initializated and the fan was able to join to interactive, don't do anything.
             if(mInitializated && mHls==false) return;
@@ -311,8 +313,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 id = data.getString("id");
                 newStatus = data.getString("newStatus");
                 Log.i(LOG_TAG, mEvent.getString("eventName"));
-                if(newStatus.equals("preshow") && id.equals(mEvent.getString("id"))) {
-                    setEventStatus("preshow");
+                if(newStatus.equals(EventStatus.PRESHOW) && id.equals(mEvent.getString("id"))) {
+                    setEventStatus(EventStatus.PRESHOW);
                     init();
                 }
 
@@ -839,7 +841,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
                 mNewFanSignalAckd = false;
 
-                if (!status.equals("closed")) {
+                if (!status.equals(EventStatus.CLOSED)) {
                     setVisibilityGetInLine(View.VISIBLE);
                 } else {
                     setVisibilityGetInLine(View.GONE);
@@ -1114,34 +1116,34 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         try {
             switch (EventUtils.getUserType(stream.getConnection().getData())) {
-                case "fan":
+                case EventRole.FAN:
                     if (mFanStream == null && bIsOnStage) {
                         mFanStream = stream;
-                        if (status.equals("live")) {
+                        if (status.equals(EventStatus.LIVE)) {
                             subscribeFanToStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "celebrity":
+                case EventRole.CELEBRITY:
                     if (mCelebrityStream == null) {
                         mCelebrityStream = stream;
-                        if (status.equals("live") || mUserIsOnstage) {
+                        if (status.equals(EventStatus.LIVE) || mUserIsOnstage) {
                             subscribeCelebrityToStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "host":
+                case EventRole.HOST:
                     if (mHostStream == null) {
                         mHostStream = stream;
-                        if (status.equals("live") || mUserIsOnstage) {
+                        if (status.equals(EventStatus.LIVE) || mUserIsOnstage) {
                             subscribeHostToStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "producer":
+                case EventRole.PRODUCER:
                     if (mProducerStream == null && !bIsOnStage) {
                         mProducerStream = stream;
                     }
@@ -1164,33 +1166,33 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Boolean bIsOnStage = session.getSessionId().equals(mSessionId);
         try {
             switch(EventUtils.getUserType(stream.getConnection().getData())) {
-                case "fan":
+                case EventRole.FAN:
                     if(mFanStream != null && bIsOnStage && mFanStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                         mFanStream = null;
-                        if(status.equals("live") || status.equals("closed")) {
+                        if(status.equals(EventStatus.LIVE) || status.equals(EventStatus.CLOSED)) {
                             unsubscribeFanFromStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "celebrity":
+                case EventRole.CELEBRITY:
                     if(mCelebrityStream != null && mCelebrityStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                         mCelebrityStream = null;
-                        if(status.equals("live") || status.equals("closed") || mUserIsOnstage) {
+                        if(status.equals(EventStatus.LIVE) || status.equals(EventStatus.CLOSED) || mUserIsOnstage) {
                             unsubscribeCelebrityFromStream(stream);
                             updateViewsWidth();
                         }
                     }
                     break;
-                case "host":
+                case EventRole.HOST:
                     if(mHostStream != null && mHostStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                         mHostStream = null;
-                        if(status.equals("live") || status.equals("closed") || mUserIsOnstage) {
+                        if(status.equals(EventStatus.LIVE) || status.equals(EventStatus.CLOSED) || mUserIsOnstage) {
                             unsubscribeHostFromStream(stream);
                             updateViewsWidth();
                         }
                     }
-                case "producer":
+                case EventRole.PRODUCER:
                     if(!bIsOnStage) {
                         if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
@@ -1241,11 +1243,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_PUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
         }
 
-        if(mHostStream != null && (getEventStatus().equals("live") || mUserIsOnstage)) {
+        if(mHostStream != null && (getEventStatus().equals(EventStatus.LIVE) || mUserIsOnstage)) {
             Log.i("NetworkTest", "mtestinghost");
             mTestingOnStage = true;
             testStreamConnectionQuality(mHostStream);
-        } else if(mCelebrityStream != null  && (getEventStatus().equals("live") || mUserIsOnstage)) {
+        } else if(mCelebrityStream != null  && (getEventStatus().equals(EventStatus.LIVE) || mUserIsOnstage)) {
             Log.i("NetworkTest", "mCelebritytest");
             mTestingOnStage = true;
             testStreamConnectionQuality(mCelebrityStream);
@@ -1420,7 +1422,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         switch(userType) {
 
-            case "fan":
+            case EventRole.FAN:
                 //Logging
                 addLogEvent(OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.SUCCESS);
                 // stop loading spinning
@@ -1428,21 +1430,21 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 attachSubscriberFanView();
                 break;
 
-            case "host":
+            case EventRole.HOST:
                 //Logging
                 addLogEvent(OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.SUCCESS);
                 // stop loading spinning
                 mSubscriberHostViewContainer.displaySpinner(false);
                 attachSubscriberHostView();
                 break;
-            case "celebrity":
+            case EventRole.CELEBRITY:
                 //Logging
                 addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.SUCCESS);
                 // stop loading spinning
                 mSubscriberCelebrityViewContainer.displaySpinner(false);
                 attachSubscriberCelebrityView();
                 break;
-            case "producer":
+            case EventRole.PRODUCER:
                 Boolean bIsOnStage = subscriber.getSession().getSessionId().equals(mSessionId);
                 if(!bIsOnStage) {
                     addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
@@ -1547,13 +1549,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         String connectionData = subscriberKit.getStream().getConnection().getData();
         String userType = EventUtils.getUserType(connectionData);
         switch(userType) {
-            case "fan":
+            case EventRole.FAN:
                 mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
                 break;
-            case "host":
+            case EventRole.HOST:
                 mSubscriberHostViewContainer.addView(mSubscriberHost.getView());
                 break;
-            case "celebrity":
+            case EventRole.CELEBRITY:
                 mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
                 break;
         }
@@ -1597,7 +1599,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         if(type != null) {
             //Check the origin of the signal
-            if (userType.equals("producer")) {
+            if (userType.equals(EventRole.PRODUCER)) {
                 switch (type) {
                     case "chatMessage":
                         handleNewMessage(data, connection);
@@ -1661,7 +1663,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }
             else {
-                if (!userType.equals("fan") && !userType.equals("host") && !userType.equals("celebrity")) {
+                if (!userType.equals(EventRole.FAN) && !userType.equals(EventRole.HOST) && !userType.equals(EventRole.CELEBRITY)) {
                     Log.i(LOG_TAG, "Got a signal from an unexpected origin. Ignoring");
                 }
             }
@@ -1695,7 +1697,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mSocket.SendSnapShot(obj);
 
                     //Send warning signal
-                    if(mSession == null || (status.equals("live") && mSubscribingError)) {
+                    if(mSession == null || (status.equals(EventStatus.LIVE) && mSubscribingError)) {
                         Log.i(LOG_TAG, "send warning signal");
                         sendWarningSignal();
                     }
@@ -1913,7 +1915,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void goLive(){
-        setEventStatus("live");
+        setEventStatus(EventStatus.LIVE);
         updateEventName();
         if(!mUserIsOnstage) {
             if (mFanStream != null) subscribeFanToStream(mFanStream);
@@ -1942,7 +1944,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private String getEventStatus() {
-        String status = "notStarted";
+        String status = EventStatus.NOT_STARTED;
         try {
             status = mEvent.getString("status");
         } catch (JSONException ex) {
@@ -1997,7 +1999,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }, 10000);
 
-        setEventStatus("closed");
+        setEventStatus(EventStatus.CLOSED);
 
         //Update event name and Status.
         updateEventName();
@@ -2008,7 +2010,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     public void onConnectionCreated(Session session, Connection connection) {
         if(mProducerConnection == null && connection.getData() != null &&
-                EventUtils.getUserType(connection.getData()).equals("producer") &&
+                EventUtils.getUserType(connection.getData()).equals(EventRole.PRODUCER) &&
                 mBackstageSessionId != null &&
                 session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = connection;
@@ -2020,7 +2022,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     {
         if(mProducerConnection != null &&
                 mProducerConnection.getConnectionId().equals(connection.getConnectionId()) &&
-                EventUtils.getUserType(connection.getData()).equals("producer") &&
+                EventUtils.getUserType(connection.getData()).equals(EventRole.PRODUCER) &&
                 session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = null;
             mNewFanSignalAckd = false;
@@ -2315,7 +2317,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            setEventStatus("live");
+                            setEventStatus(EventStatus.LIVE);
                             updateEventName();
                             startBroadcast();
                         }
@@ -2339,7 +2341,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                             mEventImageEnd.setVisibility(View.VISIBLE);
                             mVideoView.stopPlayback();
                             mVideoViewLayout.setVisibility(View.GONE);
-                            setEventStatus("closed");
+                            setEventStatus(EventStatus.CLOSED);
                             //Update event name and Status.
                             updateEventName();
                         }
