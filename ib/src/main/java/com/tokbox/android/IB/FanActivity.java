@@ -1079,12 +1079,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void startPrivateCall(String data) {
         String callWith = "";
-        try {
-            callWith = new JSONObject(data).getString("callWith");
-        } catch (Throwable t) {
-            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
-        }
-
         if(mProducerStreamOnstage != null && mPublisher != null && mPublisher.getStream().getConnection().getConnectionId().equals(callWith)) {
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
@@ -1742,12 +1736,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     case "finishEvent":
                         finishEvent();
                         break;
-                    case "joinProducer":
-                        subscribeProducer();
-                        break;
-                    case "disconnectProducer":
-                        unSubscribeProducer();
-                        break;
                     case "joinHost":
                         connectWithOnstage();
                         break;
@@ -1769,12 +1757,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         break;
                     case "producerLeaving":
                         mNewFanSignalAckd = false;
-                        break;
-                    case "privateCall":
-                        startPrivateCall(data);
-                        break;
-                    case "endPrivateCall":
-                        endPrivateCall();
                         break;
                 }
             }
@@ -2401,6 +2383,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mActiveFan.setId(fanId());
             mActiveFanRef.setValue(mActiveFan);
             mActiveFanRef.onDisconnect().removeValue();
+
         } catch (JSONException e) {
             Log.i(LOG_TAG, e.getMessage());
         }
@@ -2413,11 +2396,29 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 public void run() {
                     if(mPublisher == null) return;
                     try {
+                        // Update the name, picture and streamId
                         mActiveFan.setName(IBConfig.USER_NAME);
                         mActiveFan.setSnapshot(mCustomVideoRenderer.getSnapshot());
                         mActiveFan.setStreamId(mPublisher.getStream().getStreamId());
                         mActiveFanRef.setValue(mActiveFan);
-                        Log.e(LOG_TAG, "LISTO!!!!");
+
+                        // Listen for updates in inPrivateCall and isBackstage
+                        ValueEventListener updateListener = new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                mActiveFan = dataSnapshot.getValue(ActiveFan.class);
+                                if (mActiveFan.isInPrivateCall()) {
+                                    subscribeProducer();
+                                } else {
+                                    unSubscribeProducer();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) { }
+                        };
+                        mActiveFanRef.addValueEventListener(updateListener);
+
                     } catch(Exception ex) {
                         Log.e(LOG_TAG, ex.getMessage());
                     }
@@ -2428,7 +2429,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() { updateFanRecord(); }
-            }, 1000);
+            }, 500);
         }
     }
 
