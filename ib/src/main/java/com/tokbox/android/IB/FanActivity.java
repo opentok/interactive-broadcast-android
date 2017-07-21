@@ -52,6 +52,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -217,6 +218,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseDatabase mDatabase;
+    private ActiveFan mActiveFan;
+    private DatabaseReference mActiveFanRef;
 
 
     @Override
@@ -870,20 +873,23 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.i(LOG_TAG, "Connected to the session");
         mConnectionError = false;
 
-        // stop loading spinning
-        //mPublisherSpinnerLayout.setVisibility(View.GONE);
-
-        //Start publishing in backstage session
+        // Start publishing in backstage session
         if(session.getSessionId().equals(mBackstageSessionId)) {
 
-            //Logging
+            // Logging
             addLogEvent(OTKAction.FAN_CONNECTS_BACKSTAGE, OTKVariation.SUCCESS);
 
-            //Logging
+            // Logging
             addLogEvent(OTKAction.FAN_PUBLISHES_BACKSTAGE, OTKVariation.ATTEMPT);
+
+            // Start publishing to the session
             mBackstageSession.publish(mPublisher);
 
+            // Display leave line button
             setVisibilityGetInLine(View.VISIBLE);
+
+            // update active fan record in firebase
+            updateFanRecord();
 
             //loading text-chat ui component
             loadTextChatFragment();
@@ -934,6 +940,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mHandler.post(new Runnable() {
             @Override
             public void run() {
+                // Remove firebase reference
+                mActiveFan.setDefaults();
+                mActiveFanRef.setValue(mActiveFan);
+
                 String status = getEventStatus();
                 mNotification.hide();
                 if (mBackstageSession != null) {
@@ -1733,10 +1743,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     case "finishEvent":
                         finishEvent();
                         break;
-                    //backstage
-                    case "resendNewFanSignal":
-                        if (!mNewFanSignalAckd) sendNewFanSignal();
-                        break;
                     case "joinProducer":
                         subscribeProducer();
                         break;
@@ -1762,9 +1768,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     case "disconnectBackstage":
                         disconnectBackstage();
                         break;
-                    case "newFanAck":
-                        ackNewFanSignal();
-                        break;
                     case "producerLeaving":
                         mNewFanSignalAckd = false;
                         break;
@@ -1784,49 +1787,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
 
         //TODO: onChangeVolumen
-    }
-
-    private void ackNewFanSignal() {
-        mNewFanSignalAckd = true;
-
-        if(mCustomVideoRenderer.getSnapshot() != null) {
-            mHandler.post(new Runnable() {
-                @Override
-                public void run() {
-
-                    if(mPublisher == null) return;
-                    String status = getEventStatus();
-                    String connectionId = mBackstageConnectionId;
-                    String sessionId = mBackstageSessionId;
-                    String snapshot = mCustomVideoRenderer.getSnapshot();
-                    Log.i(LOG_TAG, "sending snapshot : " + snapshot);
-                    JSONObject obj = new JSONObject();
-                    try {
-                        obj.put("connectionId", connectionId);
-                        obj.put("sessionId", sessionId);
-                        obj.put("snapshot", snapshot);
-                    } catch (JSONException ex) {
-                        Log.e(LOG_TAG, "ackNewFanSignal error " + ex.getMessage());
-                    }
-                    mSocket.SendSnapShot(obj);
-
-                    //Send warning signal
-                    if(mSession == null || (status.equals(EventStatus.LIVE) && mSubscribingError)) {
-                        Log.i(LOG_TAG, "send warning signal");
-                        sendWarningSignal();
-                    }
-                }
-            });
-        } else {
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    ackNewFanSignal();
-                }
-            }, 1000);
-        }
-
-
     }
 
     private void joinBackstage() {
@@ -2189,9 +2149,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
         if(mBackstageSessionId != null) {
 
-            //Send socket signal
-            mSocket.emitJoinRoom(mBackstageSessionId);
-
             if (mPublisher == null) {
 
                 Log.i(LOG_TAG, "init publisher");
@@ -2215,19 +2172,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }, 500);
         }
 
-    }
-
-    private void sendNewFanSignal() {
-
-        if(mProducerConnection != null && mBackstageSession != null){
-            if(!mNewFanSignalAckd) {
-                mNewFanSignalAckd = true;
-                String userName = IBConfig.USER_NAME;
-                String user_id = mWebServiceCoordinator.getUserId();
-                String msg = "{\"user\":{\"user_id\":\"" + user_id + "\",\"mobile\":\"true\",\"os\":\"Android\",\"username\":\"" + userName + "\", \"quality\":\"" + mTestQuality + "\"}}";
-                mBackstageSession.sendSignal("newFan", msg, mProducerConnection);
-            }
-        }
     }
 
     // Initialize a TextChatFragment instance and add it to the UI
@@ -2455,15 +2399,40 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void createFanRecord(){
         try {
-            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl") + "/activeFans/" + fanId());
-            ActiveFan ac = new ActiveFan();
-            ac.setId(fanId());
-            myRef.setValue(ac);
-            myRef.onDisconnect().removeValue();
+            mActiveFanRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl") + "/activeFans/" + fanId());
+            mActiveFan = new ActiveFan();
+            mActiveFan.setId(fanId());
+            mActiveFanRef.setValue(mActiveFan);
+            mActiveFanRef.onDisconnect().removeValue();
         } catch (JSONException e) {
             Log.i(LOG_TAG, e.getMessage());
         }
+    }
 
+    private void updateFanRecord() {
+        if(mCustomVideoRenderer.getSnapshot() != null) {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if(mPublisher == null) return;
+                    try {
+                        mActiveFan.setName(IBConfig.USER_NAME);
+                        mActiveFan.setSnapshot(mCustomVideoRenderer.getSnapshot());
+                        mActiveFan.setStreamId(mPublisher.getStream().getStreamId());
+                        mActiveFanRef.setValue(mActiveFan);
+                        Log.e(LOG_TAG, "LISTO!!!!");
+                    } catch(Exception ex) {
+                        Log.e(LOG_TAG, ex.getMessage());
+                    }
+
+                }
+            });
+        } else {
+            mHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() { updateFanRecord(); }
+            }, 1000);
+        }
     }
 
     private void initEvent() {
