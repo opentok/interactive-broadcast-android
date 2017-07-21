@@ -1495,9 +1495,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     public void sendQualityUpdate(String connectionId, String quality) {
-        if (mBackstageSession != null && mProducerConnection != null) {
-            String msg = "{\"connectionId\":\"" + connectionId + "\", \"quality\":\"" + quality + "\"}";
-            mBackstageSession.sendSignal("qualityUpdate", msg);
+        if (mBackstageSession != null) {
+            mActiveFanRef.child("networkQuality").setValue(quality);
         }
     }
 
@@ -2224,8 +2223,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if (mTestSubscriber != null) {
             //to send quality update to the producer
             Log.i(LOG_TAG, "Audio quality sent to the producer: " + quality.toString());
-            //TODO: audio quality to the producer
-            //sendQualityUpdate(mTestSubscriber.getStream().getConnection().getConnectionId(), quality.toString());
         }
     }
 
@@ -2233,15 +2230,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         String qualityStr = null;
 
         if (quality.equals(NetworkTest.MOSQuality.Bad) || quality.equals(NetworkTest.MOSQuality.Poor)) {
-            qualityStr = "Poor";
+            qualityStr = "poor";
         }
         else {
             if (quality.equals(NetworkTest.MOSQuality.Good) || quality.equals(NetworkTest.MOSQuality.Fair)){
-                qualityStr = "Good";
+                qualityStr = "good";
             }
             else {
                 if (quality.equals(NetworkTest.MOSQuality.Excellent)){
-                    qualityStr = "Great";
+                    qualityStr = "great";
                 }
             }
         }
