@@ -1665,15 +1665,16 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onConnected(SubscriberKit subscriberKit) {
         String connectionData = subscriberKit.getStream().getConnection().getData();
         String userType = EventUtils.getUserType(connectionData);
+
         switch(userType) {
             case EventRole.FAN:
-                mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
+                if (mSubscriberFan != null) mSubscriberFanViewContainer.addView(mSubscriberFan.getView());
                 break;
             case EventRole.HOST:
-                mSubscriberHostViewContainer.addView(mSubscriberHost.getView());
+                if (mSubscriberHost != null) mSubscriberHostViewContainer.addView(mSubscriberHost.getView());
                 break;
             case EventRole.CELEBRITY:
-                mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
+                if (mSubscriberCelebrity != null) mSubscriberCelebrityViewContainer.addView(mSubscriberCelebrity.getView());
                 break;
         }
 
