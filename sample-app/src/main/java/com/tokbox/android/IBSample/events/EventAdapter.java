@@ -81,7 +81,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
             if(event.getString("status").equals("notStarted")) {
                 //holder.join_event.setVisibility(View.GONE);
 
-                if(!event.getString("date_time_start").equals("null")){
+                if(event.has("dateTimeStart") && !event.getString("dateTimeStart").equals("null")){
                     holder.date_status.setText(event.getString("dateTimeStart"));
                     Date date = new Date();
                     //msg time

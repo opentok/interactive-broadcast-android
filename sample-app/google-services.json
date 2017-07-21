@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "33412395154",
+    "firebase_url": "https://opentok-ib.firebaseio.com",
+    "project_id": "opentok-ib",
+    "storage_bucket": "opentok-ib.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:33412395154:android:33b19b8e957f5894",
+        "android_client_info": {
+          "package_name": "com.tokbox.android.IBSample"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "33412395154-u518jfsr797bicr7e37nb69rem3odr5h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tokbox.android.IBSample",
+            "certificate_hash": "045f7ab6ccfa3ef30bcba61a1a8fd8301c7a58ec"
+          }
+        },
+        {
+          "client_id": "33412395154-1jefnhie265ujnesnpho8iqjtqbugdft.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8Z-1uveV9Gxe13umSQmcxeN46riN9ONo"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "33412395154-t2nsqqku8l5scf1126mvr9a6t0ghnmqk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tokbox.IBSDemo"
+              }
+            },
+            {
+              "client_id": "33412395154-1jefnhie265ujnesnpho8iqjtqbugdft.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

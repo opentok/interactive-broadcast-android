@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -47,6 +48,19 @@ import android.widget.TextView;
 
 import com.github.nkzawa.emitter.Emitter;
 import com.github.nkzawa.socketio.client.Socket;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
 import com.opentok.android.OpenTokConfig;
@@ -60,6 +74,8 @@ import com.opentok.android.SubscriberKit;
 import com.tokbox.android.IB.chat.ChatMessage;
 import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.ActiveBroadcast;
+import com.tokbox.android.IB.events.ActiveFan;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
@@ -86,12 +102,13 @@ import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
+import java.util.HashMap;
 import java.util.UUID;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
         Session.SessionListener, Session.ConnectionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
         Session.SignalListener,Subscriber.VideoListener,
-        TextChatFragment.TextChatListener, NetworkTest.NetworkTestListener{
+        TextChatFragment.TextChatListener, NetworkTest.NetworkTestListener {
 
     private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
     private final int permsRequestCode = 200;
@@ -195,6 +212,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private JSONObject mBroadcastData;
 
+
+    //Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseDatabase mDatabase;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -212,6 +236,28 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         setContentView(R.layout.activity_fan);
 
         initLayoutWidgets();
+
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
+        // Make sure we're connected to firebase
+        mDatabase.goOnline();
+
+        // Create a listener for firebase auth state
+        mAuthListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    // User is signed in
+                    Log.d(LOG_TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d(LOG_TAG, "onAuthStateChanged:signed_out");
+                }
+            }
+        };
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -231,7 +277,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
-
 
     }
 
@@ -282,7 +327,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             //Emit the presence signal
             mSocket.emitJoinInteractive(mEvent);
-            mSocket.getSocket().on("ableToJoin", onAbleToJoin);
 
         }
     };
@@ -438,7 +482,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
 
         try {
-            mWebServiceCoordinator.createAuthToken(mEvent.getString("fanUrl"));
+            mWebServiceCoordinator.createToken(mEvent.getString("fanUrl"));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -450,9 +494,74 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
      */
     @Override
     public void onDataReady(JSONObject results) {
+        // Store the event data
+        try {
+            Log.i(LOG_TAG, results.toString());
+            mEvent = new JSONObject(results.toString());
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, e.getMessage());
+        }
 
-        // Once the authToken is ready, let's connect to socket
-        initSocket();
+        // Once the authToken is ready, let's sign in to firebase anonymously
+        mAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if(task.isSuccessful()) {
+                            connectToPresence();
+                        } else {
+                            Log.w(LOG_TAG, "signInAnonymously", task.getException());
+                            Toast.makeText(FanActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+
+                        }
+                    }
+                });
+    }
+
+    private void connectToPresence() {
+
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/"+mEvent.getString("adminId")+"/"+mEvent.getString("fanUrl"));
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    ActiveBroadcast activeBroadcast = dataSnapshot.getValue(ActiveBroadcast.class);
+                    Boolean ableToJoin = activeBroadcast.getActiveFans() == null || activeBroadcast.getActiveFans().size() < activeBroadcast.getInteractiveLimit();
+
+                    if(ableToJoin) {
+                        Log.i(LOG_TAG, "able to join to interactive!");
+                        createFanRecord();
+                        initEvent();
+                    } else {
+                        Log.i(LOG_TAG, "not able to join to interactive.");
+                        /*if(data.get("broadcastData") != JSONObject.NULL){
+                            mBroadcastData = data.getJSONObject("broadcastData");
+                            mHls = true;
+                            mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
+                            mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
+                            mSocket.getSocket().on("eventEnded", onBroadcastEnd);
+                            mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
+                            eventLive = mBroadcastData.getBoolean("eventLive");
+                            if(eventLive) {
+                                startBroadcast();
+                            }
+                        } else {
+                            mNotification.show(R.string.user_limit);
+                        }*/
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(LOG_TAG, databaseError.getMessage());
+                }
+            });
+        } catch (JSONException e) {
+            return;
+        }
     }
 
     @Override
@@ -581,6 +690,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             disconnectOnStageSession();
             disconnectBackstageSession();
         }
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     @Override
@@ -592,7 +704,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
         disconnectOnStageSession();
         disconnectBackstageSession();
-        disconnectSocket();
         super.onDestroy();
         finish();
     }
@@ -612,8 +723,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 unbindService(mConnection);
                 mIsBound = false;
             }
-
+            if (mAuthListener != null) {
+                mAuth.removeAuthStateListener(mAuthListener);
+            }
+            mDatabase.goOffline();
             super.onBackPressed();
+
         }
     }
 
@@ -622,7 +737,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSocket.disconnect();
             mSocket.getSocket().off("eventGoLive", onBroadcastGoLive);
             mSocket.getSocket().off("eventEnded", onBroadcastEnd);
-            mSocket.getSocket().off("ableToJoin", onAbleToJoin);
             mSocket.getSocket().off(Socket.EVENT_CONNECT, onSocketConnected);
             mSocket.getSocket().off(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
             mSocket.getSocket().off(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
@@ -2266,48 +2380,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         this.startActivity(myAppSettings);
     }
 
-    private Emitter.Listener onAbleToJoin = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    JSONObject data = (JSONObject) args[0];
-                    Boolean ableToJoin;
-                    Boolean eventLive;
-
-                    try {
-                        ableToJoin = data.getBoolean("ableToJoin");
-                        if(ableToJoin) {
-                            Log.i(LOG_TAG, "able to join to interactive!");
-                            mEvent = new JSONObject(data.getJSONObject("eventData").toString());
-                            initEvent();
-                        } else {
-                            Log.i(LOG_TAG, "not able to join to interactive.");
-                            if(data.get("broadcastData") != JSONObject.NULL){
-                                mBroadcastData = data.getJSONObject("broadcastData");
-                                mHls = true;
-                                mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
-                                mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
-                                mSocket.getSocket().on("eventEnded", onBroadcastEnd);
-                                mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
-                                eventLive = mBroadcastData.getBoolean("eventLive");
-                                if(eventLive) {
-                                    startBroadcast();
-                                }
-                            } else {
-                                mNotification.show(R.string.user_limit);
-                            }
-
-                        }
-                    } catch (JSONException e) {
-                        return;
-                    }
-                }
-            });
-        }
-    };
-
     private Emitter.Listener onBroadcastGoLive = new Emitter.Listener() {
         @Override
         public void call(final Object... args) {
@@ -2381,6 +2453,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
+    private void createFanRecord(){
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl") + "/activeFans/" + fanId());
+            ActiveFan ac = new ActiveFan();
+            ac.setId(fanId());
+            myRef.setValue(ac);
+            myRef.onDisconnect().removeValue();
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, e.getMessage());
+        }
+
+    }
+
     private void initEvent() {
         mConnectionError = false;
 
@@ -2403,5 +2488,15 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             Log.e(LOG_TAG, ex.getMessage());
             //@TODO: Do something when this error happens
         }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    private String fanId() {
+        return mAuth.getCurrentUser().getUid();
     }
 }
