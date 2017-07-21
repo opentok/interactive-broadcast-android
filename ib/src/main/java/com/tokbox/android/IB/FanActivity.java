@@ -46,13 +46,9 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.Socket;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseException;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -60,7 +56,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
@@ -83,7 +78,6 @@ import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.network.NetworkTest;
 import com.tokbox.android.IB.services.ClearNotificationService;
-import com.tokbox.android.IB.socket.SocketCoordinator;
 import com.tokbox.android.IB.video.CustomVideoRenderer;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
 import com.tokbox.android.IB.common.Notification;
@@ -103,7 +97,6 @@ import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -143,7 +136,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private WebServiceCoordinator mWebServiceCoordinator;
     private Notification mNotification;
-    private SocketCoordinator mSocket;
     private Publisher mPublisher;
     private Subscriber mSubscriberHost;
     private Subscriber mSubscriberCelebrity;
@@ -282,109 +274,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         OpenTokConfig.enableVP8HWDecoder(false);
 
     }
-
-    private void initSocket() {
-        mSocket = new SocketCoordinator();
-        mSocket.getSocket().on(Socket.EVENT_CONNECT,onSocketConnected);
-        mSocket.getSocket().on(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
-        mSocket.getSocket().on(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
-        mSocket.getSocket().on("changeStatus", onChangeStatus);
-        if(mSocket.getSocket().connected()) {
-            init();
-        } else {
-            mSocket.connect();
-        }
-    }
-
-    private void init() {
-        mSocket.authenticate();
-        mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
-        mSocket.getSocket().on("authenticated", onSocketAuthenticated);
-        mSocket.getSocket().on("unauthorized", onSocketUnauthorized);
-    }
-
-    private Emitter.Listener onSocketAuthenticated = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            //The event must be on preshow or live.
-            String status = getEventStatus();
-            if(status.equals(EventStatus.NOT_STARTED) || status.equals(EventStatus.CLOSED)) return;
-
-            //If the event is already initializated and the fan was able to join to interactive, don't do anything.
-            if(mInitializated && mHls==false) return;
-
-            //If the event is already initializated and the fan was watching HLS, resume the broadcast
-            if(mInitializated && mHls) {
-                resumeBroadcast();
-                try {
-                    mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
-                } catch (JSONException e) {
-                    Log.e(LOG_TAG, "unexpected JSON exception - emitJoinBroadcast", e);
-                }
-                mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
-                mSocket.getSocket().on("eventEnded", onBroadcastEnd);
-                return;
-            }
-
-            mInitializated = true;
-
-            //Emit the presence signal
-            mSocket.emitJoinInteractive(mEvent);
-
-        }
-    };
-
-    private Emitter.Listener onSocketUnauthorized = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-
-        }
-    };
-
-    private Emitter.Listener onSocketConnected = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            mConnectionError = false;
-            init();
-        }
-    };
-
-    private Emitter.Listener onChangeStatus = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            JSONObject data = (JSONObject) args[0];
-
-            String id;
-            String newStatus;
-            try {
-                id = data.getString("id");
-                newStatus = data.getString("newStatus");
-                Log.i(LOG_TAG, mEvent.getString("eventName"));
-                if(newStatus.equals(EventStatus.PRESHOW) && id.equals(mEvent.getString("id"))) {
-                    setEventStatus(EventStatus.PRESHOW);
-                    init();
-                }
-
-            } catch (JSONException e) {
-                return;
-            }
-
-        }
-    };
-
-    private Emitter.Listener onSocketConnectError = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            runOnUiThread(new Runnable() {
-                              @Override
-                              public void run() {
-                                  mConnectionError = true;
-                              }
-                          });
-            Log.e(LOG_TAG, "Failed to connect to the signaling server");
-        }
-    };
-
 
     private void setEventUI(){
         if(mEvent == null) return;
@@ -720,7 +609,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }else {
             disconnectOnStageSession();
             disconnectBackstageSession();
-            disconnectSocket();
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             if (mIsBound) {
                 unbindService(mConnection);
@@ -732,18 +620,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mDatabase.goOffline();
             super.onBackPressed();
 
-        }
-    }
-
-    private void disconnectSocket() {
-        if(mSocket != null) {
-            mSocket.disconnect();
-            mSocket.getSocket().off("eventGoLive", onBroadcastGoLive);
-            mSocket.getSocket().off("eventEnded", onBroadcastEnd);
-            mSocket.getSocket().off(Socket.EVENT_CONNECT, onSocketConnected);
-            mSocket.getSocket().off(Socket.EVENT_CONNECT_ERROR,onSocketConnectError);
-            mSocket.getSocket().off(Socket.EVENT_CONNECT_TIMEOUT,onSocketConnectError);
-            mSocket = null;
         }
     }
 
@@ -2304,49 +2180,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         this.startActivity(myAppSettings);
     }
 
-    private Emitter.Listener onBroadcastGoLive = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            setEventStatus(EventStatus.LIVE);
-                            updateEventName();
-                            startBroadcast();
-                        }
-                    }, 15 * 1000);
-                }
-            });
-        }
-    };
-
-    private Emitter.Listener onBroadcastEnd = new Emitter.Listener() {
-        @Override
-        public void call(final Object... args) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            //Show Event Image end
-                            mEventImage.setVisibility(View.GONE);
-                            mEventImageEnd.setVisibility(View.VISIBLE);
-                            mVideoView.stopPlayback();
-                            mVideoViewLayout.setVisibility(View.GONE);
-                            setEventStatus(EventStatus.CLOSED);
-                            //Update event name and Status.
-                            updateEventName();
-                        }
-                    }, 15 * 1000);
-                }
-            });
-        }
-    };
-    
     private void startBroadcast() {
         if(!mBroadcastUrl.equals("")) {
             mEventImage.setVisibility(View.GONE);
