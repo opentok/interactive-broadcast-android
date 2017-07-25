@@ -960,10 +960,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
-        } else {
-            //if(mUserIsOnstage) mNotification.showNotification(Notification.TYPE.TEMPORARILLY_MUTED);
+            muteOnstage(true);
         }
-        muteOnstage(true);
     }
 
     private void endPrivateCall() {

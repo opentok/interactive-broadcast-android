@@ -5,7 +5,7 @@ public class IBConfig {
     // *** Fill the following variables using your own Project info  ***
 
     // Replace with the backend URL
-    public static String BACKEND_BASE_URL = "https://tokbox-ib-staging-tesla.herokuapp.com";
+    public static String BACKEND_BASE_URL = "https://ibs-dev-server.herokuapp.com";
 
     // Replace with the signaling URL
     public static String ADMIN_ID = "";
@@ -15,7 +15,7 @@ public class IBConfig {
     private String mUserType = "";
 
     // For internal use only. Please do not modify or remove this code.
-    public static final String LOG_CLIENT_VERSION = "android-ib-1.0.4";
+    public static final String LOG_CLIENT_VERSION = "android-ib-2.0.0";
     public static final String LOG_COMPONENTID = "iBS";
 
 

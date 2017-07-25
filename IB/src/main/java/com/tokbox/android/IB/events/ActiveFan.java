@@ -5,9 +5,11 @@ public class ActiveFan {
     private String snapshot;
     private String name;
     private String os = "Android";
+    private String networkQuality;
     private String streamId;
     private boolean mobile = true;
     private boolean isBackstage = false;
+    private boolean isOnStage = false;
     private boolean inPrivateCall = false;
 
     public ActiveFan() {}
@@ -64,14 +66,6 @@ public class ActiveFan {
         this.inPrivateCall = inPrivateCall;
     }
 
-    public void setIsBackstage(boolean isBackstage) {
-        this.isBackstage = isBackstage;
-    }
-
-    public boolean isBackstage() {
-        return isBackstage;
-    }
-
     public String getId() {
         return id;
     }
@@ -80,11 +74,36 @@ public class ActiveFan {
         this.id = id;
     }
 
+    public boolean isBackstage() {
+        return isBackstage;
+    }
+
+    public void setBackstage(boolean backstage) {
+        isBackstage = backstage;
+    }
+
+    public boolean isOnStage() {
+        return isOnStage;
+    }
+
+    public void setOnStage(boolean onStage) {
+        isOnStage = onStage;
+    }
+
+    public String getNetworkQuality() {
+        return networkQuality;
+    }
+
+    public void setNetworkQuality(String networkQuality) {
+        this.networkQuality = networkQuality;
+    }
+
     public void setDefaults() {
         this.snapshot = null;
         this.name = null;
         this.streamId = null;
         this.isBackstage = false;
         this.inPrivateCall = false;
+        this.isOnStage = false;
     }
 }
