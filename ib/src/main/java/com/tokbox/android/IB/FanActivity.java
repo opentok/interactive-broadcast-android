@@ -97,7 +97,6 @@ import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
-import java.util.Date;
 import java.util.UUID;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -111,13 +110,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
 
-    private boolean mNewFanSignalAckd = false;
     private int mUnreadMessages = 0;
     private boolean mTestingOnStage = false;
     private boolean mOnstageMuted = false;
     private boolean mConnectionError = false;
     private boolean mSubscribingError = false;
-    private boolean mInitializated = false;
     private boolean mHls = false;
     private boolean mOnBackstage = false;
 
@@ -133,7 +130,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private Session mBackstageSession;
 
     private NetworkTest mTest;
-    private String mTestQuality = "";
 
     private WebServiceCoordinator mWebServiceCoordinator;
     private Notification mNotification;
@@ -429,6 +425,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         initEvent();
                     } else {
                         Log.i(LOG_TAG, "not able to join to interactive.");
+                        // @TODO HLS
                         /*if(data.get("broadcastData") != JSONObject.NULL){
                             mBroadcastData = data.getJSONObject("broadcastData");
                             mHls = true;
@@ -842,7 +839,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
                 mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
-                mNewFanSignalAckd = false;
 
                 if (!status.equals(EventStatus.CLOSED)) {
                     setVisibilityGetInLine(View.VISIBLE);
@@ -1575,7 +1571,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ERROR);
             mSubscribingError = true;
             sendWarningSignal();
-            //if(!mConnectionError) mNotification.showConnectionLost();
         } catch(Exception ex) {
             Log.e(LOG_TAG, "Catching error SubscriberKit");
         }
@@ -1602,9 +1597,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     case "muteAudio":
                         muteAudio(data);
                         break;
-                    case "startEvent":
-                        startEvent();
-                        break;
                     case "goLive":
                         goLive();
                         break;
@@ -1629,9 +1621,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         break;
                     case "disconnectBackstage":
                         disconnectBackstage();
-                        break;
-                    case "producerLeaving":
-                        mNewFanSignalAckd = false;
                         break;
                 }
             }
@@ -1838,10 +1827,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisher.setPublishAudio(!mute.equals("on"));
     }
 
-    public void startEvent(){
-        mNewFanSignalAckd = false;
-    }
-
     public void goLive(){
         setEventStatus(EventStatus.LIVE);
         updateEventName();
@@ -1953,7 +1938,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 EventUtils.getUserType(connection.getData()).equals(EventRole.PRODUCER) &&
                 session.getSessionId().equals(mBackstageSessionId)) {
             mProducerConnection = null;
-            mNewFanSignalAckd = false;
         }
     }
 
