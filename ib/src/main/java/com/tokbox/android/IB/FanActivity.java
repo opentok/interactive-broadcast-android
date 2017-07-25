@@ -97,6 +97,7 @@ import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
+import java.util.Date;
 import java.util.UUID;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -817,8 +818,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             @Override
             public void run() {
                 // Remove firebase reference
-                mActiveFan.setDefaults();
-                mActiveFanRef.setValue(mActiveFan);
+                if (mActiveFan != null) {
+                    mActiveFan.setDefaults();
+                    mActiveFanRef.setValue(mActiveFan);
+                }
 
                 String status = getEventStatus();
                 mNotification.hide();
@@ -937,7 +940,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void unSubscribeProducer() {
-        if (mProducerStream!= null && mSubscriberProducer != null) {
+        if (mProducerStream!= null && mSubscriberProducer != null && mBackstageSession != null) {
             muteOnstage(false);
             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mBackstageSession.unsubscribe(mSubscriberProducer);
@@ -948,20 +951,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 mNotification.hide();
                 hidePublisher();
             }
-
         }
-
     }
 
-    private void startPrivateCall(String data) {
-        String callWith = "";
-        if(mProducerStreamOnstage != null && mPublisher != null && mPublisher.getStream().getConnection().getConnectionId().equals(callWith)) {
+    private void startPrivateCall() {
+        if(mProducerStreamOnstage != null && mPublisher != null) {
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
             mSession.subscribe(mSubscriberProducerOnstage);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         } else {
-            if(mUserIsOnstage) mNotification.showNotification(Notification.TYPE.TEMPORARILLY_MUTED);
+            //if(mUserIsOnstage) mNotification.showNotification(Notification.TYPE.TEMPORARILLY_MUTED);
         }
         muteOnstage(true);
     }
@@ -1756,9 +1756,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void handleNewMessage(String data, Connection connection) {
         String text = "";
         try {
-            text = new JSONObject(data)
-                    .getJSONObject("message")
-                    .getString("message");
+            text = new JSONObject(data).getString("text");
         } catch (Throwable t) {
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
@@ -2054,8 +2052,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         Log.d(LOG_TAG, "TextChat listener: onMessageReadyToSend: " + msg.getText());
 
         if (mBackstageSession != null && mProducerConnection != null) {
-            String message = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg.getText()+"\"}}";
-            mBackstageSession.sendSignal("chatMessage", message, mProducerConnection);
+            Long tsLong = System.currentTimeMillis()/1000;
+            String ts = tsLong.toString();
+            try {
+                JSONObject message = new JSONObject();
+                message.put("text", msg.getText());
+                message.put("fromType", "activeFan");
+                message.put("fromId", mActiveFan.getId());
+                message.put("timestamp", ts);
+                mBackstageSession.sendSignal("chatMessage", message.toString(), mProducerConnection);
+            } catch (JSONException ex) {
+                Log.e(LOG_TAG, ex.getMessage());
+            }
         }
         return msgError;
     }
@@ -2241,11 +2249,22 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
                                 mActiveFan = dataSnapshot.getValue(ActiveFan.class);
-                                if (mActiveFan.isInPrivateCall()) {
-                                    subscribeProducer();
-                                } else {
-                                    unSubscribeProducer();
+                                if (mActiveFan != null) {
+                                    if (mActiveFan.isInPrivateCall()) {
+                                        if(mUserIsOnstage) {
+                                            startPrivateCall();
+                                        } else {
+                                            subscribeProducer();
+                                        }
+                                    } else {
+                                        if(mUserIsOnstage) {
+                                            endPrivateCall();
+                                        } else {
+                                            unSubscribeProducer();
+                                        }
+                                    }
                                 }
+
                             }
 
                             @Override
