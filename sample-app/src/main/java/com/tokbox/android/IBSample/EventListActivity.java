@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.tokbox.android.IB.CelebrityHostActivity;
 import com.tokbox.android.IB.FanActivity;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
@@ -158,7 +159,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     public void showEvent() {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
-        if(IBConfig.USER_TYPE == "fan") {
+        if(IBConfig.USER_TYPE == EventRole.FAN) {
             localIntent = new Intent(EventListActivity.this, FanActivity.class);
         } else {
             localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
@@ -173,7 +174,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     public void showEvent(int event_index) {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
-        if(IBConfig.USER_TYPE == "fan") {
+        if(IBConfig.USER_TYPE == EventRole.FAN) {
             localIntent = new Intent(EventListActivity.this, FanActivity.class);
         } else {
             localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
