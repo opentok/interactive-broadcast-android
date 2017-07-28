@@ -61,7 +61,7 @@ public class AuthTokenTask extends AsyncTask<String, Void, Void> {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                callback.onLoginError(error.toString());
+                callback.onLoginError(error);
         }
         });
         reqQueue.add(jor);

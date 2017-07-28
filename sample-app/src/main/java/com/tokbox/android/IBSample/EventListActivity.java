@@ -12,13 +12,12 @@ import android.widget.GridView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.nkzawa.emitter.Emitter;
 import com.tokbox.android.IB.CelebrityHostActivity;
 import com.tokbox.android.IB.FanActivity;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.model.InstanceApp;
-import com.tokbox.android.IB.socket.SocketCoordinator;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
 import com.tokbox.android.IBSample.events.EventAdapter;
 
@@ -42,7 +41,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     private EventAdapter mEventAdapter;
     private GridView mListActivities;
     private TextView mEventListTitle;
-    private SocketCoordinator mSocket;
     private JSONArray mArrEvents;
 
     @Override
@@ -68,47 +66,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         //
         getEventsByAdmin();
     }
-
-    private void initSocket() {
-        //Init socket
-        mSocket = new SocketCoordinator();
-        mSocket.connect();
-        mSocket.getSocket().on("changeStatus", onChangeStatus);
-    }
-
-    private Emitter.Listener onChangeStatus = new Emitter.Listener() {
-        @Override
-        public void call(Object... args) {
-            JSONObject data = (JSONObject) args[0];
-
-            String id;
-            String newStatus;
-            try {
-                id = data.getString("id");
-                newStatus = data.getString("newStatus");
-                Log.i(LOG_TAG, "change" + newStatus);
-
-                for (int i=0; i<mArrEvents.length(); i++) {
-                    if(mArrEvents.getJSONObject(i).getString("id").equals(id)) {
-                        mArrEvents.getJSONObject(i).put("status", newStatus);
-                        break;
-                    }
-                }
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        showEventList();
-                    }
-                });
-
-
-            } catch (JSONException e) {
-                return;
-            }
-
-        }
-    };
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.i(LOG_TAG, "Back from the event");
@@ -155,11 +112,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(mSocket != null) {
-            mSocket.getSocket().off("changeStatus", onChangeStatus);
-        }
-
-
     }
 
     public void getEventsByAdmin() {
@@ -205,10 +157,9 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     public void showEvent() {
-        //mSocket.disconnect();
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
-        if(IBConfig.USER_TYPE == "fan") {
+        if(IBConfig.USER_TYPE == EventRole.FAN) {
             localIntent = new Intent(EventListActivity.this, FanActivity.class);
         } else {
             localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
@@ -221,10 +172,9 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     public void showEvent(int event_index) {
-        mSocket.disconnect();
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
-        if(IBConfig.USER_TYPE == "fan") {
+        if(IBConfig.USER_TYPE == EventRole.FAN) {
             localIntent = new Intent(EventListActivity.this, FanActivity.class);
         } else {
             localIntent = new Intent(EventListActivity.this, CelebrityHostActivity.class);
@@ -249,9 +199,6 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
             if(instanceAppData.has("events")) {
                 mArrEvents = instanceAppData.getJSONArray("events");
             }
-
-            //init socket
-            initSocket();
 
             //Check the count of events.
             if(mArrEvents.length() > 1) {

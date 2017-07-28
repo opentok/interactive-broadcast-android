@@ -6,7 +6,6 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import com.tokbox.android.IB.R;
-import com.tokbox.android.IB.config.IBConfig;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -20,14 +19,14 @@ public class EventUtils {
     public static String getStatusNameById(String statusId) {
         String statusName = "";
         switch(statusId) {
-            case "notStarted":
-            case "preshow":
+            case EventStatus.NOT_STARTED:
+            case EventStatus.PRESHOW:
                 statusName = "Not started";
                 break;
-            case "live":
+            case EventStatus.LIVE:
                 statusName = "Live";
                 break;
-            case "closed":
+            case EventStatus.CLOSED:
                 statusName = "Closed";
                 break;
         }
