@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventRole;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,11 +32,11 @@ public class MainActivity extends AppCompatActivity {
 
         //Setting the userType
         if(rdFan.isChecked()) {
-            IBConfig.USER_TYPE = "fan";
+            IBConfig.USER_TYPE = EventRole.FAN;
         } else if(rdHost.isChecked()) {
-            IBConfig.USER_TYPE = "host";
+            IBConfig.USER_TYPE = EventRole.HOST;
         } else {
-            IBConfig.USER_TYPE = "celebrity";
+            IBConfig.USER_TYPE = EventRole.CELEBRITY;
         }
 
         //Replace with the admin ID hashed

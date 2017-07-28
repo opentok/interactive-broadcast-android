@@ -72,6 +72,7 @@ import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
 import com.tokbox.android.IB.events.ActiveBroadcast;
 import com.tokbox.android.IB.events.ActiveFan;
+import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
@@ -275,9 +276,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void setEventUI(){
         if(mEvent == null) return;
         try {
-            updateEventName(mEvent.getString("name"), EventUtils.getStatusNameById(mEvent.getString("status")));
-            EventUtils.loadEventImage(this, mEvent.has("startImage") ? mEvent.getString("startImage"): "", mEventImage);
-            EventUtils.loadEventImage(this, mEvent.has("endImage") ? mEvent.getString("endImage") : "", mEventImageEnd);
+            updateEventName(mEvent.getString(EventProperties.NAME), EventUtils.getStatusNameById(mEvent.getString(EventProperties.STATUS)));
+            EventUtils.loadEventImage(this, mEvent.has(EventProperties.START_IMAGE) ? mEvent.getString(EventProperties.START_IMAGE): "", mEventImage);
+            EventUtils.loadEventImage(this, mEvent.has(EventProperties.END_IMAGE) ? mEvent.getString(EventProperties.END_IMAGE) : "", mEventImageEnd);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - updateEventName", e);
         }
@@ -411,7 +412,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectToPresence() {
 
         try {
-            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/"+mEvent.getString("adminId")+"/"+mEvent.getString("fanUrl"));
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl"));
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -999,7 +1000,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void unsubscribeFanFromStream(Stream stream) {
         if (mSubscriberCelebrity != null && mSubscriberFan.getStream().equals(stream)) {
             mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
-            //mSession.unsubscribe(mSubscriberFan);
             mSubscriberFan = null;
             mSubscriberFanViewContainer.displaySpinner(false);
         }
@@ -1097,10 +1097,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         String status = getEventStatus();
         Log.i(LOG_TAG, "onStreamReceived/" + status);
         Boolean bIsOnStage = session.getSessionId().equals(mSessionId);
-        Log.i(LOG_TAG, "Video height:" + String.valueOf(stream.getVideoHeight()));
-        Log.i(LOG_TAG, "Video width:" + String.valueOf(stream.getVideoWidth()));
-        Log.i(LOG_TAG, "Video type:" + String.valueOf(stream.getStreamVideoType().name()));
-        Log.i(LOG_TAG, "Video userType:" + EventUtils.getUserType(stream.getConnection().getData()));
 
         try {
             switch (EventUtils.getUserType(stream.getConnection().getData())) {
@@ -1210,9 +1206,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mLoadingSubPublisher.setVisibility(View.GONE);
 
         if (stream.getSession().getSessionId().equals(mBackstageSessionId)) {
-            Log.i(LOG_TAG, "publisher Video height:" + String.valueOf(stream.getVideoHeight()));
-            Log.i(LOG_TAG, "publisher Video width:" + String.valueOf(stream.getVideoWidth()));
-            Log.i(LOG_TAG, "publisher Video type:" + String.valueOf(stream.getStreamVideoType().name()));
 
             //Logging
             addLogEvent(OTKAction.FAN_PUBLISHES_BACKSTAGE, OTKVariation.SUCCESS);
@@ -1222,7 +1215,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Log.i(LOG_TAG, "Setting setSaveScreenshot true");
                     mCustomVideoRenderer.setSaveScreenshot(true);
                 }
             }, 5000);
@@ -1232,15 +1224,12 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
 
         if(mHostStream != null && (getEventStatus().equals(EventStatus.LIVE) || mUserIsOnstage)) {
-            Log.i("NetworkTest", "mtestinghost");
             mTestingOnStage = true;
             testStreamConnectionQuality(mHostStream);
         } else if(mCelebrityStream != null  && (getEventStatus().equals(EventStatus.LIVE) || mUserIsOnstage)) {
-            Log.i("NetworkTest", "mCelebritytest");
             mTestingOnStage = true;
             testStreamConnectionQuality(mCelebrityStream);
         } else {
-            Log.i("NetworkTest", "mFanTest");
             mTestingOnStage = false;
             testStreamConnectionQuality(stream);
         }
@@ -1840,7 +1829,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void updateEventName() {
         try {
-            mEventName.setText(EventUtils.ellipsize(mEvent.getString("name"), 20));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString(EventProperties.NAME), 20));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, "updateEventName ---> " + ex.getMessage());
@@ -1859,7 +1848,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private String getEventStatus() {
         String status = EventStatus.NOT_STARTED;
         try {
-            status = mEvent.getString("status");
+            status = mEvent.getString(EventProperties.STATUS);
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
@@ -1868,7 +1857,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void setEventStatus(String status) {
         try {
-            mEvent.put("status", status);
+            mEvent.put(EventProperties.STATUS, status);
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }

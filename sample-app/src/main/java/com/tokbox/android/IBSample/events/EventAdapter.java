@@ -16,7 +16,10 @@ import android.widget.TextView;
 import com.tokbox.android.IB.CelebrityHostActivity;
 import com.tokbox.android.IB.FanActivity;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventRole;
+import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
+import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IBSample.R;
 
 import org.json.JSONException;
@@ -74,21 +77,21 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
 
         try {
             if(holder.name.getText().equals("")) {
-                EventUtils.loadEventImage(getContext(), event.has("startImage") ? event.getString("startImage") : "", holder.event_img);
+                EventUtils.loadEventImage(getContext(), event.has(EventProperties.START_IMAGE) ? event.getString(EventProperties.START_IMAGE) : "", holder.event_img);
             }
-            holder.name.setText(EventUtils.ellipsize(event.getString("name"), 14));
-            holder.date_status.setText(EventUtils.getStatusNameById(event.getString("status")));
-            if(event.getString("status").equals("notStarted")) {
+            holder.name.setText(EventUtils.ellipsize(event.getString(EventProperties.NAME), 14));
+            holder.date_status.setText(EventUtils.getStatusNameById(event.getString(EventProperties.STATUS)));
+            if(event.getString("status").equals(EventStatus.NOT_STARTED)) {
                 //holder.join_event.setVisibility(View.GONE);
 
-                if(event.has("dateTimeStart") && !event.getString("dateTimeStart").equals("null")){
-                    holder.date_status.setText(event.getString("dateTimeStart"));
+                if(event.has(EventProperties.DATE_TIME_START) && !event.getString(EventProperties.DATE_TIME_START).equals("null")){
+                    holder.date_status.setText(event.getString(EventProperties.DATE_TIME_START));
                     Date date = new Date();
                     //msg time
                     SimpleDateFormat ft = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
                     SimpleDateFormat ft2 = new SimpleDateFormat("MMM dd, yyyy HH:mm");
                     try {
-                        date = ft.parse(event.getString("dateTimeStart"));
+                        date = ft.parse(event.getString(EventProperties.DATE_TIME_START));
                     }
                     catch(ParseException pe) {
                         Log.e(LOG_TAG, pe.getMessage());
@@ -126,7 +129,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
     public void showEvent(int event_index) {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
-        if(IBConfig.USER_TYPE == "fan") {
+        if(IBConfig.USER_TYPE == EventRole.FAN) {
             localIntent = new Intent(mContext, FanActivity.class);
         } else {
             localIntent = new Intent(mContext, CelebrityHostActivity.class);
