@@ -149,7 +149,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         //Creates the action bar
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-        
+
         //Hide the bar
         ActionBar actionBar = getSupportActionBar();
 
@@ -165,8 +165,14 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         initLayoutWidgets();
 
-        //Get the event
-        requestEventData(savedInstanceState);
+        //Get the selected event from the instance
+        getSelectedEvent(savedInstanceState);
+
+        //Request a token and the event data
+        requestEventData();
+
+        //Set event name and images
+        setEventUI();
 
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
@@ -211,7 +217,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mWarningAlert = (TextView) findViewById(R.id.quality_warning);
     }
 
-    private void requestEventData (Bundle savedInstanceState) {
+    private void getSelectedEvent (Bundle savedInstanceState) {
         mPublisherViewContainer.displaySpinner(true);
         int event_index = 0;
         //Parse data from activity_join
@@ -228,16 +234,24 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             event_index = Integer.parseInt((String) savedInstanceState.getSerializable("event_index"));
         }
 
-        JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
+        mEvent = InstanceApp.getInstance().getEventByIndex(event_index);
+    }
 
+    private void setEventUI() {
         try {
-            updateEventName(event.getString(EventProperties.NAME), EventUtils.getStatusNameById(event.getString(EventProperties.STATUS)));
-            EventUtils.loadEventImage(this, event.has(EventProperties.END_IMAGE) ? event.getJSONObject(EventProperties.END_IMAGE).getString("url") : "", mEventImageEnd);
-            mWebServiceCoordinator.createToken(mUserIsCelebrity ? event.getString(EventProperties.CELEBRITY_URL) : event.getString(EventProperties.HOST_URL));
+            updateEventName(mEvent.getString(EventProperties.NAME), EventUtils.getStatusNameById(mEvent.getString(EventProperties.STATUS)));
+            EventUtils.loadEventImage(this, mEvent.has(EventProperties.END_IMAGE) ? mEvent.getJSONObject(EventProperties.END_IMAGE).getString("url") : "", mEventImageEnd);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
+    }
 
+    private void requestEventData() {
+        try {
+            mWebServiceCoordinator.createToken(mUserIsCelebrity ? mEvent.getString(EventProperties.CELEBRITY_URL) : mEvent.getString(EventProperties.HOST_URL));
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+        }
     }
 
     private void updateEventName() {
@@ -288,11 +302,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mLogSource = objSource.toString();
 
             updateEventName();
+
             //request Marshmallow camera permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(permissions, permsRequestCode);
-            }
-            else {
+            } else {
                 sessionConnect();
             }
 
