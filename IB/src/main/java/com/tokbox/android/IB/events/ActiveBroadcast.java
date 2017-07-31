@@ -12,18 +12,20 @@ public class ActiveBroadcast {
     private Boolean hlsEnabled;
     private int interactiveLimit;
     private String name;
+    private String hlsUrl;
     private String status;
     private HashMap<String, String> startImage;
     private HashMap<String, ActiveFan> activeFans;
 
     private ActiveBroadcast() {}
 
-    public ActiveBroadcast(String name, String status, Boolean producerActive, Boolean hostActive, Boolean celebrityActive, Boolean archiving, Boolean hlsEnabled, int interactiveLimit, HashMap<String, String> startImage, HashMap<String, ActiveFan> activeFans) {
+    public ActiveBroadcast(String name, String status, Boolean producerActive, Boolean hostActive, Boolean celebrityActive, Boolean archiving, Boolean hlsEnabled, int interactiveLimit, HashMap<String, String> startImage, HashMap<String, ActiveFan> activeFans, String hlsUrl) {
         this.name = name;
         this.status = status;
         this.producerActive = producerActive;
         this.archiving = archiving;
         this.hlsEnabled = hlsEnabled;
+        this.hlsUrl = hlsUrl;
         this.interactiveLimit = interactiveLimit;
         this.startImage = startImage;
         this.hostActive = hostActive;
@@ -109,5 +111,13 @@ public class ActiveBroadcast {
 
     public void setActiveFans(HashMap<String, ActiveFan> activeFans) {
         this.activeFans = activeFans;
+    }
+
+    public String getHlsUrl() {
+        return hlsUrl;
+    }
+
+    public void setHlsUrl(String hlsUrl) {
+        this.hlsUrl = hlsUrl;
     }
 }

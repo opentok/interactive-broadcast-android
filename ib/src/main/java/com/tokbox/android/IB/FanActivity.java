@@ -426,21 +426,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         initEvent();
                     } else {
                         Log.i(LOG_TAG, "not able to join to interactive.");
-                        // @TODO HLS
-                        /*if(data.get("broadcastData") != JSONObject.NULL){
-                            mBroadcastData = data.getJSONObject("broadcastData");
+                        if(activeBroadcast.getHlsEnabled()) {
                             mHls = true;
-                            mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
-                            mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
-                            mSocket.getSocket().on("eventEnded", onBroadcastEnd);
-                            mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
-                            eventLive = mBroadcastData.getBoolean("eventLive");
-                            if(eventLive) {
+                            mBroadcastUrl = activeBroadcast.getHlsUrl();
+                            Log.i(LOG_TAG, "mBroadcastUrl " + mBroadcastUrl.toString());
+                            Log.i(LOG_TAG, "getStatus " + activeBroadcast.getStatus());
+                            if(activeBroadcast.getStatus().equals(EventStatus.LIVE)) {
                                 startBroadcast();
                             }
                         } else {
                             mNotification.show(R.string.user_limit);
-                        }*/
+                        }
                     }
 
                 }
