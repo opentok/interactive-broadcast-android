@@ -55,6 +55,7 @@ import com.opentok.android.SubscriberKit;
 import com.tokbox.android.IB.chat.ChatMessage;
 import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
@@ -148,6 +149,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         //Creates the action bar
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+        
         //Hide the bar
         ActionBar actionBar = getSupportActionBar();
 
@@ -229,9 +231,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
 
         try {
-            updateEventName(event.getString("name"), EventUtils.getStatusNameById(event.getString("status")));
-            EventUtils.loadEventImage(this, event.has("endImage") ? event.getString("endImage") : "", mEventImageEnd);
-            mWebServiceCoordinator.createToken(mUserIsCelebrity ? event.getString("celebrityUrl") : event.getString("hostUrl"));
+            updateEventName(event.getString(EventProperties.NAME), EventUtils.getStatusNameById(event.getString(EventProperties.STATUS)));
+            EventUtils.loadEventImage(this, event.has(EventProperties.END_IMAGE) ? event.getJSONObject(EventProperties.END_IMAGE).getString("url") : "", mEventImageEnd);
+            mWebServiceCoordinator.createToken(mUserIsCelebrity ? event.getString(EventProperties.CELEBRITY_URL) : event.getString(EventProperties.HOST_URL));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -240,7 +242,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void updateEventName() {
         try {
-            mEventName.setText(EventUtils.ellipsize(mEvent.getString("name"), 40));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString(EventProperties.NAME), 40));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -259,7 +261,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private String getEventStatus() {
         String status = EventStatus.NOT_STARTED;
         try {
-            status = mEvent.getString("status");
+            status = mEvent.getString(EventProperties.STATUS);
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
@@ -280,8 +282,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
             //Set the LogSource
             objSource.put("app", getApplicationContext().getApplicationInfo().packageName);
-            objSource.put("account", mEvent.getString("adminId"));
-            objSource.put("event-id", mEvent.getString("id"));
+            objSource.put("account", mEvent.getString(EventProperties.ADMIN_ID));
+            objSource.put("event-id", mEvent.getString(EventProperties.ID));
 
             mLogSource = objSource.toString();
 
