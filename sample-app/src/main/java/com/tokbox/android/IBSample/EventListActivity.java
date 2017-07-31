@@ -15,7 +15,9 @@ import android.widget.Toast;
 import com.tokbox.android.IB.CelebrityHostActivity;
 import com.tokbox.android.IB.FanActivity;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
+import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
@@ -143,7 +145,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         mEventList.clear();
         try {
             for (int i=0; i<mArrEvents.length(); i++) {
-                if(!mArrEvents.getJSONObject(i).getString("status").equals("C")) {
+                if(!mArrEvents.getJSONObject(i).getString(EventProperties.STATUS).equals(EventStatus.CLOSED)) {
                     mEventList.add(mArrEvents.getJSONObject(i));
                 }
             }
