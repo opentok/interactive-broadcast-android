@@ -77,7 +77,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
 
         try {
             if(holder.name.getText().equals("")) {
-                EventUtils.loadEventImage(getContext(), event.has(EventProperties.START_IMAGE) ? event.getString(EventProperties.START_IMAGE) : "", holder.event_img);
+                EventUtils.loadEventImage(getContext(), event.has(EventProperties.START_IMAGE) ? event.getJSONObject(EventProperties.START_IMAGE).getString("url") : "", holder.event_img);
             }
             holder.name.setText(EventUtils.ellipsize(event.getString(EventProperties.NAME), 14));
             holder.date_status.setText(EventUtils.getStatusNameById(event.getString(EventProperties.STATUS)));
