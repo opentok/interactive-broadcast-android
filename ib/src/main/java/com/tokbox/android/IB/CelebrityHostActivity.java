@@ -73,6 +73,7 @@ import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
+import com.tokbox.android.IB.events.PrivateCall;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.services.ClearNotificationService;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
@@ -89,6 +90,8 @@ import com.tokbox.android.IB.logging.OTKVariation;
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
 import java.util.UUID;
+
+import static com.tokbox.android.IB.common.Notification.TYPE.TEMPORARILLY_MUTED;
 
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -134,6 +137,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private CustomViewSubscriber mSubscriberViewContainer;
     private CustomViewSubscriber mSubscriberFanViewContainer;
     private FrameLayout mFragmentContainer;
+    private RelativeLayout mStatusBar;
 
     private ProgressDialog mReconnectionsDialog;
 
@@ -157,7 +161,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     //Firebase
     private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private FirebaseDatabase mDatabase;
 
 
@@ -203,7 +206,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
 
-        mNotification = new Notification(this, null);
+        mNotification = new Notification(this, mStatusBar);
     }
 
     @Override
@@ -236,6 +239,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mEventStatus = (TextView) findViewById(R.id.event_status);
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
         mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
+        mStatusBar = (RelativeLayout) findViewById(R.id.status_bar);
         mUserStatus = (TextView) findViewById(R.id.user_status);
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
@@ -351,6 +355,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     } else {
                         createPresenceRecord();
                         initEvent();
+                        monitorPrivateCall();
                     }
                 }
 
@@ -372,6 +377,38 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         } catch (JSONException e) {
             Log.i(LOG_TAG, e.getMessage());
         }
+    }
+
+    private void monitorPrivateCall() {
+        // Listen for updates in inPrivateCall and isBackstage
+        ValueEventListener updateListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                PrivateCall privateCall = dataSnapshot.getValue(PrivateCall.class);
+                if (privateCall != null) {
+                    if (privateCall.getIsWith().equals(IBConfig.USER_TYPE)) {
+                        startPrivateCall();
+                    } else if (!privateCall.getIsWith().toLowerCase().endsWith(EventRole.FAN)) {
+                        mNotification.showNotification(TEMPORARILLY_MUTED);
+                    }
+                } else {
+                    endPrivateCall();
+                }
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) { }
+        };
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/privateCall");
+            myRef.addValueEventListener(updateListener);
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+
+
+
     }
 
     private void initEvent() {
@@ -1093,12 +1130,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     case "newBackstageFan":
                         newBackstageFan();
                         break;
-                    case "privateCall":
-                        startPrivateCall(data);
-                        break;
-                    case "endPrivateCall":
-                        endPrivateCall();
-                        break;
                 }
             }
             else {
@@ -1111,17 +1142,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     }
 
-    private void startPrivateCall(String data) {
-        String connectionId = "";
-        try {
-            connectionId = new JSONObject(data).getString("callWith");
-        } catch (Throwable t) {
-            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
-        }
+    private void startPrivateCall() {
         if(mSubscriber != null) mSubscriber.setSubscribeToAudio(false);
-        if(mPublisher.getStream().getConnection().getConnectionId().equals(connectionId)) {
-            subscribeProducer();
-        }
+        subscribeProducer();
     }
 
     private void endPrivateCall() {
@@ -1130,12 +1153,14 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
         }
+        mNotification.hide();
     }
 
     private void subscribeProducer() {
         if(mProducerStream != null) {
             mSubscriberProducer = new Subscriber(CelebrityHostActivity.this, mProducerStream);
             mSession.subscribe(mSubscriberProducer);
+            mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
     }
 
