@@ -394,9 +394,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 } else {
                     endPrivateCall();
                 }
-
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) { }
         };
@@ -406,9 +404,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
-
-
-
     }
 
     private void initEvent() {
