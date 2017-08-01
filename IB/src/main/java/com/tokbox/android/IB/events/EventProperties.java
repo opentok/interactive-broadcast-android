@@ -11,6 +11,7 @@ public class EventProperties {
     public static final String DATE_TIME_START = "dateTimeStart";
     public static final String CELEBRITY_URL = "celebrityUrl";
     public static final String HOST_URL = "hostUrl";
+    public static final String FAN_URL = "fanUrl";
     public static final String ADMIN_ID = "adminId";
 
 }

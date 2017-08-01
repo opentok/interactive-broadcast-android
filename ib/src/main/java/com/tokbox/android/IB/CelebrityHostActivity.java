@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBar;
@@ -41,7 +42,18 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
 import com.opentok.android.OpenTokConfig;
@@ -55,6 +67,8 @@ import com.opentok.android.SubscriberKit;
 import com.tokbox.android.IB.chat.ChatMessage;
 import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.ActiveBroadcast;
+import com.tokbox.android.IB.events.ActiveFan;
 import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
@@ -141,6 +155,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private String mLogSource;
 
+    //Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private FirebaseDatabase mDatabase;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,6 +177,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
 
         setContentView(R.layout.activity_celebrity_host);
+
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
+        // Make sure we're connected to firebase
+        mDatabase.goOnline();
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -282,17 +308,78 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         return status;
     }
 
+
     /**
      * Web Service Coordinator delegate methods
      */
     @Override
     public void onDataReady(JSONObject results) {
+        // Store the event data
+        try {
+            mEvent = new JSONObject(results.toString());
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, e.getMessage());
+        }
+
+        // Once the authToken is ready, let's sign in to firebase anonymously
+        mAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if(task.isSuccessful()) {
+                            connectToPresence();
+                        } else {
+                            Log.w(LOG_TAG, "signInAnonymously", task.getException());
+                            Toast.makeText(CelebrityHostActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+
+                        }
+                    }
+                });
+    }
+
+    private void connectToPresence() {
+        try {
+            final DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL));
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    ActiveBroadcast activeBroadcast = dataSnapshot.getValue(ActiveBroadcast.class);
+                    if(mUserIsCelebrity && activeBroadcast.getCelebrityActive() ||
+                            !mUserIsCelebrity && activeBroadcast.getHostActive()) {
+                        mNotification.showCantPublish(IBConfig.USER_TYPE);
+                    } else {
+                        createPresenceRecord();
+                        initEvent();
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(LOG_TAG, databaseError.getMessage());
+                }
+            });
+        } catch (JSONException e) {
+            return;
+        }
+    }
+
+    private void createPresenceRecord(){
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/" + IBConfig.USER_TYPE + "Active");
+            myRef.setValue(true);
+            myRef.onDisconnect().removeValue();
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, e.getMessage());
+        }
+    }
+
+    private void initEvent() {
         JSONObject objSource = new JSONObject();
         try {
-            mEvent = new JSONObject( results.toString() );
-            mApiKey = results.getString("apiKey");
-            mToken = results.getString("stageToken");
-            mSessionId = results.getString("stageSessionId");
+            mApiKey = mEvent.getString("apiKey");
+            mToken = mEvent.getString("stageToken");
+            mSessionId = mEvent.getString("stageSessionId");
 
             //Set the LogSource
             objSource.put("app", getApplicationContext().getApplicationInfo().packageName);
@@ -441,7 +528,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 mIsBound = false;
             }
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-
+            mDatabase.goOffline();
             super.onBackPressed();
         }
     }

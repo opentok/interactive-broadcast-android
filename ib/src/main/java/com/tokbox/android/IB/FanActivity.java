@@ -237,21 +237,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         // Make sure we're connected to firebase
         mDatabase.goOnline();
 
-        // Create a listener for firebase auth state
-        mAuthListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                FirebaseUser user = firebaseAuth.getCurrentUser();
-                if (user != null) {
-                    // User is signed in
-                    Log.d(LOG_TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                } else {
-                    // User is signed out
-                    Log.d(LOG_TAG, "onAuthStateChanged:signed_out");
-                }
-            }
-        };
-
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotification = new Notification(this, mStatusBar);
@@ -367,7 +352,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void requestEventData () {
 
         try {
-            mWebServiceCoordinator.createToken(mEvent.getString("fanUrl"));
+            mWebServiceCoordinator.createToken(mEvent.getString(EventProperties.FAN_URL));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -407,7 +392,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectToPresence() {
 
         try {
-            final DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl"));
+            final DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL));
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -2220,7 +2205,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void createFanRecord(){
         try {
-            mActiveFanRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl") + "/activeFans/" + fanId());
+            mActiveFanRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/activeFans/" + fanId());
             mActiveFan = new ActiveFan();
             mActiveFan.setId(fanId());
             mActiveFanRef.setValue(mActiveFan);
@@ -2308,8 +2293,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             //Set the LogSource:
             mLogSource = getApplicationContext().getApplicationInfo().packageName + "-" +
-                    mEvent.getString("adminId") + "-" +
-                    mEvent.getString("id");
+                    mEvent.getString(EventProperties.ADMIN_ID) + "-" +
+                    mEvent.getString(EventProperties.ID);
 
             updateEventName();
             sessionConnect();

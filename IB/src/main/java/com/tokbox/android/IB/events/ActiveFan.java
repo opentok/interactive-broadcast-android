@@ -1,12 +1,12 @@
 package com.tokbox.android.IB.events;
 
 public class ActiveFan {
-    private String id;
-    private String snapshot;
-    private String name;
+    private String id = "";
+    private String snapshot = "";
+    private String name = "";
     private String os = "Android";
-    private String networkQuality;
-    private String streamId;
+    private String networkQuality = "";
+    private String streamId = "";
     private boolean mobile = true;
     private boolean isBackstage = false;
     private boolean isOnStage = false;
