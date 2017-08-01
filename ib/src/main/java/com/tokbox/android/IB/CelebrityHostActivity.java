@@ -388,7 +388,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 if (privateCall != null) {
                     if (privateCall.getIsWith().equals(IBConfig.USER_TYPE)) {
                         startPrivateCall();
-                    } else if (!privateCall.getIsWith().toLowerCase().endsWith(EventRole.FAN)) {
+                    } else if (!privateCall.getIsWith().toLowerCase().equals("activeFan")) {
                         mNotification.showNotification(TEMPORARILLY_MUTED);
                     }
                 } else {
