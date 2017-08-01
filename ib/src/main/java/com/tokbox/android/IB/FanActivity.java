@@ -1735,9 +1735,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ChatMessage msg = null;
         msg = new ChatMessage(connection.getConnectionId(), "Producer", text);
         // Add the new ChatMessage to the text-chat component
-        if(mTextChatFragment != null ){
+        if (mTextChatFragment != null ){
             mTextChatFragment.addMessage(msg);
-            if(mFragmentContainer.getVisibility() != View.VISIBLE) {
+            if (mFragmentContainer.getVisibility() != View.VISIBLE) {
                 mUnreadMessages++;
                 refreshUnreadMessages();
                 mChatButton.setVisibility(View.VISIBLE);

@@ -700,8 +700,18 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         Log.d(LOG_TAG, "TextChat listener: onMessageReadyToSend: " + msg.getText());
 
         if (mSession != null && mProducerConnection != null) {
-            String message = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg.getText()+"\"}}";
-            mSession.sendSignal("chatMessage", message, mProducerConnection);
+            Long tsLong = System.currentTimeMillis() / 1000;
+            String ts = tsLong.toString();
+            try {
+                JSONObject message = new JSONObject();
+                message.put("text", msg.getText());
+                message.put("fromType", IBConfig.USER_TYPE);
+                message.put("timestamp", ts);
+                mSession.sendSignal("chatMessage", message.toString(), mProducerConnection);
+            } catch (JSONException ex) {
+                Log.e(LOG_TAG, ex.getMessage());
+            }
+
         }
         return msgError;
     }
@@ -1147,12 +1157,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }, 3000);
     }
 
-    public void handleNewMessage(String data, Connection connection) {
+    private void handleNewMessage(String data, Connection connection) {
         String text = "";
         try {
-            text = new JSONObject(data)
-                    .getJSONObject("message")
-                    .getString("message");
+            text = new JSONObject(data).getString("text");
         } catch (Throwable t) {
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
@@ -1160,11 +1168,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         ChatMessage msg = null;
         msg = new ChatMessage(connection.getConnectionId(), "Producer", text);
         // Add the new ChatMessage to the text-chat component
-        mTextChatFragment.addMessage(msg);
-        if(mFragmentContainer.getVisibility() != View.VISIBLE) {
-            mUnreadMessages++;
-            refreshUnreadMessages();
-            mChatButton.setVisibility(View.VISIBLE);
+        if (mTextChatFragment != null ) {
+            mTextChatFragment.addMessage(msg);
+            if (mFragmentContainer.getVisibility() != View.VISIBLE) {
+                mUnreadMessages++;
+                refreshUnreadMessages();
+                mChatButton.setVisibility(View.VISIBLE);
+            }
         }
     }
 
