@@ -5,15 +5,15 @@ import com.tokbox.android.IB.events.ActiveFan;
 import java.util.HashMap;
 
 public class ActiveBroadcast {
-    private Boolean producerActive = false;
-    private Boolean hostActive = false;
-    private Boolean celebrityActive = false;
-    private Boolean archiving = false;
-    private Boolean hlsEnabled = false;
-    private int interactiveLimit = 0;
-    private String name = "";
-    private String hlsUrl = "";
-    private String status = "";
+    private Boolean producerActive;
+    private Boolean hostActive;
+    private Boolean celebrityActive;
+    private Boolean archiving;
+    private Boolean hlsEnabled;
+    private int interactiveLimit;
+    private String name;
+    private String hlsUrl;
+    private String status;
     private HashMap<String, String> startImage;
     private HashMap<String, ActiveFan> activeFans;
 
