@@ -277,8 +277,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mEvent == null) return;
         try {
             updateEventName(mEvent.getString(EventProperties.NAME), EventUtils.getStatusNameById(mEvent.getString(EventProperties.STATUS)));
-            EventUtils.loadEventImage(this, mEvent.has(EventProperties.START_IMAGE) ? mEvent.getString(EventProperties.START_IMAGE): "", mEventImage);
-            EventUtils.loadEventImage(this, mEvent.has(EventProperties.END_IMAGE) ? mEvent.getString(EventProperties.END_IMAGE) : "", mEventImageEnd);
+            EventUtils.loadEventImage(this, mEvent.has(EventProperties.START_IMAGE) ? mEvent.getJSONObject(EventProperties.START_IMAGE).getString("url") : "", mEventImage);
+            EventUtils.loadEventImage(this, mEvent.has(EventProperties.END_IMAGE) ? mEvent.getJSONObject(EventProperties.END_IMAGE).getString("url") : "", mEventImageEnd);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - updateEventName", e);
         }
@@ -366,11 +366,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void requestEventData () {
 
-
-        if(InstanceApp.getInstance().getEnableGetInline()) {
-            setVisibilityGetInLine(View.VISIBLE);
-        }
-
         try {
             mWebServiceCoordinator.createToken(mEvent.getString("fanUrl"));
         } catch (JSONException e) {
@@ -412,7 +407,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectToPresence() {
 
         try {
-            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl"));
+            final DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl"));
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -422,25 +417,42 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
                     if(ableToJoin) {
                         Log.i(LOG_TAG, "able to join to interactive!");
+                        setVisibilityGetInLine(View.VISIBLE);
                         createFanRecord();
                         initEvent();
                     } else {
                         Log.i(LOG_TAG, "not able to join to interactive.");
-                        // @TODO HLS
-                        /*if(data.get("broadcastData") != JSONObject.NULL){
-                            mBroadcastData = data.getJSONObject("broadcastData");
-                            mHls = true;
-                            mSocket.emitJoinBroadcast("broadcast" + mBroadcastData.getString("broadcastId"));
-                            mSocket.getSocket().on("eventGoLive", onBroadcastGoLive);
-                            mSocket.getSocket().on("eventEnded", onBroadcastEnd);
-                            mBroadcastUrl = mBroadcastData.getString("broadcastUrl");
-                            eventLive = mBroadcastData.getBoolean("eventLive");
-                            if(eventLive) {
-                                startBroadcast();
-                            }
+                        if(activeBroadcast.getHlsEnabled()) {
+                            // Listen for updates in the activeBrodcast reference.
+                            ValueEventListener updateListener = new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    ActiveBroadcast activeBroadcast = dataSnapshot.getValue(ActiveBroadcast.class);
+                                    // Stop consuming HLS if we're already consuming HLS and the status changed to CLOSED
+                                    if(mHls && (activeBroadcast == null || activeBroadcast.getStatus() == null || activeBroadcast.getStatus().equals(EventStatus.CLOSED))){
+                                        setEventStatus(EventStatus.CLOSED);
+                                        updateEventName();
+                                        endBroadcast();
+                                    }
+
+                                    // if we're not consuming HLS yet and the status is LIVE and the HLS url is available, let's start consuming it.
+                                    if(!mHls && activeBroadcast.getStatus().equals(EventStatus.LIVE) && activeBroadcast.getHlsUrl() != null){
+                                        mBroadcastUrl = activeBroadcast.getHlsUrl();
+                                        setEventStatus(EventStatus.LIVE);
+                                        updateEventName();
+                                        startBroadcast();
+                                    }
+
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) { }
+                            };
+                            myRef.addValueEventListener(updateListener);
+
                         } else {
                             mNotification.show(R.string.user_limit);
-                        }*/
+                        }
                     }
 
                 }
@@ -759,9 +771,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             // Start publishing to the session
             mBackstageSession.publish(mPublisher);
-
-            // Display leave line button
-            setVisibilityGetInLine(View.VISIBLE);
 
             // update active fan record in firebase
             updateFanRecord();
@@ -2162,6 +2171,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void startBroadcast() {
         if(!mBroadcastUrl.equals("")) {
+            mHls = true;
             mEventImage.setVisibility(View.GONE);
             mVideoViewLayout.setVisibility(View.VISIBLE);
             mVideoView.setVideoURI(Uri.parse(mBroadcastUrl));
@@ -2182,6 +2192,24 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             });
             mVideoView.start();
         }
+    }
+
+    private void endBroadcast() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Show Event Image end
+                        mEventImage.setVisibility(View.GONE);
+                        mEventImageEnd.setVisibility(View.VISIBLE);
+                        mVideoView.stopPlayback();
+                        mVideoViewLayout.setVisibility(View.GONE);
+                    }
+                }, 15 * 1000);
+            }
+        });
     }
 
     private void resumeBroadcast() {
