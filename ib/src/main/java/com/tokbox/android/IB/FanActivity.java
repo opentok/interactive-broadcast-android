@@ -2265,6 +2265,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mActiveFanRef.setValue(mActiveFan);
         } catch(Exception ex) {
             Log.e(LOG_TAG, ex.getMessage());
+            throw ex;
         }
     }
 
