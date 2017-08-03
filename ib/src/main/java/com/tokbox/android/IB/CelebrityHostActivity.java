@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBar;
@@ -41,7 +42,18 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.Connection;
 import com.opentok.android.OpenTokConfig;
@@ -55,9 +67,13 @@ import com.opentok.android.SubscriberKit;
 import com.tokbox.android.IB.chat.ChatMessage;
 import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
+import com.tokbox.android.IB.events.ActiveBroadcast;
+import com.tokbox.android.IB.events.ActiveFan;
+import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
+import com.tokbox.android.IB.events.PrivateCall;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.services.ClearNotificationService;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
@@ -74,6 +90,8 @@ import com.tokbox.android.IB.logging.OTKVariation;
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
 import java.util.UUID;
+
+import static com.tokbox.android.IB.common.Notification.TYPE.TEMPORARILLY_MUTED;
 
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
@@ -119,6 +137,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private CustomViewSubscriber mSubscriberViewContainer;
     private CustomViewSubscriber mSubscriberFanViewContainer;
     private FrameLayout mFragmentContainer;
+    private RelativeLayout mStatusBar;
 
     private ProgressDialog mReconnectionsDialog;
 
@@ -140,6 +159,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private String mLogSource;
 
+    //Firebase
+    private FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,6 +171,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         //Creates the action bar
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+
         //Hide the bar
         ActionBar actionBar = getSupportActionBar();
 
@@ -157,19 +181,32 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         setContentView(R.layout.activity_celebrity_host);
 
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance();
+        // Make sure we're connected to firebase
+        mDatabase.goOnline();
+
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mUserIsCelebrity = IBConfig.USER_TYPE.equals(EventRole.CELEBRITY);
 
         initLayoutWidgets();
 
-        //Get the event
-        requestEventData(savedInstanceState);
+        //Get the selected event from the instance
+        getSelectedEvent(savedInstanceState);
+
+        //Request a token and the event data
+        requestEventData();
+
+        //Set event name and images
+        setEventUI();
 
         //Disable HWDEC
         OpenTokConfig.enableVP8HWDecoder(false);
 
-        mNotification = new Notification(this, null);
+        mNotification = new Notification(this, mStatusBar);
     }
 
     @Override
@@ -202,6 +239,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mEventStatus = (TextView) findViewById(R.id.event_status);
         mGoLiveStatus = (TextView) findViewById(R.id.go_live_status);
         mGoLiveNumber = (TextView) findViewById(R.id.go_live_number);
+        mStatusBar = (RelativeLayout) findViewById(R.id.status_bar);
         mUserStatus = (TextView) findViewById(R.id.user_status);
         mFragmentContainer = (FrameLayout) findViewById(R.id.fragment_textchat_container);
         mEventImageEnd = (ImageView) findViewById(R.id.event_image_end);
@@ -209,7 +247,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mWarningAlert = (TextView) findViewById(R.id.quality_warning);
     }
 
-    private void requestEventData (Bundle savedInstanceState) {
+    private void getSelectedEvent (Bundle savedInstanceState) {
         mPublisherViewContainer.displaySpinner(true);
         int event_index = 0;
         //Parse data from activity_join
@@ -226,21 +264,29 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             event_index = Integer.parseInt((String) savedInstanceState.getSerializable("event_index"));
         }
 
-        JSONObject event = InstanceApp.getInstance().getEventByIndex(event_index);
+        mEvent = InstanceApp.getInstance().getEventByIndex(event_index);
+    }
 
+    private void setEventUI() {
         try {
-            updateEventName(event.getString("name"), EventUtils.getStatusNameById(event.getString("status")));
-            EventUtils.loadEventImage(this, event.has("endImage") ? event.getString("endImage") : "", mEventImageEnd);
-            mWebServiceCoordinator.createToken(mUserIsCelebrity ? event.getString("celebrityUrl") : event.getString("hostUrl"));
+            updateEventName(mEvent.getString(EventProperties.NAME), EventUtils.getStatusNameById(mEvent.getString(EventProperties.STATUS)));
+            EventUtils.loadEventImage(this, mEvent.has(EventProperties.END_IMAGE) ? mEvent.getJSONObject(EventProperties.END_IMAGE).getString("url") : "", mEventImageEnd);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
+    }
 
+    private void requestEventData() {
+        try {
+            mWebServiceCoordinator.createToken(mUserIsCelebrity ? mEvent.getString(EventProperties.CELEBRITY_URL) : mEvent.getString(EventProperties.HOST_URL));
+        } catch (JSONException e) {
+            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
+        }
     }
 
     private void updateEventName() {
         try {
-            mEventName.setText(EventUtils.ellipsize(mEvent.getString("name"), 40));
+            mEventName.setText(EventUtils.ellipsize(mEvent.getString(EventProperties.NAME), 40));
             mEventStatus.setText("(" + getEventStatusName() + ")");
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
@@ -259,38 +305,127 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private String getEventStatus() {
         String status = EventStatus.NOT_STARTED;
         try {
-            status = mEvent.getString("status");
+            status = mEvent.getString(EventProperties.STATUS);
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
         return status;
     }
 
+
     /**
      * Web Service Coordinator delegate methods
      */
     @Override
     public void onDataReady(JSONObject results) {
+        // Store the event data
+        try {
+            mEvent = new JSONObject(results.toString());
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, e.getMessage());
+        }
+
+        // Once the authToken is ready, let's sign in to firebase anonymously
+        mAuth.signInAnonymously()
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if(task.isSuccessful()) {
+                            connectToPresence();
+                        } else {
+                            Log.w(LOG_TAG, "signInAnonymously", task.getException());
+                            Toast.makeText(CelebrityHostActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+
+                        }
+                    }
+                });
+    }
+
+    private void connectToPresence() {
+        try {
+            final DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL));
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    ActiveBroadcast activeBroadcast = dataSnapshot.getValue(ActiveBroadcast.class);
+                    if(mUserIsCelebrity && activeBroadcast.getCelebrityActive() ||
+                            !mUserIsCelebrity && activeBroadcast.getHostActive()) {
+                        mNotification.showCantPublish(IBConfig.USER_TYPE);
+                    } else {
+                        createPresenceRecord();
+                        initEvent();
+                        monitorPrivateCall();
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.e(LOG_TAG, databaseError.getMessage());
+                }
+            });
+        } catch (JSONException e) {
+            return;
+        }
+    }
+
+    private void createPresenceRecord(){
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/" + IBConfig.USER_TYPE + "Active");
+            myRef.setValue(true);
+            myRef.onDisconnect().removeValue();
+        } catch (JSONException e) {
+            Log.i(LOG_TAG, e.getMessage());
+        }
+    }
+
+    private void monitorPrivateCall() {
+        // Listen for updates in inPrivateCall and isBackstage
+        ValueEventListener updateListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                PrivateCall privateCall = dataSnapshot.getValue(PrivateCall.class);
+                if (privateCall != null) {
+                    if (privateCall.getIsWith().equals(IBConfig.USER_TYPE)) {
+                        startPrivateCall();
+                    } else if (!privateCall.getIsWith().toLowerCase().equals("activeFan")) {
+                        mNotification.showNotification(TEMPORARILLY_MUTED);
+                    }
+                } else {
+                    endPrivateCall();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) { }
+        };
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/privateCall");
+            myRef.addValueEventListener(updateListener);
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+    }
+
+    private void initEvent() {
         JSONObject objSource = new JSONObject();
         try {
-            mEvent = new JSONObject( results.toString() );
-            mApiKey = results.getString("apiKey");
-            mToken = results.getString("stageToken");
-            mSessionId = results.getString("stageSessionId");
+            mApiKey = mEvent.getString("apiKey");
+            mToken = mEvent.getString("stageToken");
+            mSessionId = mEvent.getString("stageSessionId");
 
             //Set the LogSource
             objSource.put("app", getApplicationContext().getApplicationInfo().packageName);
-            objSource.put("account", mEvent.getString("adminId"));
-            objSource.put("event-id", mEvent.getString("id"));
+            objSource.put("account", mEvent.getString(EventProperties.ADMIN_ID));
+            objSource.put("event-id", mEvent.getString(EventProperties.ID));
 
             mLogSource = objSource.toString();
 
             updateEventName();
+
             //request Marshmallow camera permission
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(permissions, permsRequestCode);
-            }
-            else {
+            } else {
                 sessionConnect();
             }
 
@@ -425,7 +560,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 mIsBound = false;
             }
             mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-
+            mDatabase.goOffline();
             super.onBackPressed();
         }
     }
@@ -597,8 +732,18 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         Log.d(LOG_TAG, "TextChat listener: onMessageReadyToSend: " + msg.getText());
 
         if (mSession != null && mProducerConnection != null) {
-            String message = "{\"message\":{\"to\":{\"connectionId\":\"" + mProducerConnection.getConnectionId()+"\"}, \"message\":\""+msg.getText()+"\"}}";
-            mSession.sendSignal("chatMessage", message, mProducerConnection);
+            Long tsLong = System.currentTimeMillis() / 1000;
+            String ts = tsLong.toString();
+            try {
+                JSONObject message = new JSONObject();
+                message.put("text", msg.getText());
+                message.put("fromType", IBConfig.USER_TYPE);
+                message.put("timestamp", ts);
+                mSession.sendSignal("chatMessage", message.toString(), mProducerConnection);
+            } catch (JSONException ex) {
+                Log.e(LOG_TAG, ex.getMessage());
+            }
+
         }
         return msgError;
     }
@@ -980,12 +1125,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     case "newBackstageFan":
                         newBackstageFan();
                         break;
-                    case "privateCall":
-                        startPrivateCall(data);
-                        break;
-                    case "endPrivateCall":
-                        endPrivateCall();
-                        break;
                 }
             }
             else {
@@ -998,17 +1137,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     }
 
-    private void startPrivateCall(String data) {
-        String connectionId = "";
-        try {
-            connectionId = new JSONObject(data).getString("callWith");
-        } catch (Throwable t) {
-            Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
-        }
+    private void startPrivateCall() {
         if(mSubscriber != null) mSubscriber.setSubscribeToAudio(false);
-        if(mPublisher.getStream().getConnection().getConnectionId().equals(connectionId)) {
-            subscribeProducer();
-        }
+        subscribeProducer();
     }
 
     private void endPrivateCall() {
@@ -1017,12 +1148,14 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             mSession.unsubscribe(mSubscriberProducer);
             mSubscriberProducer = null;
         }
+        mNotification.hide();
     }
 
     private void subscribeProducer() {
         if(mProducerStream != null) {
             mSubscriberProducer = new Subscriber(CelebrityHostActivity.this, mProducerStream);
             mSession.subscribe(mSubscriberProducer);
+            mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
     }
 
@@ -1044,12 +1177,10 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }, 3000);
     }
 
-    public void handleNewMessage(String data, Connection connection) {
+    private void handleNewMessage(String data, Connection connection) {
         String text = "";
         try {
-            text = new JSONObject(data)
-                    .getJSONObject("message")
-                    .getString("message");
+            text = new JSONObject(data).getString("text");
         } catch (Throwable t) {
             Log.e(LOG_TAG, "Could not parse malformed JSON: \"" + data + "\"");
         }
@@ -1057,11 +1188,13 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         ChatMessage msg = null;
         msg = new ChatMessage(connection.getConnectionId(), "Producer", text);
         // Add the new ChatMessage to the text-chat component
-        mTextChatFragment.addMessage(msg);
-        if(mFragmentContainer.getVisibility() != View.VISIBLE) {
-            mUnreadMessages++;
-            refreshUnreadMessages();
-            mChatButton.setVisibility(View.VISIBLE);
+        if (mTextChatFragment != null ) {
+            mTextChatFragment.addMessage(msg);
+            if (mFragmentContainer.getVisibility() != View.VISIBLE) {
+                mUnreadMessages++;
+                refreshUnreadMessages();
+                mChatButton.setVisibility(View.VISIBLE);
+            }
         }
     }
 

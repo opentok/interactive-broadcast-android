@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.tokbox.android.IB.R;
+import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventUtils;
 
 public class Notification {
@@ -46,7 +47,7 @@ public class Notification {
     }
 
     public void showCantPublish(String userType) {
-        int message = userType.equals("host") ? R.string.cant_publish_host : R.string.cant_publish_celebrity;
+        int message = userType.equals(EventRole.HOST) ? R.string.cant_publish_host : R.string.cant_publish_celebrity;
         showNotification(message);
     }
 
@@ -70,7 +71,7 @@ public class Notification {
         TextView statusTextView = (TextView) mStatusBar.getChildAt(0);
         String text = mContext.getResources().getString(type.text);
         if (text.length() > 50) {
-            statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+            statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         } else {
             statusTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
         }

@@ -76,6 +76,7 @@ import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
+import com.tokbox.android.IB.events.PrivateCall;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.network.NetworkTest;
 import com.tokbox.android.IB.services.ClearNotificationService;
@@ -99,6 +100,8 @@ import com.tokbox.android.IB.logging.OTKVariation;
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
 import java.util.UUID;
+
+import static com.tokbox.android.IB.common.Notification.TYPE.TEMPORARILLY_MUTED;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
         Session.SessionListener, Session.ConnectionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
@@ -367,7 +370,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void requestEventData () {
 
         try {
-            mWebServiceCoordinator.createToken(mEvent.getString("fanUrl"));
+            mWebServiceCoordinator.createToken(mEvent.getString(EventProperties.FAN_URL));
         } catch (JSONException e) {
             Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
         }
@@ -407,7 +410,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void connectToPresence() {
 
         try {
-            final DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl"));
+            final DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL));
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -774,6 +777,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             // update active fan record in firebase
             updateFanRecord();
+
+            setVisibilityGetInLine(View.VISIBLE);
 
             //loading text-chat ui component
             loadTextChatFragment();
@@ -1228,6 +1233,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }, 5000);
         } else {
+            updateStreamId();
             //Logging
             addLogEvent(OTKAction.FAN_PUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
         }
@@ -1673,6 +1679,34 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void joinHostNow() {
         Log.i(LOG_TAG, "joinHostNow!");
         publishOnStage();
+        if (getEventStatus().equals(EventStatus.PRESHOW)) {
+            monitorPrivateCall();
+        }
+    }
+
+    private void monitorPrivateCall() {
+        // Listen for updates in inPrivateCall and isBackstage
+        ValueEventListener updateListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                PrivateCall privateCall = dataSnapshot.getValue(PrivateCall.class);
+                if (privateCall != null && mUserIsOnstage) {
+                    if (!privateCall.getIsWith().toLowerCase().endsWith(EventRole.FAN)) {
+                        mNotification.showNotification(TEMPORARILLY_MUTED);
+                    }
+                } else {
+                    mNotification.hide();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) { }
+        };
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/privateCall");
+            myRef.addValueEventListener(updateListener);
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
     }
 
     private void publishOnStage(){
@@ -1694,7 +1728,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     animation1.setDuration(500);
                     animation1.setFillAfter(true);
                     mGoLiveView.startAnimation(animation1);
-                    updateStreamId();
                 }
             }, 2000);
         } else {
@@ -1750,9 +1783,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ChatMessage msg = null;
         msg = new ChatMessage(connection.getConnectionId(), "Producer", text);
         // Add the new ChatMessage to the text-chat component
-        if(mTextChatFragment != null ){
+        if (mTextChatFragment != null ){
             mTextChatFragment.addMessage(msg);
-            if(mFragmentContainer.getVisibility() != View.VISIBLE) {
+            if (mFragmentContainer.getVisibility() != View.VISIBLE) {
                 mUnreadMessages++;
                 refreshUnreadMessages();
                 mChatButton.setVisibility(View.VISIBLE);
@@ -2220,7 +2253,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void createFanRecord(){
         try {
-            mActiveFanRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString("adminId") + "/" + mEvent.getString("fanUrl") + "/activeFans/" + fanId());
+            mActiveFanRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/activeFans/" + fanId());
             mActiveFan = new ActiveFan();
             mActiveFan.setId(fanId());
             mActiveFanRef.setValue(mActiveFan);
@@ -2244,7 +2277,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         mActiveFan.setStreamId(mPublisher.getStream().getStreamId());
                         mActiveFanRef.setValue(mActiveFan);
 
-                        // Listen for updates in inPrivateCall and isBackstage
+                        // Listen for updates in inPrivateCall
                         ValueEventListener updateListener = new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -2288,7 +2321,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void updateStreamId() {
         try {
-            // Update the name, picture and streamId
+            // Update the streamId
+            Log.i(LOG_TAG, "NEW stream! " + mPublisher.getStream().getStreamId());
             mActiveFan.setStreamId(mPublisher.getStream().getStreamId());
             mActiveFanRef.setValue(mActiveFan);
         } catch(Exception ex) {
@@ -2309,8 +2343,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             //Set the LogSource:
             mLogSource = getApplicationContext().getApplicationInfo().packageName + "-" +
-                    mEvent.getString("adminId") + "-" +
-                    mEvent.getString("id");
+                    mEvent.getString(EventProperties.ADMIN_ID) + "-" +
+                    mEvent.getString(EventProperties.ID);
 
             updateEventName();
             sessionConnect();
