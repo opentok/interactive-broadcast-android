@@ -1685,6 +1685,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     animation1.setDuration(500);
                     animation1.setFillAfter(true);
                     mGoLiveView.startAnimation(animation1);
+                    updateStreamId();
                 }
             }, 2000);
         } else {
@@ -2254,6 +2255,17 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 @Override
                 public void run() { updateFanRecord(); }
             }, 500);
+        }
+    }
+
+    private void updateStreamId() {
+        try {
+            // Update the name, picture and streamId
+            mActiveFan.setStreamId(mPublisher.getStream().getStreamId());
+            mActiveFanRef.setValue(mActiveFan);
+        } catch(Exception ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+            throw ex;
         }
     }
 

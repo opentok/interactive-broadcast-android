@@ -74,15 +74,15 @@ public class ActiveFan {
         this.id = id;
     }
 
-    public boolean isBackstage() {
+    public boolean getIsBackstage() {
         return isBackstage;
     }
 
-    public void setBackstage(boolean backstage) {
-        isBackstage = backstage;
+    public void setIsBackstage(boolean isBackstage) {
+        isBackstage = isBackstage;
     }
 
-    public boolean isOnStage() {
+    public boolean getIsOnStage() {
         return isOnStage;
     }
 
