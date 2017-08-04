@@ -139,7 +139,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private CustomViewSubscriber mSubscriberFanViewContainer;
     private FrameLayout mFragmentContainer;
     private RelativeLayout mStatusBar;
-
     private ProgressDialog mReconnectionsDialog;
 
     // Spinning wheel for loading subscriber view

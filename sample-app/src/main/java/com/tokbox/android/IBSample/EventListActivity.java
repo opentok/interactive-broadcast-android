@@ -117,11 +117,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     }
 
     private void getEventsByAdmin() {
-        try {
-            mWebServiceCoordinator.getEventsByAdmin();
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-        }
+        mWebServiceCoordinator.getEventsByAdmin();
     }
 
     private void startLoadingAnimation() {

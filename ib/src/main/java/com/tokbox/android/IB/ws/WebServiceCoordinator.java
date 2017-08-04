@@ -93,7 +93,7 @@ public class WebServiceCoordinator {
     /**
      * Returns the events list filtering by Admin
      */
-    public void getEventsByAdmin() throws JSONException {
+    public void getEventsByAdmin() {
         this.fetchInstanceAppData("event/get-events-by-admin?adminId=" + IBConfig.ADMIN_ID);
     }
 
@@ -101,7 +101,7 @@ public class WebServiceCoordinator {
     /**
      * Create the OpenTok token for the Fan role
      */
-    public void createFanToken(String fan_url) throws JSONException {
+    public void createFanToken(String fan_url) {
         String url = BACKEND_BASE_URL + "/create-token-fan";
 
         JSONObject jsonBody = getFanParams(fan_url);
