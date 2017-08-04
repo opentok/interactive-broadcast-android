@@ -366,6 +366,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 }
             });
         } catch (JSONException e) {
+            // @TODO Handle this error
             Log.e(LOG_TAG, e.getMessage());
         }
     }

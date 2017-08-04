@@ -466,6 +466,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             });
         } catch (JSONException e) {
+            // @TODO Handle this error
             Log.e(LOG_TAG, e.getMessage());
         }
     }
