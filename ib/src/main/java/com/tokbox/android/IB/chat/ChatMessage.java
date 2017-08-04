@@ -90,7 +90,7 @@ public class ChatMessage {
         if ( sender == null ) {
             throw new IllegalArgumentException("The sender value cannot be null.");
         }
-        this.senderAlias = senderAlias;
+        this.senderAlias = sender;
     }
 
     /**
