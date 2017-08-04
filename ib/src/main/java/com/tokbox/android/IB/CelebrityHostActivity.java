@@ -95,7 +95,7 @@ import static com.tokbox.android.IB.common.Notification.TYPE.TEMPORARILLY_MUTED;
 
 
 public class CelebrityHostActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
-        Session.SessionListener, Session.ConnectionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
+        Session.SessionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
         Session.SignalListener,Subscriber.VideoListener,
         TextChatFragment.TextChatListener{
 
@@ -619,10 +619,12 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void sessionConnect() {
         if (mSession == null) {
-            mSession = new Session.Builder(CelebrityHostActivity.this, mApiKey, mSessionId).build();
+            mSession = new Session.Builder(CelebrityHostActivity.this, mApiKey, mSessionId)
+                       .connectionEventsSuppressed(true)
+                       .build();
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
-            mSession.setConnectionListener(this);
+            // mSession.setConnectionListener(this);
             mSession.setReconnectionListener(this);
             mSession.connect(mToken);
         }
@@ -901,6 +903,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             case EventRole.PRODUCER:
                 if(mProducerStream == null && session.getSessionId().equals(mSessionId)){
                     Log.i(LOG_TAG, "producer stream in");
+                    mProducerConnection = stream.getConnection();
+                    mChatButton.setVisibility(View.VISIBLE);
                     mProducerStream = stream;
                 }
                 break;
@@ -936,6 +940,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             case EventRole.PRODUCER:
                 if(mProducerStream != null && mProducerStream.getConnection().getConnectionId().equals(streamConnectionId)) {
                     mProducerStream = null;
+                    mProducerConnection = null;
+                    mChatButton.setVisibility(View.GONE);
                     Log.i(LOG_TAG, "producer stream out");
                 }
                 break;
@@ -1350,25 +1356,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         updateEventName();
     }
 
-
-    /* Connection Listener methods */
-    @Override
-    public void onConnectionCreated(Session session, Connection connection) {
-        if(connection.getData() != null && EventUtils.getUserType(connection.getData()).equals(EventRole.PRODUCER)) {
-
-            mProducerConnection = connection;
-            mChatButton.setVisibility(View.VISIBLE);
-        }
-    }
-
-    @Override
-    public void onConnectionDestroyed(Session session, Connection connection)
-    {
-        if(EventUtils.getUserType(connection.getData()).equals(EventRole.PRODUCER)) {
-            mProducerConnection = null;
-            mChatButton.setVisibility(View.GONE);
-        }
-    }
 
     /* Chat methods */
     public void onChatButtonClicked(View v) {
