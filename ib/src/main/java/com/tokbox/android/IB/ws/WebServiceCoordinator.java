@@ -43,7 +43,7 @@ public class WebServiceCoordinator {
      * Monitors when the instance data is ready or there is an error using the WebServiceCoordinator
      *
      */
-    public static interface Listener {
+    public interface Listener {
         /**
          * Called when the instance data is ready.
          *

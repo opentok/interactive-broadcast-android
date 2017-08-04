@@ -139,9 +139,9 @@ public class TextChatFragment extends Fragment {
          * ready to send when the user clicks the Send button in the TextChatFragment
          * user interface.
          */
-        public boolean onMessageReadyToSend(ChatMessage msg);
+        boolean onMessageReadyToSend(ChatMessage msg);
 
-        public void hideChat();
+        void hideChat();
     }
 
     private TextChatListener textChatListener;
