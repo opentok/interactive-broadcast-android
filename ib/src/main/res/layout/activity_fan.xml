@@ -182,7 +182,7 @@
         android:text="0"
         android:id="@+id/unread_messages"
         android:textColor="#FFFFFF"
-        android:textSize="15dp"
+        android:textSize="15sp"
         android:visibility="gone"
         android:textAlignment="center"
         android:gravity="center"
