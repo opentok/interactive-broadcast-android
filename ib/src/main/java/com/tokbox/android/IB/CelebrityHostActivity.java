@@ -620,8 +620,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void sessionConnect() {
         if (mSession == null) {
-            mSession = new Session(CelebrityHostActivity.this,
-                    mApiKey, mSessionId);
+            mSession = new Session.Builder(CelebrityHostActivity.this, mApiKey, mSessionId).build();
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
             mSession.setConnectionListener(this);

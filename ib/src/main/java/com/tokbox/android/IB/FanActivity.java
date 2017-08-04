@@ -732,8 +732,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void sessionConnect() {
         if (mSession == null) {
-            mSession = new Session(FanActivity.this,
-                    mApiKey, mSessionId);
+            mSession = new Session.Builder(FanActivity.this, mApiKey, mSessionId).build();
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
             mSession.setConnectionListener(this);
@@ -744,8 +743,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void backstageSessionConnect() {
         if (mBackstageSession == null) {
-            mBackstageSession = new Session(FanActivity.this,
-                    mApiKey, mBackstageSessionId);
+            mBackstageSession = new Session.Builder(FanActivity.this, mApiKey, mBackstageSessionId).build();
             mBackstageSession.setSessionListener(this);
             mBackstageSession.setSignalListener(this);
             mBackstageSession.setConnectionListener(this);
