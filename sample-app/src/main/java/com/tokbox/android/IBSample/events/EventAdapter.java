@@ -36,7 +36,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
 
     private static final String LOG_TAG = EventAdapter.class.getSimpleName();
 
-    private List<JSONObject> eventList = new ArrayList<JSONObject>();
+    private List<JSONObject> eventList = new ArrayList<>();
     ViewHolder holder;
     private Context mContext;
     private Typeface mFont;

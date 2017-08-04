@@ -97,36 +97,6 @@ public class WebServiceCoordinator {
 
 
     /**
-     * Create the OpenTok token for the Fan role
-     */
-    public void createFanToken(String fan_url) {
-        String url = BACKEND_BASE_URL + "/create-token-fan";
-
-        JSONObject jsonBody = getFanParams(fan_url);
-
-        RequestQueue reqQueue = Volley.newRequestQueue(context);
-
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.i(LOG_TAG, response.toString());
-                mConnected = true;
-                //delegate.onDataReady(response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                delegate.onWebServiceCoordinatorError(error);
-            }
-        });
-
-        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        reqQueue.add(jor);
-
-    }
-
-    /**
      * Create the OpenTok token for every role
      */
     public void createToken(String userUrl) {
@@ -167,7 +137,7 @@ public class WebServiceCoordinator {
                 {
                     @Override
                     public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String, String>  params = new HashMap<String, String>();
+                        Map<String, String>  params = new HashMap<>();
                         params.put("Content-Type", "application/json");
                         params.put("Authorization", "Bearer " + IBConfig.AUTH_TOKEN);
                         return params;

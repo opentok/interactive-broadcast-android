@@ -23,7 +23,7 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
     private Typeface mFont;
 
 
-    private List<ChatMessage> messagesList = new ArrayList<ChatMessage>();
+    private List<ChatMessage> messagesList = new ArrayList<>();
     ViewHolder holder;
 
     private boolean messagesGroup = false;
@@ -67,7 +67,7 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
         ChatMessage lastMsg = null;
         ChatMessage currentMsg = null;
 
-        List<ChatMessage> myList = new ArrayList<ChatMessage>();
+        List<ChatMessage> myList = new ArrayList<>();
         myList = this.getMessagesList();
         if (myList.size() > 1 && position > 0) {
             lastMsg = messagesList.get(position - 1);

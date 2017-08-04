@@ -39,7 +39,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     private WebServiceCoordinator mWebServiceCoordinator;
     private ProgressDialog mProgress;
     private Handler mHandler = new Handler();
-    private ArrayList<JSONObject> mEventList = new ArrayList<JSONObject>();
+    private ArrayList<JSONObject> mEventList = new ArrayList<>();
     private EventAdapter mEventAdapter;
     private GridView mListActivities;
     private TextView mEventListTitle;

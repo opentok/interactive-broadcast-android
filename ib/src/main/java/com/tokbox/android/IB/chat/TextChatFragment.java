@@ -34,7 +34,7 @@ public class TextChatFragment extends Fragment {
     private Context mContext;
     Handler mHandler;
 
-    private ArrayList<ChatMessage> mMsgsList = new ArrayList<ChatMessage>();
+    private ArrayList<ChatMessage> mMsgsList = new ArrayList<>();
     private MessageAdapter mMessageAdapter;
 
     private ListView mListView;
