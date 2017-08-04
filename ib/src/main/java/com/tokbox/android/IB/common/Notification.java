@@ -105,7 +105,7 @@ public class Notification {
         TextView text = (TextView) toastLayout.findViewById(R.id.toast_text);
         text.setText(mContext.getResources().getString(message));
 
-        Toast toast = new Toast(((Activity)mContext).getApplicationContext());
+        Toast toast = new Toast(mContext.getApplicationContext());
         if (R.layout.toast != 0) {
             toast.setGravity(Gravity.BOTTOM, 0, 140);
         }

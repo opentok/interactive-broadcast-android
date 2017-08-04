@@ -76,7 +76,7 @@ public class TextChatFragment extends Fragment {
         mCloseChat = (ImageButton) rootView.findViewById(R.id.close_chat);
         mMsgNotificationView = (TextView) rootView.findViewById(R.id.new_msg_notification);
         mMsgEditText = (EditText) rootView.findViewById(R.id.edit_msg);
-        mMsgDividerView = (View) rootView.findViewById(R.id.divider_notification);
+        mMsgDividerView = rootView.findViewById(R.id.divider_notification);
         mTopBarTitle = (TextView) rootView.findViewById(R.id.top_bar_title);
         mSendButton.setOnClickListener(new View.OnClickListener() {
 
