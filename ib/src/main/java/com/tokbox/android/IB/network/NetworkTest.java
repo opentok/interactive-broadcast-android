@@ -72,7 +72,7 @@ public class NetworkTest {
             }
             throw new IllegalArgumentException("unknown quality " + qualityId);
         }
-    };
+    }
 
     public interface NetworkTestListener {
         void onVideoQualityUpdated(String connectionId, MOSQuality quality);
