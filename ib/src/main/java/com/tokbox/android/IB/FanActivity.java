@@ -891,7 +891,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.ATTEMPT);
 
-        mSubscriberHost = new Subscriber(FanActivity.this, stream);
+        mSubscriberHost = new Subscriber.Builder(FanActivity.this, stream).build();
         mSubscriberHost.setVideoListener(this);
         mSession.subscribe(mSubscriberHost);
         if(mOnstageMuted) mSubscriberHost.setSubscribeToAudio(false);
@@ -908,7 +908,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ATTEMPT);
 
-        mSubscriberCelebrity = new Subscriber(FanActivity.this, stream);
+        mSubscriberCelebrity = new Subscriber.Builder(FanActivity.this, stream).build();
         mSubscriberCelebrity.setVideoListener(this);
         mSession.subscribe(mSubscriberCelebrity);
         if(mOnstageMuted) mSubscriberCelebrity.setSubscribeToAudio(false);
@@ -925,7 +925,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.ATTEMPT);
 
-        mSubscriberFan = new Subscriber(FanActivity.this, stream);
+        mSubscriberFan = new Subscriber.Builder(FanActivity.this, stream).build();
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
         if(mOnstageMuted) mSubscriberFan.setSubscribeToAudio(false);
@@ -943,7 +943,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             showPublisher();
             muteOnstage(true);
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
-            mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
+            mSubscriberProducer = new Subscriber.Builder(FanActivity.this, mProducerStream).build();
             mBackstageSession.subscribe(mSubscriberProducer);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
@@ -967,7 +967,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void startPrivateCall() {
         if(mProducerStreamOnstage != null && mPublisher != null) {
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
-            mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
+            mSubscriberProducerOnstage = new Subscriber.Builder(FanActivity.this, mProducerStreamOnstage).build();
             mSession.subscribe(mSubscriberProducerOnstage);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
             muteOnstage(true);
@@ -1356,7 +1356,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
     private void autoselfSubscribe(Stream stream){
-        mTestSubscriber = new Subscriber(FanActivity.this, stream);
+        mTestSubscriber = new Subscriber.Builder(FanActivity.this, stream).build();
         mTestSubscriber.setSubscriberListener(this);
         mTestSubscriber.setSubscribeToAudio(false);
     }

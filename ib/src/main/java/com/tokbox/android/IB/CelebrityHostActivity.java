@@ -787,7 +787,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private void subscribeToStream(Stream stream) {
         Log.i(LOG_TAG, "subscribeToStream");
         Log.i(LOG_TAG, "Subscriber is null? = " + ((mSubscriber==null) ? "Yes" : "No"));
-        mSubscriber = new Subscriber(CelebrityHostActivity.this, stream);
+        mSubscriber = new Subscriber.Builder(CelebrityHostActivity.this, stream).build();
+
         mSubscriber.setVideoListener(this);
         mSession.subscribe(mSubscriber);
 
@@ -802,7 +803,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void subscribeFanToStream(Stream stream) {
         Log.i(LOG_TAG, "subscribeFanToStream");
-        mSubscriberFan = new Subscriber(CelebrityHostActivity.this, stream);
+        mSubscriberFan = new Subscriber.Builder(CelebrityHostActivity.this, stream).build();
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
 
@@ -1155,7 +1156,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void subscribeProducer() {
         if(mProducerStream != null) {
-            mSubscriberProducer = new Subscriber(CelebrityHostActivity.this, mProducerStream);
+            mSubscriberProducer = new Subscriber.Builder(CelebrityHostActivity.this, mProducerStream).build();
             mSession.subscribe(mSubscriberProducer);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
