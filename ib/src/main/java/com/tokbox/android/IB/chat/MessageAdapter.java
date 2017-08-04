@@ -84,10 +84,7 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
 
     //Check the time between the current new message and the last added message
     private boolean checkTimeMsg(long lastMsgTime, long newMsgTime) {
-        if (lastMsgTime - newMsgTime <= TimeUnit.MINUTES.toMillis(2)) {
-            return true;
-        }
-        return false;
+        return (lastMsgTime - newMsgTime <= TimeUnit.MINUTES.toMillis(2));
     }
 
     @Override
