@@ -466,7 +466,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             });
         } catch (JSONException e) {
-            return;
+            Log.e(LOG_TAG, e.getMessage());
         }
     }
 
