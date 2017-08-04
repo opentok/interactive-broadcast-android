@@ -658,7 +658,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
 
         if (mPublisher == null) {
-            mPublisher = new Publisher(CelebrityHostActivity.this, "publisher");
+            mPublisher = new Publisher.Builder(CelebrityHostActivity.this)
+                    .name("publisher")
+                    .build();
             mPublisher.setPublisherListener(this);
             attachPublisherView();
             doPublish();
