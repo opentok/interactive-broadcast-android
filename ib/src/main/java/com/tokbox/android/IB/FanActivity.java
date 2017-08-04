@@ -1357,7 +1357,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mTestSubscriber.setSubscribeToAudio(false);
     }
 
-    private void sendQualityUpdate(String connectionId, String quality) {
+    private void sendQualityUpdate(String quality) {
         if (mBackstageSession != null) {
             mActiveFanRef.child("networkQuality").setValue(quality);
         }
@@ -2099,7 +2099,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onVideoQualityUpdated(String connectionId, NetworkTest.MOSQuality quality) {
         if ( mTestSubscriber != null ) {
             Log.i(LOG_TAG, "Video quality sent to the producer: " + getIBQuality(quality));
-            sendQualityUpdate(mBackstageConnectionId, getIBQuality(quality));
+            sendQualityUpdate(getIBQuality(quality));
         }
     }
 
