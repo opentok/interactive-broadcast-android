@@ -1,11 +1,7 @@
 package com.tokbox.android.IB.network;
 
-import android.print.PrintAttributes;
 import android.util.Log;
-import android.widget.Toast;
-
 import com.opentok.android.OpenTokConfig;
-import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
 import com.opentok.android.VideoUtils;
 

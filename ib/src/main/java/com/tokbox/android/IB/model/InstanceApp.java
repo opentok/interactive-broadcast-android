@@ -3,8 +3,6 @@ package com.tokbox.android.IB.model;
 
 import android.util.Log;
 
-import com.tokbox.android.IB.config.IBConfig;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

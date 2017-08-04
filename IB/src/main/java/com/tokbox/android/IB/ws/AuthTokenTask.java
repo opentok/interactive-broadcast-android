@@ -10,7 +10,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
-import com.opentok.android.Connection;
 import com.tokbox.android.IB.config.IBConfig;
 
 import org.json.JSONException;

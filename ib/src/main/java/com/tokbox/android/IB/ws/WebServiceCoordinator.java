@@ -1,8 +1,6 @@
 package com.tokbox.android.IB.ws;
 
 import android.content.Context;
-import android.hardware.fingerprint.FingerprintManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;

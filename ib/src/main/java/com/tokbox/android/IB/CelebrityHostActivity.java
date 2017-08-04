@@ -69,7 +69,6 @@ import com.tokbox.android.IB.chat.ChatMessage;
 import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
 import com.tokbox.android.IB.events.ActiveBroadcast;
-import com.tokbox.android.IB.events.ActiveFan;
 import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
