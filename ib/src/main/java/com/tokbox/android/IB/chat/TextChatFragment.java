@@ -191,7 +191,7 @@ public class TextChatFragment extends Fragment {
             }
 
             mMessageAdapter.add(msg);
-            isNewMessageVisible();
+            updateScrollPosition();
         }
     }
 
@@ -222,7 +222,7 @@ public class TextChatFragment extends Fragment {
                     //add the message to the component
                     addMessage(myMsg);
 
-                    isNewMessageVisible();
+                    updateScrollPosition();
                 }
 
             }
@@ -248,11 +248,10 @@ public class TextChatFragment extends Fragment {
         }
     }
 
-    // To check if the next item is visible in the list
-    private boolean isNewMessageVisible() {
+    // Update scroll position to the last item in the list
+    private void updateScrollPosition() {
         mListView.smoothScrollToPosition(mMessageAdapter.getCount());
         mListView.smoothScrollToPosition(mMessageAdapter.getMessagesList().size() - 1);
-        return false;
     }
 
 
