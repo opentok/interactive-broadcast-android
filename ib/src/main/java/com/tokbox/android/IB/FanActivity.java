@@ -27,6 +27,7 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.DisplayMetrics;
@@ -851,7 +852,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 //Hide chat stuff
                 hideChat();
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
-                mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
+                mGetInLine.setBackground(ContextCompat.getDrawable(FanActivity.this, R.drawable.get_in_line_button));
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
 
                 if (!status.equals(EventStatus.CLOSED)) {
@@ -1101,7 +1102,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mProducerStream  = null;
         mProducerStreamOnstage  = null;
         mProducerConnection = null;
-
         mAudioOnlyFan = false;
     }
 
@@ -1280,10 +1280,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mPublisherViewContainer.setAlpha(1f);
                     mPublisherViewContainer.setVisibility(View.VISIBLE);
                     mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-                    //if(mAvatarPublisher.getVisibility() == View.GONE) {
-                        mPublisher.getView().setVisibility(View.VISIBLE);
-                    //}
-
+                    mPublisher.getView().setVisibility(View.VISIBLE);
                 }
             }, 500);
 
@@ -1517,7 +1514,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onVideoDisableWarning(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here.");
         mWarningAlert.setBackgroundResource(R.color.quality_warning);
-        mWarningAlert.setTextColor(FanActivity.this.getResources().getColor(R.color.warning_text));
+        mWarningAlert.setTextColor(ContextCompat.getColor(FanActivity.this, R.color.warning_text));
         mWarningAlert.bringToFront();
         mWarningAlert.setVisibility(View.VISIBLE);
         mWarningAlert.postDelayed(new Runnable() {
@@ -2018,7 +2015,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mOnBackstage = false;
         setVisibilityGetInLine(View.GONE);
         mGetInLine.setText(getResources().getString(R.string.leave_line));
-        mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
+        mGetInLine.setBackground(ContextCompat.getDrawable(FanActivity.this, R.drawable.leave_line_button));
         if(mBackstageSessionId != null) {
 
             if (mPublisher == null) {
