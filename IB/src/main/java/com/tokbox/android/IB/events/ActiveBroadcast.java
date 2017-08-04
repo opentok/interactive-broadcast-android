@@ -6,8 +6,8 @@ import java.util.HashMap;
 
 public class ActiveBroadcast {
     private Boolean producerActive;
-    private Boolean hostActive;
-    private Boolean celebrityActive;
+    private Boolean hostActive = false;
+    private Boolean celebrityActive  = false;
     private Boolean archiving;
     private Boolean hlsEnabled;
     private int interactiveLimit;
