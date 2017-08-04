@@ -12,7 +12,7 @@ public class ChatMessage {
     /**
      * Defines the status of the message (whether it was a sent or received message).
      */
-    static enum MessageStatus {
+    enum MessageStatus {
         /**
          * The status for a sent message.
          */

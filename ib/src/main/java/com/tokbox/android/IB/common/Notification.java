@@ -34,7 +34,7 @@ public class Notification {
         private int text;
         private int delaySeconds;
 
-        private TYPE(int color, int text, int delaySeconds) {
+        TYPE(int color, int text, int delaySeconds) {
             this.color = color;
             this.text = text;
             this.delaySeconds = delaySeconds;
