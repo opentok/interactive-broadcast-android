@@ -97,7 +97,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
                         Log.e(LOG_TAG, pe.getMessage());
                     }
 
-                    holder.date_status.setText(ft2.format(date).toString().toUpperCase());
+                    holder.date_status.setText(ft2.format(date).toUpperCase());
                 }
                 holder.join_event.setText("Not started");
 

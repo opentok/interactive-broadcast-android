@@ -244,7 +244,7 @@ public class WebServiceCoordinator {
                 try {
                     result.put("events", response);
                 } catch (JSONException ex ) {
-                    Log.d(LOG_TAG, ex.getMessage().toString());
+                    Log.d(LOG_TAG, ex.getMessage());
                 }
                 delegate.onDataReady(result);
             }
