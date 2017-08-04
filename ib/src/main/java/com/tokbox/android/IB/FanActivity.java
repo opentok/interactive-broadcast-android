@@ -445,7 +445,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                                         updateEventName();
                                         startBroadcast();
                                     }
-
                                 }
 
                                 @Override
@@ -1672,7 +1671,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisherViewContainer.removeView(mPublisher.getView());
         mPublisher.destroy();
 
-        mPublisher = new Publisher(FanActivity.this, "publisher");
+        mPublisher = new Publisher.Builder(FanActivity.this)
+                .name("publisher")
+                .build();
+
         mPublisher.setPublisherListener(this);
     }
 
@@ -2021,13 +2023,19 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
             if (mPublisher == null) {
 
-                Log.i(LOG_TAG, "init publisher");
-                mPublisher = new Publisher(FanActivity.this, "publisher");
-                mPublisher.setPublisherListener(this);
-                // use an external custom video renderer
+                // Use an external custom video renderer
                 mCustomVideoRenderer = new CustomVideoRenderer(this);
                 mCustomVideoRenderer.setSaveScreenshot(false);
-                mPublisher.setRenderer(mCustomVideoRenderer);
+
+                // Init the publisher
+                Log.i(LOG_TAG, "init publisher");
+                mPublisher = new Publisher.Builder(FanActivity.this)
+                        .name("publisher")
+                        .renderer(mCustomVideoRenderer)
+                        .build();
+
+                mPublisher.setPublisherListener(this);
+
                 attachPublisherView();
             }
 
