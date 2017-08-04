@@ -79,7 +79,7 @@ public class ActiveFan {
     }
 
     public void setIsBackstage(boolean isBackstage) {
-        isBackstage = isBackstage;
+        this.isBackstage = isBackstage;
     }
 
     public boolean isIsOnStage() {
