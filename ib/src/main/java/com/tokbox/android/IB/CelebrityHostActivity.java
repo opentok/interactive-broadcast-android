@@ -25,6 +25,7 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -1065,7 +1066,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void onVideoDisableWarning(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here." + subscriber.getStream().getConnection().getData());
         mWarningAlert.setBackgroundResource(R.color.quality_warning);
-        mWarningAlert.setTextColor(CelebrityHostActivity.this.getResources().getColor(R.color.warning_text));
+        mWarningAlert.setTextColor(ContextCompat.getColor(CelebrityHostActivity.this, R.color.warning_text));
         mWarningAlert.bringToFront();
         mWarningAlert.setVisibility(View.VISIBLE);
         mWarningAlert.postDelayed(new Runnable() {
