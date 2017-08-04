@@ -52,7 +52,7 @@ public class Notification {
     }
 
 
-    public void showNotification(int message) {
+    private void showNotification(int message) {
         Typeface font = EventUtils.getFont(mContext);
         for (int i = 0; i < 3; i++) {
             Toast toast = Toast.makeText(mContext, message, Toast.LENGTH_LONG);

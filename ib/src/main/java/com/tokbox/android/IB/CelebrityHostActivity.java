@@ -579,7 +579,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
     }
 
-    public void reloadInterface() {
+    private void reloadInterface() {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -593,7 +593,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }, 500);
     }
 
-    public void updateViewsWidth() {
+    private void updateViewsWidth() {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -763,7 +763,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         cleanViews();
     }
 
-    public void cleanViews() {
+    private void cleanViews() {
         if (mPublisher != null) {
             mPublisherViewContainer.removeView(mPublisher.getView());
         }
@@ -958,7 +958,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         updateViewsWidth();
     }
 
-    public static int screenWidth(Context ctx) {
+    private static int screenWidth(Context ctx) {
         DisplayMetrics displaymetrics = new DisplayMetrics();
         ((Activity) ctx).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
         return displaymetrics.widthPixels;
@@ -1223,7 +1223,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mUnreadCircle.setLayoutParams(params);
     }
 
-    public void videoOnOff(String data){
+    private void videoOnOff(String data){
         String video="";
         try {
             video = new JSONObject(data)
@@ -1243,7 +1243,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     }
 
-    public void muteAudio(String data){
+    private void muteAudio(String data){
         String mute="";
         try {
             mute = new JSONObject(data)
@@ -1254,7 +1254,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mPublisher.setPublishAudio(!mute.equals("on"));
     }
 
-    public void goLive(){
+    private void goLive(){
         try {
             mEvent.put("status", EventStatus.LIVE);
             updateEventName();
@@ -1299,7 +1299,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
     }
 
-    public void finishEvent() {
+    private void finishEvent() {
         //Show Event Image end
         mEventImageEnd.setVisibility(View.VISIBLE);
         mLiveButton.setVisibility(View.GONE);

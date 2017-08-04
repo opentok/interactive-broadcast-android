@@ -41,8 +41,6 @@ android {
             }
         }
 
-        def specFileDir = "../"
-
         def copyFile = task("copyFile${variant.name.capitalize()}", type: Copy) {
             //Copy README.md
             from '../README.md'

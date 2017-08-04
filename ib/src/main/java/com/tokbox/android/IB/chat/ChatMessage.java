@@ -23,11 +23,11 @@ public class ChatMessage {
         RECEIVED_MESSAGE
     }
 
-    protected String senderId;
-    protected String senderAlias;
-    protected String text;
-    protected long timestamp;
-    MessageStatus status;
+    private String senderId;
+    private String senderAlias;
+    private String text;
+    private long timestamp;
+    private MessageStatus status;
     private UUID id;
 
     /**

@@ -126,7 +126,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
         return convertView;
     }
 
-    public void showEvent(int event_index) {
+    private void showEvent(int event_index) {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == EventRole.FAN) {

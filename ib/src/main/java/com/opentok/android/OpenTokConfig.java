@@ -14,7 +14,7 @@ public class OpenTokConfig {
         setAPIRootURL(apiRootURL, true);
     }
 
-    public static void setAPIRootURL(String apiRootURL, boolean rumorSSL) throws MalformedURLException {
+    private static void setAPIRootURL(String apiRootURL, boolean rumorSSL) throws MalformedURLException {
         URL url = new URL(apiRootURL);
         boolean ssl = false;
         int port = url.getPort();

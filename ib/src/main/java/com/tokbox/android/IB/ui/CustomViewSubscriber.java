@@ -27,12 +27,11 @@ public class CustomViewSubscriber extends RelativeLayout {
     public CustomViewSubscriber(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
-
         init();
     }
 
 
-    public void init() {
+    private void init() {
         rootView = inflate(mContext, R.layout.subscriber, this);
         mLoadingSub = (ProgressBar) findViewById(R.id.loadingSpinner);
         mAvatar = (RelativeLayout) findViewById(R.id.avatar);

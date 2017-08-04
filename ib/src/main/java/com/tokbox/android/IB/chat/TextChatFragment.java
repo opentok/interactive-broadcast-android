@@ -272,7 +272,7 @@ public class TextChatFragment extends Fragment {
      * If you subclass the TextChatFragment class and implement this method,
      * you do not need to set a TextChatListener.
      */
-    protected boolean onMessageReadyToSend(ChatMessage msg) {
+    private boolean onMessageReadyToSend(ChatMessage msg) {
         if (this.textChatListener != null) {
             Log.d(LOG_TAG, "onMessageReadyToSend");
             return this.textChatListener.onMessageReadyToSend(msg);

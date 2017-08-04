@@ -283,7 +283,7 @@ public class WebServiceCoordinator {
         reqQueue.add(jor);
     }
 
-    public String getUserId() {
+    private String getUserId() {
         return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 

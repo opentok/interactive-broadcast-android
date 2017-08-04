@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
         start();
     }
 
-    public void start() {
+    private void start() {
         Intent localIntent;
         localIntent = new Intent(MainActivity.this, EventListActivity.class);
         startActivity(localIntent);

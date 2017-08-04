@@ -638,7 +638,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void reloadInterface() {
+    private void reloadInterface() {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -865,7 +865,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    public void cleanViews() {
+    private void cleanViews() {
         if (mPublisher != null) {
             mPublisherViewContainer.removeView(mPublisher.getView());
         }
@@ -1357,13 +1357,13 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mTestSubscriber.setSubscribeToAudio(false);
     }
 
-    public void sendQualityUpdate(String connectionId, String quality) {
+    private void sendQualityUpdate(String connectionId, String quality) {
         if (mBackstageSession != null) {
             mActiveFanRef.child("networkQuality").setValue(quality);
         }
     }
 
-    public void sendWarningSignal() {
+    private void sendWarningSignal() {
         if (mBackstageSession != null && mProducerConnection != null) {
             String connectionId = mPublisher != null ? mPublisher.getStream().getConnection().getConnectionId() : "";
             String msg = "{\"connectionId\":\"" + connectionId + "\", \"connected\":\"false\", \"subscribing\":\"false\"}";
@@ -1857,7 +1857,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisher.setPublishAudio(!mute.equals("on"));
     }
 
-    public void goLive(){
+    private void goLive(){
         setEventStatus(EventStatus.LIVE);
         updateEventName();
         if(!mUserIsOnstage) {
@@ -2006,11 +2006,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void setVisibilityGetInLine(int visibility) {
+    private void setVisibilityGetInLine(int visibility) {
         mGetInLine.setVisibility(visibility);
     }
 
-    public void initGetInline() {
+    private void initGetInline() {
         mOnBackstage = false;
         setVisibilityGetInLine(View.GONE);
         mGetInLine.setText(getResources().getString(R.string.leave_line));

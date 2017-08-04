@@ -116,7 +116,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         super.onDestroy();
     }
 
-    public void getEventsByAdmin() {
+    private void getEventsByAdmin() {
         try {
             mWebServiceCoordinator.getEventsByAdmin();
         } catch (JSONException e) {
@@ -124,7 +124,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         }
     }
 
-    public void startLoadingAnimation() {
+    private void startLoadingAnimation() {
         mProgress = new ProgressDialog(this);
         mProgress.setTitle("Loading");
         mProgress.setMessage("Wait while loading...");
@@ -132,13 +132,13 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         mProgress.show();
     }
 
-    public void stopLoadingAnimation() {
+    private void stopLoadingAnimation() {
         if(mProgress != null && mProgress.isShowing()){
             mProgress.dismiss();
         }
     }
 
-    public void showEventList() {
+    private void showEventList() {
         Log.i(LOG_TAG, "starting event list app");
 
         mListActivities = (GridView) findViewById(R.id.gridView);
@@ -158,7 +158,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         mListActivities.setAdapter(mEventAdapter);
     }
 
-    public void showEvent() {
+    private void showEvent() {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == EventRole.FAN) {
