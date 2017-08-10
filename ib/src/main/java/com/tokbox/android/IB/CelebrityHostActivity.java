@@ -623,7 +623,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                        .build();
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
-            // mSession.setConnectionListener(this);
             mSession.setReconnectionListener(this);
             mSession.connect(mToken);
         }
