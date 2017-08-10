@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion "26.0.1"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode 4
         versionName "1.0.4"
         project.archivesBaseName = "opentok-ib-android"
@@ -92,7 +92,7 @@ android {
 
 dependencies {
     provided fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.opentok.android:opentok-android-sdk:2.11.1+'
     compile 'com.opentok.android:opentok-solutions-logging:+'
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
