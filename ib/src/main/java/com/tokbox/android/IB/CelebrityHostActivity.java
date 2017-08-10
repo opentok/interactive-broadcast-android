@@ -202,8 +202,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         //Set event name and images
         setEventUI();
 
-        //Disable HWDEC
-        OpenTokConfig.enableVP8HWDecoder(false);
+        OpenTokConfig.setUseMediaCodecFactories(false);
 
         mNotification = new Notification(this, mStatusBar);
     }

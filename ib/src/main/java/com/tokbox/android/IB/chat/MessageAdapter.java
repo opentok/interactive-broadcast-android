@@ -13,7 +13,6 @@ import com.tokbox.android.IB.events.EventUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 
 class MessageAdapter extends ArrayAdapter<ChatMessage> {
@@ -24,12 +23,9 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
 
 
     private List<ChatMessage> messagesList = new ArrayList<>();
-    ViewHolder holder;
-
-    private boolean messagesGroup = false;
 
     private class ViewHolder {
-        public TextView aliasText, messageText, timestampText;
+        public TextView aliasText, messageText;
         public int viewType;
     }
 
@@ -62,39 +58,11 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
         return VIEW_TYPE_ROW_SENT; //by default
     }
 
-    private boolean checkMessageGroup(int position) {
-        //check timestamp for message to group messages (multiple messages sent within a 2 minutes time limit)
-        ChatMessage lastMsg = null;
-        ChatMessage currentMsg = null;
-
-        List<ChatMessage> myList = new ArrayList<>();
-        myList = this.getMessagesList();
-        if (myList.size() > 1 && position > 0) {
-            lastMsg = messagesList.get(position - 1);
-            currentMsg = messagesList.get(position);
-            if (lastMsg != null && currentMsg != null && lastMsg.getSenderId().equals(currentMsg.getSenderId())) {
-                //check time
-                if (checkTimeMsg(lastMsg.getTimestamp(), currentMsg.getTimestamp())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    //Check the time between the current new message and the last added message
-    private boolean checkTimeMsg(long lastMsgTime, long newMsgTime) {
-        return (lastMsgTime - newMsgTime <= TimeUnit.MINUTES.toMillis(2));
-    }
-
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder = null;
+        ViewHolder holder;
         ChatMessage message = this.messagesList.get(position);
-
-        holder = new ViewHolder();
-        int type = VIEW_TYPE_ROW_SENT;
-        type = getItemViewType(position);
+        int type = getItemViewType(position);
 
         if (convertView == null) {
             holder = new ViewHolder();
@@ -121,7 +89,7 @@ class MessageAdapter extends ArrayAdapter<ChatMessage> {
         holder.aliasText.setTypeface(mFont);
 
         //msg alias
-        holder.aliasText.setText(message.getSenderAlias()+":");
+        holder.aliasText.setText(message.getSenderAlias().concat(":"));
         //msg txt
         holder.messageText.setText(message.getText());
 

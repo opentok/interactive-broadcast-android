@@ -272,8 +272,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         setupFonts();
 
-        //Disable HWDEC
-        OpenTokConfig.enableVP8HWDecoder(false);
+        OpenTokConfig.setUseMediaCodecFactories(false);
 
     }
 
