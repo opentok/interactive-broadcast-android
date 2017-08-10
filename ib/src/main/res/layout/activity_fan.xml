@@ -83,7 +83,7 @@
             android:textColor="#FFFFFF"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="5dp"
-            android:text="Camera preview:"
+            android:text="@string/camera_preview"
             android:textStyle="bold" />
 
         <TextView
@@ -91,7 +91,7 @@
             android:layout_height="wrap_content"
             android:id="@+id/camera_preview_2"
             android:textColor="@color/get_in_line_background_color"
-            android:text="ON"
+            android:text="@string/camera_preview_on"
             android:layout_marginTop="10dp"
             android:layout_toRightOf="@+id/camera_preview_1"
             android:textStyle="bold"
@@ -179,7 +179,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="0"
+        android:text="@string/default_unread_messages"
         android:id="@+id/unread_messages"
         android:textColor="#FFFFFF"
         android:textSize="15sp"
@@ -216,7 +216,6 @@
             android:visibility="visible"
             android:text="@string/going_on_stage"
             android:textAlignment="center"
-            android:singleLine="false"
             android:inputType="textMultiLine"
             android:paddingTop="50dp"
             android:layout_alignParentBottom="false"
