@@ -114,6 +114,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
+    private final String PUBLISHER_NAME = "publisher";
 
     private int mUnreadMessages = 0;
     private boolean mTestingOnStage = false;
@@ -1667,7 +1668,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisher.destroy();
 
         mPublisher = new Publisher.Builder(FanActivity.this)
-                .name("publisher")
+                .name(PUBLISHER_NAME)
                 .build();
 
         mPublisher.setPublisherListener(this);
@@ -2025,7 +2026,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 // Init the publisher
                 Log.i(LOG_TAG, "init publisher");
                 mPublisher = new Publisher.Builder(FanActivity.this)
-                        .name("publisher")
+                        .name(PUBLISHER_NAME)
                         .renderer(mCustomVideoRenderer)
                         .build();
 
