@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -32,7 +31,6 @@ public class TextChatFragment extends Fragment {
     private final static String LOG_TAG = "TextChatFragment";
 
     private Context mContext;
-    Handler mHandler;
 
     private ArrayList<ChatMessage> mMsgsList = new ArrayList<>();
     private MessageAdapter mMessageAdapter;
