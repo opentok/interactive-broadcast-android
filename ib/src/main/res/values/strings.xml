@@ -14,9 +14,15 @@
     <string name="enter_your_name_below">You may enter your name below.</string>
     <string name="name_placeholder">Name (Optional)</string>
     <string name="ok">OK</string>
+    <string name="default_unread_messages">0</string>
     <string name="cancel">CANCEL</string>
     <string name="going_on_stage">Going On Stage</string>
     <string name="thanks_for_participating">Thank you for participating, you are no longer sharing video/voice. You can continue watching the session at your leisure.</string>
+    <string name="camera_preview">Camera preview:</string>
+    <string name="camera_preview_on">ON</string>
+    <string name="go_live_init">3</string>
+
+
 
 
     <!-- User status -->

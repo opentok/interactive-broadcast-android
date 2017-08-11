@@ -5,9 +5,9 @@ import com.tokbox.android.IB.events.ActiveFan;
 import java.util.HashMap;
 
 public class ActiveBroadcast {
-    private Boolean producerActive;
-    private Boolean hostActive;
-    private Boolean celebrityActive;
+    private Boolean producerActive = false;
+    private Boolean hostActive = false;
+    private Boolean celebrityActive  = false;
     private Boolean archiving;
     private Boolean hlsEnabled;
     private int interactiveLimit;

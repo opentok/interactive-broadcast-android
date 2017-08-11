@@ -36,7 +36,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
 
     private static final String LOG_TAG = EventAdapter.class.getSimpleName();
 
-    private List<JSONObject> eventList = new ArrayList<JSONObject>();
+    private List<JSONObject> eventList = new ArrayList<>();
     ViewHolder holder;
     private Context mContext;
     private Typeface mFont;
@@ -97,7 +97,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
                         Log.e(LOG_TAG, pe.getMessage());
                     }
 
-                    holder.date_status.setText(ft2.format(date).toString().toUpperCase());
+                    holder.date_status.setText(ft2.format(date).toUpperCase());
                 }
                 holder.join_event.setText("Not started");
 
@@ -126,7 +126,7 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
         return convertView;
     }
 
-    public void showEvent(int event_index) {
+    private void showEvent(int event_index) {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == EventRole.FAN) {

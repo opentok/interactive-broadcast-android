@@ -25,6 +25,7 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -68,7 +69,6 @@ import com.tokbox.android.IB.chat.ChatMessage;
 import com.tokbox.android.IB.chat.TextChatFragment;
 import com.tokbox.android.IB.config.IBConfig;
 import com.tokbox.android.IB.events.ActiveBroadcast;
-import com.tokbox.android.IB.events.ActiveFan;
 import com.tokbox.android.IB.events.EventProperties;
 import com.tokbox.android.IB.events.EventRole;
 import com.tokbox.android.IB.events.EventStatus;
@@ -102,6 +102,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
     private final int permsRequestCode = 200;
     private static final String LOG_TAG = CelebrityHostActivity.class.getSimpleName();
+    private final String PUBLISHER_NAME = "publisher";
     private JSONObject mEvent;
     private String mApiKey;
     private String mSessionId;
@@ -138,7 +139,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private CustomViewSubscriber mSubscriberFanViewContainer;
     private FrameLayout mFragmentContainer;
     private RelativeLayout mStatusBar;
-
     private ProgressDialog mReconnectionsDialog;
 
     // Spinning wheel for loading subscriber view
@@ -203,8 +203,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         //Set event name and images
         setEventUI();
 
-        //Disable HWDEC
-        OpenTokConfig.enableVP8HWDecoder(false);
+        OpenTokConfig.setUseMediaCodecFactories(false);
 
         mNotification = new Notification(this, mStatusBar);
     }
@@ -365,7 +364,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 }
             });
         } catch (JSONException e) {
-            return;
+            // @TODO Handle this error
+            Log.e(LOG_TAG, e.getMessage());
         }
     }
 
@@ -577,7 +577,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
     }
 
-    public void reloadInterface() {
+    private void reloadInterface() {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -591,7 +591,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }, 500);
     }
 
-    public void updateViewsWidth() {
+    private void updateViewsWidth() {
         mHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -619,8 +619,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void sessionConnect() {
         if (mSession == null) {
-            mSession = new Session(CelebrityHostActivity.this,
-                    mApiKey, mSessionId);
+            mSession = new Session.Builder(CelebrityHostActivity.this, mApiKey, mSessionId).build();
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
             mSession.setConnectionListener(this);
@@ -658,7 +657,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
 
         if (mPublisher == null) {
-            mPublisher = new Publisher(CelebrityHostActivity.this, "publisher");
+            mPublisher = new Publisher.Builder(CelebrityHostActivity.this)
+                    .name(PUBLISHER_NAME)
+                    .build();
             mPublisher.setPublisherListener(this);
             attachPublisherView();
             doPublish();
@@ -760,7 +761,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         cleanViews();
     }
 
-    public void cleanViews() {
+    private void cleanViews() {
         if (mPublisher != null) {
             mPublisherViewContainer.removeView(mPublisher.getView());
         }
@@ -785,7 +786,8 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private void subscribeToStream(Stream stream) {
         Log.i(LOG_TAG, "subscribeToStream");
         Log.i(LOG_TAG, "Subscriber is null? = " + ((mSubscriber==null) ? "Yes" : "No"));
-        mSubscriber = new Subscriber(CelebrityHostActivity.this, stream);
+        mSubscriber = new Subscriber.Builder(CelebrityHostActivity.this, stream).build();
+
         mSubscriber.setVideoListener(this);
         mSession.subscribe(mSubscriber);
 
@@ -800,7 +802,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void subscribeFanToStream(Stream stream) {
         Log.i(LOG_TAG, "subscribeFanToStream");
-        mSubscriberFan = new Subscriber(CelebrityHostActivity.this, stream);
+        mSubscriberFan = new Subscriber.Builder(CelebrityHostActivity.this, stream).build();
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
 
@@ -954,7 +956,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         updateViewsWidth();
     }
 
-    public static int screenWidth(Context ctx) {
+    private static int screenWidth(Context ctx) {
         DisplayMetrics displaymetrics = new DisplayMetrics();
         ((Activity) ctx).getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
         return displaymetrics.widthPixels;
@@ -1062,7 +1064,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     public void onVideoDisableWarning(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here." + subscriber.getStream().getConnection().getData());
         mWarningAlert.setBackgroundResource(R.color.quality_warning);
-        mWarningAlert.setTextColor(CelebrityHostActivity.this.getResources().getColor(R.color.warning_text));
+        mWarningAlert.setTextColor(ContextCompat.getColor(CelebrityHostActivity.this, R.color.warning_text));
         mWarningAlert.bringToFront();
         mWarningAlert.setVisibility(View.VISIBLE);
         mWarningAlert.postDelayed(new Runnable() {
@@ -1153,7 +1155,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     private void subscribeProducer() {
         if(mProducerStream != null) {
-            mSubscriberProducer = new Subscriber(CelebrityHostActivity.this, mProducerStream);
+            mSubscriberProducer = new Subscriber.Builder(CelebrityHostActivity.this, mProducerStream).build();
             mSession.subscribe(mSubscriberProducer);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
@@ -1219,7 +1221,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mUnreadCircle.setLayoutParams(params);
     }
 
-    public void videoOnOff(String data){
+    private void videoOnOff(String data){
         String video="";
         try {
             video = new JSONObject(data)
@@ -1239,7 +1241,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
     }
 
-    public void muteAudio(String data){
+    private void muteAudio(String data){
         String mute="";
         try {
             mute = new JSONObject(data)
@@ -1250,7 +1252,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mPublisher.setPublishAudio(!mute.equals("on"));
     }
 
-    public void goLive(){
+    private void goLive(){
         try {
             mEvent.put("status", EventStatus.LIVE);
             updateEventName();
@@ -1295,7 +1297,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         }
     }
 
-    public void finishEvent() {
+    private void finishEvent() {
         //Show Event Image end
         mEventImageEnd.setVisibility(View.VISIBLE);
         mLiveButton.setVisibility(View.GONE);

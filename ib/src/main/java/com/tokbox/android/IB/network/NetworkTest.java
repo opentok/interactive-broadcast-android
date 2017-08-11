@@ -1,11 +1,7 @@
 package com.tokbox.android.IB.network;
 
-import android.print.PrintAttributes;
 import android.util.Log;
-import android.widget.Toast;
-
 import com.opentok.android.OpenTokConfig;
-import com.opentok.android.Subscriber;
 import com.opentok.android.SubscriberKit;
 import com.opentok.android.VideoUtils;
 
@@ -13,7 +9,7 @@ public class NetworkTest {
     private static final String LOG_TAG = NetworkTest.class.getName();
 
     private static final int TIME_WINDOW = 3; //3 seconds
-    public static final int TIME_VIDEO_TEST = 15; //time interval to check the video quality in seconds
+    private static final int TIME_VIDEO_TEST = 15; //time interval to check the video quality in seconds
 
     private MOSQuality mVideoQuality = MOSQuality.Good;
     private double mVideoPLRatio = 0.0;
@@ -72,7 +68,7 @@ public class NetworkTest {
             }
             throw new IllegalArgumentException("unknown quality " + qualityId);
         }
-    };
+    }
 
     public interface NetworkTestListener {
         void onVideoQualityUpdated(String connectionId, MOSQuality quality);
@@ -184,7 +180,7 @@ public class NetworkTest {
         checkAudioStats(stats);
     }
 
-    public MOSQuality getMOSQuality () {
+    private MOSQuality getMOSQuality () {
         if (!mAudioOnly) {
             //get resolution and frameRate
             this.getPCStats();

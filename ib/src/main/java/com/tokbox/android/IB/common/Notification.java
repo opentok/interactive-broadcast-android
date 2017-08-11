@@ -5,7 +5,6 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Handler;
 import android.support.v4.content.ContextCompat;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -34,7 +33,7 @@ public class Notification {
         private int text;
         private int delaySeconds;
 
-        private TYPE(int color, int text, int delaySeconds) {
+        TYPE(int color, int text, int delaySeconds) {
             this.color = color;
             this.text = text;
             this.delaySeconds = delaySeconds;
@@ -52,7 +51,7 @@ public class Notification {
     }
 
 
-    public void showNotification(int message) {
+    private void showNotification(int message) {
         Typeface font = EventUtils.getFont(mContext);
         for (int i = 0; i < 3; i++) {
             Toast toast = Toast.makeText(mContext, message, Toast.LENGTH_LONG);
@@ -106,7 +105,7 @@ public class Notification {
         TextView text = (TextView) toastLayout.findViewById(R.id.toast_text);
         text.setText(mContext.getResources().getString(message));
 
-        Toast toast = new Toast(((Activity)mContext).getApplicationContext());
+        Toast toast = new Toast(mContext.getApplicationContext());
         if (R.layout.toast != 0) {
             toast.setGravity(Gravity.BOTTOM, 0, 140);
         }

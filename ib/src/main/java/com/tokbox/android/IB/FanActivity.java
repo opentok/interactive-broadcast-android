@@ -27,6 +27,7 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.util.DisplayMetrics;
@@ -113,6 +114,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
     private static final String LOG_TAG = FanActivity.class.getSimpleName();
+    private final String PUBLISHER_NAME = "publisher";
 
     private int mUnreadMessages = 0;
     private boolean mTestingOnStage = false;
@@ -271,8 +273,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         setupFonts();
 
-        //Disable HWDEC
-        OpenTokConfig.enableVP8HWDecoder(false);
+        OpenTokConfig.setUseMediaCodecFactories(false);
 
     }
 
@@ -445,7 +446,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                                         updateEventName();
                                         startBroadcast();
                                     }
-
                                 }
 
                                 @Override
@@ -466,7 +466,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             });
         } catch (JSONException e) {
-            return;
+            // @TODO Handle this error
+            Log.e(LOG_TAG, e.getMessage());
         }
     }
 
@@ -637,7 +638,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void reloadInterface() {
+    private void reloadInterface() {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -732,8 +733,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void sessionConnect() {
         if (mSession == null) {
-            mSession = new Session(FanActivity.this,
-                    mApiKey, mSessionId);
+            mSession = new Session.Builder(FanActivity.this, mApiKey, mSessionId).build();
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
             mSession.setConnectionListener(this);
@@ -744,8 +744,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void backstageSessionConnect() {
         if (mBackstageSession == null) {
-            mBackstageSession = new Session(FanActivity.this,
-                    mApiKey, mBackstageSessionId);
+            mBackstageSession = new Session.Builder(FanActivity.this, mApiKey, mBackstageSessionId).build();
             mBackstageSession.setSessionListener(this);
             mBackstageSession.setSignalListener(this);
             mBackstageSession.setConnectionListener(this);
@@ -852,7 +851,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 //Hide chat stuff
                 hideChat();
                 mGetInLine.setText(getResources().getString(R.string.get_inline));
-                mGetInLine.setBackground(getResources().getDrawable(R.drawable.get_in_line_button));
+                mGetInLine.setBackground(ContextCompat.getDrawable(FanActivity.this, R.drawable.get_in_line_button));
                 mPublisherSpinnerLayout.setVisibility(View.GONE);
 
                 if (!status.equals(EventStatus.CLOSED)) {
@@ -866,7 +865,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     }
 
-    public void cleanViews() {
+    private void cleanViews() {
         if (mPublisher != null) {
             mPublisherViewContainer.removeView(mPublisher.getView());
         }
@@ -892,7 +891,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_SUBSCRIBES_HOST, OTKVariation.ATTEMPT);
 
-        mSubscriberHost = new Subscriber(FanActivity.this, stream);
+        mSubscriberHost = new Subscriber.Builder(FanActivity.this, stream).build();
         mSubscriberHost.setVideoListener(this);
         mSession.subscribe(mSubscriberHost);
         if(mOnstageMuted) mSubscriberHost.setSubscribeToAudio(false);
@@ -909,7 +908,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_SUBSCRIBES_CELEBRITY, OTKVariation.ATTEMPT);
 
-        mSubscriberCelebrity = new Subscriber(FanActivity.this, stream);
+        mSubscriberCelebrity = new Subscriber.Builder(FanActivity.this, stream).build();
         mSubscriberCelebrity.setVideoListener(this);
         mSession.subscribe(mSubscriberCelebrity);
         if(mOnstageMuted) mSubscriberCelebrity.setSubscribeToAudio(false);
@@ -926,7 +925,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         //Logging
         addLogEvent(OTKAction.FAN_SUBSCRIBES_FAN, OTKVariation.ATTEMPT);
 
-        mSubscriberFan = new Subscriber(FanActivity.this, stream);
+        mSubscriberFan = new Subscriber.Builder(FanActivity.this, stream).build();
         mSubscriberFan.setVideoListener(this);
         mSession.subscribe(mSubscriberFan);
         if(mOnstageMuted) mSubscriberFan.setSubscribeToAudio(false);
@@ -944,7 +943,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             showPublisher();
             muteOnstage(true);
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
-            mSubscriberProducer = new Subscriber(FanActivity.this, mProducerStream);
+            mSubscriberProducer = new Subscriber.Builder(FanActivity.this, mProducerStream).build();
             mBackstageSession.subscribe(mSubscriberProducer);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
         }
@@ -968,7 +967,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void startPrivateCall() {
         if(mProducerStreamOnstage != null && mPublisher != null) {
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
-            mSubscriberProducerOnstage = new Subscriber(FanActivity.this, mProducerStreamOnstage);
+            mSubscriberProducerOnstage = new Subscriber.Builder(FanActivity.this, mProducerStreamOnstage).build();
             mSession.subscribe(mSubscriberProducerOnstage);
             mNotification.showNotification(Notification.TYPE.PRIVATE_CALL);
             muteOnstage(true);
@@ -1102,7 +1101,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mProducerStream  = null;
         mProducerStreamOnstage  = null;
         mProducerConnection = null;
-
         mAudioOnlyFan = false;
     }
 
@@ -1281,10 +1279,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                     mPublisherViewContainer.setAlpha(1f);
                     mPublisherViewContainer.setVisibility(View.VISIBLE);
                     mPublisherSpinnerLayout.setVisibility(View.VISIBLE);
-                    //if(mAvatarPublisher.getVisibility() == View.GONE) {
-                        mPublisher.getView().setVisibility(View.VISIBLE);
-                    //}
-
+                    mPublisher.getView().setVisibility(View.VISIBLE);
                 }
             }, 500);
 
@@ -1357,18 +1352,18 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
 
     private void autoselfSubscribe(Stream stream){
-        mTestSubscriber = new Subscriber(FanActivity.this, stream);
+        mTestSubscriber = new Subscriber.Builder(FanActivity.this, stream).build();
         mTestSubscriber.setSubscriberListener(this);
         mTestSubscriber.setSubscribeToAudio(false);
     }
 
-    public void sendQualityUpdate(String connectionId, String quality) {
+    private void sendQualityUpdate(String quality) {
         if (mBackstageSession != null) {
             mActiveFanRef.child("networkQuality").setValue(quality);
         }
     }
 
-    public void sendWarningSignal() {
+    private void sendWarningSignal() {
         if (mBackstageSession != null && mProducerConnection != null) {
             String connectionId = mPublisher != null ? mPublisher.getStream().getConnection().getConnectionId() : "";
             String msg = "{\"connectionId\":\"" + connectionId + "\", \"connected\":\"false\", \"subscribing\":\"false\"}";
@@ -1518,7 +1513,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onVideoDisableWarning(SubscriberKit subscriber) {
         Log.i(LOG_TAG, "Video may be disabled soon due to network quality degradation. Add UI handling here.");
         mWarningAlert.setBackgroundResource(R.color.quality_warning);
-        mWarningAlert.setTextColor(FanActivity.this.getResources().getColor(R.color.warning_text));
+        mWarningAlert.setTextColor(ContextCompat.getColor(FanActivity.this, R.color.warning_text));
         mWarningAlert.bringToFront();
         mWarningAlert.setVisibility(View.VISIBLE);
         mWarningAlert.postDelayed(new Runnable() {
@@ -1672,7 +1667,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisherViewContainer.removeView(mPublisher.getView());
         mPublisher.destroy();
 
-        mPublisher = new Publisher(FanActivity.this, "publisher");
+        mPublisher = new Publisher.Builder(FanActivity.this)
+                .name(PUBLISHER_NAME)
+                .build();
+
         mPublisher.setPublisherListener(this);
     }
 
@@ -1859,7 +1857,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         mPublisher.setPublishAudio(!mute.equals("on"));
     }
 
-    public void goLive(){
+    private void goLive(){
         setEventStatus(EventStatus.LIVE);
         updateEventName();
         if(!mUserIsOnstage) {
@@ -2008,26 +2006,32 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }
     }
 
-    public void setVisibilityGetInLine(int visibility) {
+    private void setVisibilityGetInLine(int visibility) {
         mGetInLine.setVisibility(visibility);
     }
 
-    public void initGetInline() {
+    private void initGetInline() {
         mOnBackstage = false;
         setVisibilityGetInLine(View.GONE);
         mGetInLine.setText(getResources().getString(R.string.leave_line));
-        mGetInLine.setBackground(getResources().getDrawable(R.drawable.leave_line_button));
+        mGetInLine.setBackground(ContextCompat.getDrawable(FanActivity.this, R.drawable.leave_line_button));
         if(mBackstageSessionId != null) {
 
             if (mPublisher == null) {
 
-                Log.i(LOG_TAG, "init publisher");
-                mPublisher = new Publisher(FanActivity.this, "publisher");
-                mPublisher.setPublisherListener(this);
-                // use an external custom video renderer
+                // Use an external custom video renderer
                 mCustomVideoRenderer = new CustomVideoRenderer(this);
                 mCustomVideoRenderer.setSaveScreenshot(false);
-                mPublisher.setRenderer(mCustomVideoRenderer);
+
+                // Init the publisher
+                Log.i(LOG_TAG, "init publisher");
+                mPublisher = new Publisher.Builder(FanActivity.this)
+                        .name(PUBLISHER_NAME)
+                        .renderer(mCustomVideoRenderer)
+                        .build();
+
+                mPublisher.setPublisherListener(this);
+
                 attachPublisherView();
             }
 
@@ -2095,7 +2099,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onVideoQualityUpdated(String connectionId, NetworkTest.MOSQuality quality) {
         if ( mTestSubscriber != null ) {
             Log.i(LOG_TAG, "Video quality sent to the producer: " + getIBQuality(quality));
-            sendQualityUpdate(mBackstageConnectionId, getIBQuality(quality));
+            sendQualityUpdate(getIBQuality(quality));
         }
     }
 

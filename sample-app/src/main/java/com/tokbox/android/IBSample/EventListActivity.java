@@ -39,7 +39,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
     private WebServiceCoordinator mWebServiceCoordinator;
     private ProgressDialog mProgress;
     private Handler mHandler = new Handler();
-    private ArrayList<JSONObject> mEventList = new ArrayList<JSONObject>();
+    private ArrayList<JSONObject> mEventList = new ArrayList<>();
     private EventAdapter mEventAdapter;
     private GridView mListActivities;
     private TextView mEventListTitle;
@@ -116,15 +116,11 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         super.onDestroy();
     }
 
-    public void getEventsByAdmin() {
-        try {
-            mWebServiceCoordinator.getEventsByAdmin();
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "unexpected JSON exception - getInstanceById", e);
-        }
+    private void getEventsByAdmin() {
+        mWebServiceCoordinator.getEventsByAdmin();
     }
 
-    public void startLoadingAnimation() {
+    private void startLoadingAnimation() {
         mProgress = new ProgressDialog(this);
         mProgress.setTitle("Loading");
         mProgress.setMessage("Wait while loading...");
@@ -132,13 +128,13 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         mProgress.show();
     }
 
-    public void stopLoadingAnimation() {
+    private void stopLoadingAnimation() {
         if(mProgress != null && mProgress.isShowing()){
             mProgress.dismiss();
         }
     }
 
-    public void showEventList() {
+    private void showEventList() {
         Log.i(LOG_TAG, "starting event list app");
 
         mListActivities = (GridView) findViewById(R.id.gridView);
@@ -158,7 +154,7 @@ public class EventListActivity extends AppCompatActivity implements WebServiceCo
         mListActivities.setAdapter(mEventAdapter);
     }
 
-    public void showEvent() {
+    private void showEvent() {
         //Passing the apiData to AudioVideoActivity
         Intent localIntent;
         if(IBConfig.USER_TYPE == EventRole.FAN) {

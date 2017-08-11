@@ -12,7 +12,7 @@ public class ChatMessage {
     /**
      * Defines the status of the message (whether it was a sent or received message).
      */
-    static enum MessageStatus {
+    enum MessageStatus {
         /**
          * The status for a sent message.
          */
@@ -23,11 +23,11 @@ public class ChatMessage {
         RECEIVED_MESSAGE
     }
 
-    protected String senderId;
-    protected String senderAlias;
-    protected String text;
-    protected long timestamp;
-    MessageStatus status;
+    private String senderId;
+    private String senderAlias;
+    private String text;
+    private long timestamp;
+    private MessageStatus status;
     private UUID id;
 
     /**
@@ -90,7 +90,7 @@ public class ChatMessage {
         if ( sender == null ) {
             throw new IllegalArgumentException("The sender value cannot be null.");
         }
-        this.senderAlias = senderAlias;
+        this.senderAlias = sender;
     }
 
     /**

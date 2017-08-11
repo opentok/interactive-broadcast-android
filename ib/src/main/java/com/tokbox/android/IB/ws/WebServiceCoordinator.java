@@ -1,8 +1,6 @@
 package com.tokbox.android.IB.ws;
 
 import android.content.Context;
-import android.hardware.fingerprint.FingerprintManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
@@ -43,7 +41,7 @@ public class WebServiceCoordinator {
      * Monitors when the instance data is ready or there is an error using the WebServiceCoordinator
      *
      */
-    public static interface Listener {
+    public interface Listener {
         /**
          * Called when the instance data is ready.
          *
@@ -93,40 +91,10 @@ public class WebServiceCoordinator {
     /**
      * Returns the events list filtering by Admin
      */
-    public void getEventsByAdmin() throws JSONException {
+    public void getEventsByAdmin() {
         this.fetchInstanceAppData("event/get-events-by-admin?adminId=" + IBConfig.ADMIN_ID);
     }
 
-
-    /**
-     * Create the OpenTok token for the Fan role
-     */
-    public void createFanToken(String fan_url) throws JSONException {
-        String url = BACKEND_BASE_URL + "/create-token-fan";
-
-        JSONObject jsonBody = getFanParams(fan_url);
-
-        RequestQueue reqQueue = Volley.newRequestQueue(context);
-
-        JsonObjectRequest jor = new JsonObjectRequest(Request.Method.POST, url, jsonBody, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.i(LOG_TAG, response.toString());
-                mConnected = true;
-                //delegate.onDataReady(response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                delegate.onWebServiceCoordinatorError(error);
-            }
-        });
-
-        jor.setRetryPolicy(new DefaultRetryPolicy(10 * 1000, 2, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        reqQueue.add(jor);
-
-    }
 
     /**
      * Create the OpenTok token for every role
@@ -169,7 +137,7 @@ public class WebServiceCoordinator {
                 {
                     @Override
                     public Map<String, String> getHeaders() throws AuthFailureError {
-                        Map<String, String>  params = new HashMap<String, String>();
+                        Map<String, String>  params = new HashMap<>();
                         params.put("Content-Type", "application/json");
                         params.put("Authorization", "Bearer " + IBConfig.AUTH_TOKEN);
                         return params;
@@ -246,7 +214,7 @@ public class WebServiceCoordinator {
                 try {
                     result.put("events", response);
                 } catch (JSONException ex ) {
-                    Log.d(LOG_TAG, ex.getMessage().toString());
+                    Log.d(LOG_TAG, ex.getMessage());
                 }
                 delegate.onDataReady(result);
             }
@@ -283,7 +251,7 @@ public class WebServiceCoordinator {
         reqQueue.add(jor);
     }
 
-    public String getUserId() {
+    private String getUserId() {
         return Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 

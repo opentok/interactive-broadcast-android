@@ -3,8 +3,6 @@ package com.tokbox.android.IB.model;
 
 import android.util.Log;
 
-import com.tokbox.android.IB.config.IBConfig;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,33 +40,6 @@ public class InstanceApp {
             return null;
         }
     }
-
-    public Boolean getEnableGetInline(){
-        try {
-            if(this.mData != null && this.mData.has("enable_getinline")) {
-                return this.mData.getBoolean("enable_getinline");
-            } else {
-                return false;
-            }
-        } catch(JSONException e) {
-            Log.e("InstanceApp", e.getMessage());
-            return false;
-        }
-    }
-
-    public Boolean getEnableAnalytics(){
-        try {
-            if(this.mData != null && this.mData.has("enable_analytics")) {
-                return this.mData.getBoolean("enable_analytics");
-            } else {
-                return false;
-            }
-        } catch(JSONException e) {
-            Log.e("InstanceApp", e.getMessage());
-            return false;
-        }
-    }
-
 
 
     public JSONObject getEventByIndex(int index){

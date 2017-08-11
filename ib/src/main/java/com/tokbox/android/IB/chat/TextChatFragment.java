@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -32,9 +31,8 @@ public class TextChatFragment extends Fragment {
     private final static String LOG_TAG = "TextChatFragment";
 
     private Context mContext;
-    Handler mHandler;
 
-    private ArrayList<ChatMessage> mMsgsList = new ArrayList<ChatMessage>();
+    private ArrayList<ChatMessage> mMsgsList = new ArrayList<>();
     private MessageAdapter mMessageAdapter;
 
     private ListView mListView;
@@ -76,7 +74,7 @@ public class TextChatFragment extends Fragment {
         mCloseChat = (ImageButton) rootView.findViewById(R.id.close_chat);
         mMsgNotificationView = (TextView) rootView.findViewById(R.id.new_msg_notification);
         mMsgEditText = (EditText) rootView.findViewById(R.id.edit_msg);
-        mMsgDividerView = (View) rootView.findViewById(R.id.divider_notification);
+        mMsgDividerView = rootView.findViewById(R.id.divider_notification);
         mTopBarTitle = (TextView) rootView.findViewById(R.id.top_bar_title);
         mSendButton.setOnClickListener(new View.OnClickListener() {
 
@@ -139,9 +137,9 @@ public class TextChatFragment extends Fragment {
          * ready to send when the user clicks the Send button in the TextChatFragment
          * user interface.
          */
-        public boolean onMessageReadyToSend(ChatMessage msg);
+        boolean onMessageReadyToSend(ChatMessage msg);
 
-        public void hideChat();
+        void hideChat();
     }
 
     private TextChatListener textChatListener;
@@ -191,7 +189,7 @@ public class TextChatFragment extends Fragment {
             }
 
             mMessageAdapter.add(msg);
-            isNewMessageVisible();
+            updateScrollPosition();
         }
     }
 
@@ -222,7 +220,7 @@ public class TextChatFragment extends Fragment {
                     //add the message to the component
                     addMessage(myMsg);
 
-                    isNewMessageVisible();
+                    updateScrollPosition();
                 }
 
             }
@@ -248,11 +246,10 @@ public class TextChatFragment extends Fragment {
         }
     }
 
-    // To check if the next item is visible in the list
-    private boolean isNewMessageVisible() {
+    // Update scroll position to the last item in the list
+    private void updateScrollPosition() {
         mListView.smoothScrollToPosition(mMessageAdapter.getCount());
         mListView.smoothScrollToPosition(mMessageAdapter.getMessagesList().size() - 1);
-        return false;
     }
 
 
@@ -272,7 +269,7 @@ public class TextChatFragment extends Fragment {
      * If you subclass the TextChatFragment class and implement this method,
      * you do not need to set a TextChatListener.
      */
-    protected boolean onMessageReadyToSend(ChatMessage msg) {
+    private boolean onMessageReadyToSend(ChatMessage msg) {
         if (this.textChatListener != null) {
             Log.d(LOG_TAG, "onMessageReadyToSend");
             return this.textChatListener.onMessageReadyToSend(msg);
