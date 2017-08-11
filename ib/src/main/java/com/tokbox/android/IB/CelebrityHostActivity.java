@@ -102,6 +102,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private final String[] permissions = {Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA};
     private final int permsRequestCode = 200;
     private static final String LOG_TAG = CelebrityHostActivity.class.getSimpleName();
+    private final String PUBLISHER_NAME = "publisher";
     private JSONObject mEvent;
     private String mApiKey;
     private String mSessionId;
@@ -658,7 +659,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
 
         if (mPublisher == null) {
             mPublisher = new Publisher.Builder(CelebrityHostActivity.this)
-                    .name("publisher")
+                    .name(PUBLISHER_NAME)
                     .build();
             mPublisher.setPublisherListener(this);
             attachPublisherView();
