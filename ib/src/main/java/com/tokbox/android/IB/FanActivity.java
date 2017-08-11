@@ -105,7 +105,7 @@ import java.util.UUID;
 import static com.tokbox.android.IB.common.Notification.TYPE.TEMPORARILLY_MUTED;
 
 public class FanActivity extends AppCompatActivity implements WebServiceCoordinator.Listener,
-        Session.SessionListener, Session.ConnectionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
+        Session.SessionListener, Session.ReconnectionListener, PublisherKit.PublisherListener, SubscriberKit.SubscriberListener,
         Session.SignalListener,Subscriber.VideoListener,
         TextChatFragment.TextChatListener, NetworkTest.NetworkTestListener {
 
@@ -733,10 +733,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void sessionConnect() {
         if (mSession == null) {
-            mSession = new Session.Builder(FanActivity.this, mApiKey, mSessionId).build();
+            mSession = new Session.Builder(FanActivity.this, mApiKey, mSessionId)
+                       .connectionEventsSuppressed(true)
+                       .build();
             mSession.setSessionListener(this);
             mSession.setSignalListener(this);
-            mSession.setConnectionListener(this);
             mSession.setReconnectionListener(this);
             mSession.connect(mToken);
         }
@@ -744,10 +745,11 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void backstageSessionConnect() {
         if (mBackstageSession == null) {
-            mBackstageSession = new Session.Builder(FanActivity.this, mApiKey, mBackstageSessionId).build();
+            mBackstageSession = new Session.Builder(FanActivity.this, mApiKey, mBackstageSessionId)
+                                .connectionEventsSuppressed(true)
+                                .build();
             mBackstageSession.setSessionListener(this);
             mBackstageSession.setSignalListener(this);
-            mBackstageSession.setConnectionListener(this);
             mBackstageSession.setReconnectionListener(this);
 
             //Logging
@@ -1142,6 +1144,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 case EventRole.PRODUCER:
                     if (mProducerStream == null && !bIsOnStage) {
                         mProducerStream = stream;
+                        mProducerConnection = stream.getConnection();
                     }
                     if (mProducerStreamOnstage == null && bIsOnStage) {
                         mProducerStreamOnstage = stream;
@@ -1194,6 +1197,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.SUCCESS);
                             unSubscribeProducer();
                             mProducerStream = null;
+                            mProducerConnection = null;
                         }
                     } else {
                         if(mProducerStreamOnstage != null && mProducerStreamOnstage.getConnection().getConnectionId().equals(streamConnectionId)) {
@@ -1946,29 +1950,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         //Update event name and Status.
         updateEventName();
-    }
-
-
-    /* Connection Listener methods */
-    @Override
-    public void onConnectionCreated(Session session, Connection connection) {
-        if(mProducerConnection == null && connection.getData() != null &&
-                EventUtils.getUserType(connection.getData()).equals(EventRole.PRODUCER) &&
-                mBackstageSessionId != null &&
-                session.getSessionId().equals(mBackstageSessionId)) {
-            mProducerConnection = connection;
-        }
-    }
-
-    @Override
-    public void onConnectionDestroyed(Session session, Connection connection)
-    {
-        if(mProducerConnection != null &&
-                mProducerConnection.getConnectionId().equals(connection.getConnectionId()) &&
-                EventUtils.getUserType(connection.getData()).equals(EventRole.PRODUCER) &&
-                session.getSessionId().equals(mBackstageSessionId)) {
-            mProducerConnection = null;
-        }
     }
 
     /* Chat methods */
