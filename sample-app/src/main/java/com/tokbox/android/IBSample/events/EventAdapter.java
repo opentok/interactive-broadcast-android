@@ -99,8 +99,8 @@ public class EventAdapter extends ArrayAdapter<JSONObject> {
 
                     holder.date_status.setText(ft2.format(date).toUpperCase());
                 }
+                holder.join_event.setOnClickListener(null);
                 holder.join_event.setText("Not started");
-
             } else {
                 holder.join_event.setText("Join event");
                 holder.join_event.setOnClickListener(new View.OnClickListener() {
