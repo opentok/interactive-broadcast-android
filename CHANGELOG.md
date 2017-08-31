@@ -6,7 +6,6 @@ All notable changes to this project will be documented in this file.
 
 * [ADDED] Use JWT for authentication with the backend.
 * [CHANGED] Replace Socket.io for Firebase for the presence, signaling, fan information storage and for uploading the fan's snapshot.
-* [FIXED] Deprecated methods for building Publishers and Subscribers.
 * [ADDED] Supress connection listeners to achieve up to 3000 viewers.
 * [CHANGED] Updated OpenTok sdk version to 2.11.1
 * [CHANGED] Update buildToolsVersion to 26.0.1
