@@ -1123,6 +1123,9 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                     case "muteAudio":
                         muteAudio(data);
                         break;
+                    case "prepareGoLive":
+                        showCountDown();
+                        break;
                     case "goLive":
                         goLive();
                         break;
@@ -1261,7 +1264,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         try {
             mEvent.put("status", EventStatus.LIVE);
             updateEventName();
-            showCountDown();
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
         }
