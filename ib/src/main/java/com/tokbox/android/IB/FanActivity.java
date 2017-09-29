@@ -1655,12 +1655,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private void connectWithOnstage() {
         mNotification.hide();
-        // End the private call
-        /*if (mProducerStream != null && mSubscriberProducer != null) {
-            muteOnstage(false);
-            mBackstageSession.unsubscribe(mSubscriberProducer);
-            mSubscriberProducer = null;
-        }*/
         hidePublisher();
 
         // Hide leave line button
