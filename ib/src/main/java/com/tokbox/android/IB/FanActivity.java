@@ -1741,7 +1741,9 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 }
             }
             @Override
-            public void onCancelled(DatabaseError databaseError) { }
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(LOG_TAG, databaseError.getMessage());
+            }
         };
         try {
             DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/producerActive");
