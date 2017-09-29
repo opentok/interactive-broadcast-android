@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 --------------------------------------
 
+#### [2.0.2]
+
+* [FIXED] Cancel going live when the producer disconnects. 
+
 #### [2.0.1]
 
 * [ADDED] Use the signal "prepareGoLive" to implement a real countdown on Celebrity/Host activity.

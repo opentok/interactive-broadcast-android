@@ -100,6 +100,7 @@ import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static com.tokbox.android.IB.common.Notification.TYPE.TEMPORARILLY_MUTED;
@@ -423,6 +424,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                         Log.i(LOG_TAG, "able to join to interactive!");
                         setVisibilityGetInLine(View.VISIBLE);
                         createFanRecord();
+                        monitorProducer();
                         initEvent();
                     } else {
                         Log.i(LOG_TAG, "not able to join to interactive.");
@@ -1647,26 +1649,29 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private void disconnectBackstage() {
         mOnBackstage = false;
         hidePublisher();
+        hideChat();
         mNotification.hide();
     }
 
     private void connectWithOnstage() {
+        mNotification.hide();
+        hidePublisher();
+
+        // Hide leave line button
+        setVisibilityGetInLine(View.GONE);
+        // Display Go live spinner
+        mGoLiveView.setVisibility(View.VISIBLE);
+    }
+
+    private void joinHostNow() {
+        mGoLiveView.setVisibility(View.GONE);
         mOnBackstage = false;
         hidePublisher();
-        mNotification.hide();
-        //End the private call
-        if (mProducerStream!= null && mSubscriberProducer != null) {
-            muteOnstage(false);
-            mBackstageSession.unsubscribe(mSubscriberProducer);
-            mSubscriberProducer = null;
-        }
 
-        //Hidding leave line button
-        setVisibilityGetInLine(View.GONE);
-        //Logging
+        // Logging
         addLogEvent(OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.ATTEMPT);
+
         mBackstageSession.unpublish(mPublisher);
-        mGoLiveView.setVisibility(View.VISIBLE);
 
         mPublisherViewContainer.removeView(mPublisher.getView());
         mPublisher.destroy();
@@ -1676,9 +1681,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
                 .build();
 
         mPublisher.setPublisherListener(this);
-    }
 
-    private void joinHostNow() {
+
         Log.i(LOG_TAG, "joinHostNow!");
         publishOnStage();
         if (getEventStatus().equals(EventStatus.PRESHOW)) {
@@ -1705,6 +1709,44 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         };
         try {
             DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/privateCall");
+            myRef.addValueEventListener(updateListener);
+        } catch (JSONException ex) {
+            Log.e(LOG_TAG, ex.getMessage());
+        }
+    }
+
+    private void monitorProducer() {
+        // Listen for updates in producerActive
+        ValueEventListener updateListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Boolean producerActive = (Boolean) dataSnapshot.getValue();
+                if (!producerActive && mOnBackstage) {
+                    mNotification.hide();
+                    // Hide the publisher
+                    hidePublisher();
+                    // Hide the publisher
+                    hideChat();
+                    // Hide going live notification
+                    mGoLiveView.setVisibility(View.GONE);
+                    // Display the leave line button
+                    setVisibilityGetInLine(View.VISIBLE);
+                    // Update the record in firebase
+                    mActiveFan.setOnStage(false);
+                    mActiveFan.setIsBackstage(false);
+                    mActiveFan.setInPrivateCall(false);
+                    mOnBackstage = false;
+                    mUserIsOnstage = false;
+                    mActiveFanRef.setValue(mActiveFan);
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(LOG_TAG, databaseError.getMessage());
+            }
+        };
+        try {
+            DatabaseReference myRef = mDatabase.getReference("activeBroadcasts/" + mEvent.getString(EventProperties.ADMIN_ID) + "/" + mEvent.getString(EventProperties.FAN_URL) + "/producerActive");
             myRef.addValueEventListener(updateListener);
         } catch (JSONException ex) {
             Log.e(LOG_TAG, ex.getMessage());
