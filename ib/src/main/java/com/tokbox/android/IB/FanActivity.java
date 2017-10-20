@@ -1387,7 +1387,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
-        if(publisher.getSession().getSessionId().equals(mSessionId)) {
+        if(stream.getSession().getSessionId().equals(mSessionId)) {
             addLogEvent(OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
         } else {
             addLogEvent(OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.SUCCESS);
