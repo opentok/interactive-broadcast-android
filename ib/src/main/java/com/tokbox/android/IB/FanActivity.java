@@ -943,7 +943,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void subscribeProducer() {
-        if(mProducerStream != null) {
+        if(mProducerStream != null && mSubscriberProducer == null) {
             showPublisher();
             muteOnstage(true);
             addLogEvent(OTKAction.FAN_SUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
@@ -954,7 +954,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     private void unSubscribeProducer() {
-        if (mProducerStream!= null && mSubscriberProducer != null && mBackstageSession != null) {
+        if (mProducerStream != null && mSubscriberProducer != null && mBackstageSession != null) {
             muteOnstage(false);
             addLogEvent(OTKAction.FAN_UNSUBSCRIBES_PRODUCER, OTKVariation.ATTEMPT);
             mBackstageSession.unsubscribe(mSubscriberProducer);
@@ -1387,7 +1387,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onStreamDestroyed(PublisherKit publisher, Stream stream) {
-        if(publisher.getSession().getSessionId().equals(mSessionId)) {
+        if(stream.getSession().getSessionId().equals(mSessionId)) {
             addLogEvent(OTKAction.FAN_UNPUBLISHES_ONSTAGE, OTKVariation.SUCCESS);
         } else {
             addLogEvent(OTKAction.FAN_UNPUBLISHES_BACKSTAGE, OTKVariation.SUCCESS);
