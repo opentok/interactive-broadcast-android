@@ -4,14 +4,10 @@ package com.tokbox.android.IB;
 import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentTransaction;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -20,11 +16,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
@@ -75,7 +69,6 @@ import com.tokbox.android.IB.events.EventStatus;
 import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.events.PrivateCall;
 import com.tokbox.android.IB.model.InstanceApp;
-import com.tokbox.android.IB.services.ClearNotificationService;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
 import com.tokbox.android.IB.common.Notification;
 
@@ -145,9 +138,7 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
     private boolean resumeHasRun = false;
     private boolean mIsBound = false;
     private boolean mUserIsCelebrity;
-    private NotificationCompat.Builder mNotifyBuilder;
-    private NotificationManager mNotificationManager;
-    private ServiceConnection mConnection;
+
 
     private TextChatFragment mTextChatFragment;
     private FragmentTransaction mFragmentTransaction;
@@ -189,7 +180,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         mDatabase.goOnline();
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mUserIsCelebrity = IBConfig.USER_TYPE.equals(EventRole.CELEBRITY);
 
         initLayoutWidgets();
@@ -457,53 +447,11 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 mSubscriberFanViewContainer.removeView(mSubscriberFan.getView());
             }
         }
-
-        mNotifyBuilder = new NotificationCompat.Builder(this)
-                .setContentTitle(this.getTitle())
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentText(getResources().getString(R.string.notification));
-
-        Intent notificationIntent = new Intent(this, CelebrityHostActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent intent = PendingIntent.getActivity(this, 0,
-                notificationIntent, 0);
-
-        mNotifyBuilder.setContentIntent(intent);
-        if (mConnection == null) {
-            mConnection = new ServiceConnection() {
-                @Override
-                public void onServiceConnected(ComponentName className, IBinder binder) {
-                    ((ClearNotificationService.ClearBinder) binder).service.startService(new Intent(CelebrityHostActivity.this, ClearNotificationService.class));
-                    NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                    mNotificationManager.notify(ClearNotificationService.NOTIFICATION_ID, mNotifyBuilder.build());
-                }
-
-                @Override
-                public void onServiceDisconnected(ComponentName className) {
-                    mConnection = null;
-                }
-
-            };
-        }
-
-        if (!mIsBound) {
-            bindService(new Intent(CelebrityHostActivity.this,
-                            ClearNotificationService.class), mConnection,
-                    Context.BIND_AUTO_CREATE);
-            mIsBound = true;
-            startService(notificationIntent);
-        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
 
         if (!resumeHasRun) {
             resumeHasRun = true;
@@ -513,36 +461,20 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
                 mSession.onResume();
             }
         }
-        mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-
         reloadInterface();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
-
         if (isFinishing()) {
-            mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             disconnectSession();
         }
     }
 
     @Override
     public void onDestroy() {
-        mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
-
         disconnectSession();
-
         super.onDestroy();
         finish();
     }
@@ -554,12 +486,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
             toggleChat();
         }else {
             disconnectSession();
-
-            if (mIsBound) {
-                unbindService(mConnection);
-                mIsBound = false;
-            }
-            mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             mDatabase.goOffline();
             super.onBackPressed();
         }
