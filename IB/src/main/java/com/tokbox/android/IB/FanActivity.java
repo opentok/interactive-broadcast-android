@@ -1720,7 +1720,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ValueEventListener updateListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Boolean producerActive = (Boolean) dataSnapshot.getValue();
+                Boolean producerActive = dataSnapshot.getValue() != null ? (Boolean) dataSnapshot.getValue() : false;
                 if (!producerActive && mOnBackstage) {
                     mNotification.hide();
                     // Hide the publisher
