@@ -4,14 +4,10 @@ package com.tokbox.android.IB;
 import android.Manifest;
 import android.app.Activity;
 import android.app.FragmentTransaction;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -23,7 +19,6 @@ import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -80,12 +75,9 @@ import com.tokbox.android.IB.events.EventUtils;
 import com.tokbox.android.IB.events.PrivateCall;
 import com.tokbox.android.IB.model.InstanceApp;
 import com.tokbox.android.IB.network.NetworkTest;
-import com.tokbox.android.IB.services.ClearNotificationService;
 import com.tokbox.android.IB.video.CustomVideoRenderer;
 import com.tokbox.android.IB.ws.WebServiceCoordinator;
 import com.tokbox.android.IB.common.Notification;
-
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -99,8 +91,6 @@ import com.tokbox.android.IB.logging.OTKAction;
 import com.tokbox.android.IB.logging.OTKVariation;
 
 import com.tokbox.android.IB.ui.CustomViewSubscriber;
-
-import java.util.Map;
 import java.util.UUID;
 
 import static com.tokbox.android.IB.common.Notification.TYPE.TEMPORARILLY_MUTED;
@@ -188,12 +178,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     private ProgressBar mLoadingSubPublisher;
     private ProgressDialog mReconnectionsDialog;
     private boolean resumeHasRun = false;
-    private boolean mIsBound = false;
     private boolean mIsOnPause = false;
     private boolean mUserIsOnstage = false;
-    private NotificationCompat.Builder mNotifyBuilder;
-    private NotificationManager mNotificationManager;
-    private ServiceConnection mConnection;
     private CustomVideoRenderer mCustomVideoRenderer;
     private boolean mAudioOnlyFan;
 
@@ -207,9 +193,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     private String mLogSource;
 
-    private JSONObject mBroadcastData;
-
-
     //Firebase
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
@@ -221,7 +204,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         //Creates the action bar
         getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
@@ -259,7 +241,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         };
 
         mWebServiceCoordinator = new WebServiceCoordinator(this, this);
-        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotification = new Notification(this, mStatusBar);
 
         //Get the selected event from the instance
@@ -507,49 +488,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mBackstageSession != null) {
             mBackstageSession.onPause();
         }
-
-        mNotifyBuilder = new NotificationCompat.Builder(this)
-                .setContentTitle(this.getTitle())
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentText(getResources().getString(R.string.notification));
-
-        Intent notificationIntent = new Intent(this, FanActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent intent = PendingIntent.getActivity(this, 0,
-                notificationIntent, 0);
-
-        mNotifyBuilder.setContentIntent(intent);
-        if (mConnection == null) {
-            mConnection = new ServiceConnection() {
-                @Override
-                public void onServiceConnected(ComponentName className, IBinder binder) {
-                    try {
-                        ((ClearNotificationService.ClearBinder) binder).service.startService(new Intent(FanActivity.this, ClearNotificationService.class));
-                        NotificationManager mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-                        mNotificationManager.notify(ClearNotificationService.NOTIFICATION_ID, mNotifyBuilder.build());
-                    } catch (Exception ex) {
-                        Log.e(LOG_TAG, "onServiceConnected Error ---> " + ex.getMessage());
-                    }
-
-                }
-
-                @Override
-                public void onServiceDisconnected(ComponentName className) {
-                    mConnection = null;
-                }
-
-            };
-        }
-
-        if (!mIsBound) {
-            bindService(new Intent(FanActivity.this,
-                            ClearNotificationService.class), mConnection,
-                    Context.BIND_AUTO_CREATE);
-            mIsBound = true;
-            startService(notificationIntent);
-        }
-
     }
 
     @Override
@@ -557,12 +495,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         super.onResume();
 
         mIsOnPause = false;
-
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
-
         if (!resumeHasRun) {
             resumeHasRun = true;
             return;
@@ -578,8 +510,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         if(mTextChatFragment == null) {
            loadTextChatFragment();
         }
-        mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-
         reloadInterface();
 
         //Resumes the video
@@ -590,12 +520,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     public void onStop() {
         super.onStop();
 
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
         if (isFinishing()) {
-            mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
             disconnectOnStageSession();
             disconnectBackstageSession();
         }
@@ -606,11 +531,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
     @Override
     public void onDestroy() {
-        mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-        if (mIsBound) {
-            unbindService(mConnection);
-            mIsBound = false;
-        }
         disconnectOnStageSession();
         disconnectBackstageSession();
         super.onDestroy();
@@ -626,11 +546,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         }else {
             disconnectOnStageSession();
             disconnectBackstageSession();
-            mNotificationManager.cancel(ClearNotificationService.NOTIFICATION_ID);
-            if (mIsBound) {
-                unbindService(mConnection);
-                mIsBound = false;
-            }
             if (mAuthListener != null) {
                 mAuth.removeAuthStateListener(mAuthListener);
             }
@@ -1720,7 +1635,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
         ValueEventListener updateListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Boolean producerActive = (Boolean) dataSnapshot.getValue();
+                Boolean producerActive = dataSnapshot.getValue() != null ? (Boolean) dataSnapshot.getValue() : false;
                 if (!producerActive && mOnBackstage) {
                     mNotification.hide();
                     // Hide the publisher
