@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 --------------------------------------
 
+#### [2.0.3]
+* [CHANGED] Remove notification manager
+* [CHANGED] Rename ib for IB
+* [FIXED] Prevent getting a null value from "producerActive"
+
 #### [2.0.2]
 
 * [FIXED] Cancel going live when the producer disconnects. 
