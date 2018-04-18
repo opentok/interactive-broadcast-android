@@ -36,7 +36,8 @@ android {
             def outputFile = output.outputFile
             if (outputFile != null && outputFile.name.endsWith('.aar')) {
                 def fileName = "${archivesBaseName}-${version}.aar"
-                outputFileName = new File(outputFile.parent, fileName)
+                // outputFileName = new File(outputFile.parent, fileName)
+                outputFileName = fileName
             }
         }
 
@@ -90,16 +91,16 @@ android {
 }
 
 dependencies {
-    provided fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:26.+'
-    compile 'com.opentok.android:opentok-android-sdk:2.12.0'
-    compile 'com.opentok.android:opentok-solutions-logging:+'
-    compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile 'com.android.volley:volley:1.0.0'
-    compile 'com.google.firebase:firebase-database:10.0.1'
-    compile 'com.google.firebase:firebase-storage:10.0.1'
-    compile 'com.google.firebase:firebase-auth:10.0.1'
-    compile 'com.google.gms:google-services:3.1.0'
-    testCompile 'junit:junit:4.12'
+    compileOnly fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:26.+'
+    implementation 'com.opentok.android:opentok-android-sdk:2.12.0'
+    implementation 'com.opentok.android:opentok-solutions-logging:+'
+    implementation 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.android.volley:volley:1.0.0'
+    implementation 'com.google.firebase:firebase-database:10.0.1'
+    implementation 'com.google.firebase:firebase-storage:10.0.1'
+    implementation 'com.google.firebase:firebase-auth:10.0.1'
+    implementation 'com.google.gms:google-services:3.1.0'
+    testImplementation 'junit:junit:4.12'
 }
