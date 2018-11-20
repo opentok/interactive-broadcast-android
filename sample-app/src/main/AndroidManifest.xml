@@ -29,6 +29,10 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape" >
         </activity>
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
     </application>
+
 
 </manifest>
