@@ -255,8 +255,6 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
 
         setupFonts();
 
-        OpenTokConfig.setUseMediaCodecFactories(false);
-
     }
 
     private void setEventUI(){
@@ -508,7 +506,10 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             }
         }
         if(mTextChatFragment == null) {
-           loadTextChatFragment();
+            if (mBackstageSession != null && mBackstageSession.getConnection() != null) {
+                loadTextChatFragment(mBackstageSession.getConnection().getConnectionId());
+            }
+
         }
         reloadInterface();
 
@@ -699,7 +700,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             setVisibilityGetInLine(View.VISIBLE);
 
             //loading text-chat ui component
-            loadTextChatFragment();
+            loadTextChatFragment(session.getConnection().getConnectionId());
 
         } else {
 
@@ -1987,8 +1988,8 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
     }
 
     // Initialize a TextChatFragment instance and add it to the UI
-    private void loadTextChatFragment(){
-        if(mBackstageSession == null || mIsOnPause || mBackstageSession.getConnection() == null) return;
+    private void loadTextChatFragment(String backstageConnectionId){
+        if(backstageConnectionId == null || backstageConnectionId.isEmpty()) return;
         int containerId = R.id.fragment_textchat_container;
         mFragmentTransaction = getFragmentManager().beginTransaction();
         mTextChatFragment = (TextChatFragment)this.getFragmentManager().findFragmentByTag("TextChatFragment");
@@ -1996,7 +1997,7 @@ public class FanActivity extends AppCompatActivity implements WebServiceCoordina
             mTextChatFragment = new TextChatFragment();
             mTextChatFragment.setMaxTextLength(1050);
             mTextChatFragment.setTextChatListener(this);
-            mTextChatFragment.setSenderInfo(mBackstageSession.getConnection().getConnectionId(), IBConfig.USER_NAME);
+            mTextChatFragment.setSenderInfo(backstageConnectionId, IBConfig.USER_NAME);
 
             mFragmentTransaction.add(containerId, mTextChatFragment, "TextChatFragment").commit();
             mFragmentContainer.setVisibility(View.GONE);
