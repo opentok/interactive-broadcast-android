@@ -322,16 +322,12 @@ public class NetworkTest {
     }
 
     private void getPCStats() {
-        //getting PC stats from Google
-        long[] videoStreams = OpenTokConfig.getSubscriberVideoStreams(mTestSubscriber);
+        if (mTestSubscriber.getStream().hasVideo()) {
+            videoFrameRate = OpenTokConfig.defaultFrameRate;
+            Integer videoWidth = mTestSubscriber.getStream().getVideoWidth();
+            Integer videoHeight = mTestSubscriber.getStream().getVideoHeight();
 
-        if (videoStreams != null && videoStreams.length > 0) {
-            String frameRate = OpenTokConfig.getSubscriberStat(mTestSubscriber, videoStreams[0], "googFrameRateReceived");
-            String videoWidth = OpenTokConfig.getSubscriberStat(mTestSubscriber, videoStreams[0], "googFrameWidthReceived");
-            String videoHeight = OpenTokConfig.getSubscriberStat(mTestSubscriber, videoStreams[0], "googFrameHeightReceived");
-
-            videoFrameRate = Double.valueOf(frameRate);
-            videoResolution = new VideoUtils.Size(Integer.valueOf(videoWidth), Integer.valueOf(videoHeight));
+            videoResolution = new VideoUtils.Size(videoWidth, videoHeight);
 
             Log.i(LOG_TAG, "FRAMERATE: " + videoFrameRate);
             Log.i(LOG_TAG, "WIDTH: " + videoWidth);

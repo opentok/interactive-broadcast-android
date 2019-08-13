@@ -191,8 +191,6 @@ public class CelebrityHostActivity extends AppCompatActivity implements WebServi
         //Set event name and images
         setEventUI();
 
-        OpenTokConfig.setUseMediaCodecFactories(false);
-
         mNotification = new Notification(this, mStatusBar);
     }
 

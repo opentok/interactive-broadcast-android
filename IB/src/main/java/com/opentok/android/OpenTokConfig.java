@@ -13,20 +13,6 @@ public class OpenTokConfig {
         System.loadLibrary("opentok");
     }
 
-    public static String getSubscriberStat(SubscriberKit subscriber, long stream, String key) {
-        return getSubscriberStatNative(subscriber, stream, key);
-    }
-
-    public static long[] getSubscriberVideoStreams(SubscriberKit subscriber){
-        return getSubscriberVideoStreamsNative(subscriber);
-    }
-
-    public static void setUseMediaCodecFactories(boolean value) {
-        setUseMediaCodecFactoriesNative(value);
-    }
-
-    protected static native long[] getSubscriberVideoStreamsNative(SubscriberKit subscriber);
-    protected static native String getSubscriberStatNative(SubscriberKit subscriber, long stream, String key);
-    protected static native void setUseMediaCodecFactoriesNative(boolean value);
+    public static double defaultFrameRate = 30.0;
 
 }
