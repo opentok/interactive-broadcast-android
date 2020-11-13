@@ -1,6 +1,7 @@
 # OpenTok Interactive Broadcast Solution for Android
 
-![OpenTok Labs](https://d26dzxoao6i3hh.cloudfront.net/items/0U1R0a0e2g1E361H0x3c/Image%202017-11-22%20at%2012.16.38%20PM.png?v=2507a2df)
+<img src="https://assets.tokbox.com/img/vonage/Vonage_VideoAPI_black.svg" height="48px" alt="Tokbox is now known as Vonage" />
+
 
 This document describes how to create a OpenTok Interactive Broadcast Solution mobile app for Android. 
 
@@ -25,12 +26,18 @@ To be prepared to develop your first Interactive Broadcast Solution mobile app:
 
 To get up and running quickly with your app, go through the following steps in the tutorial provided below:
 
-1. [Create a new Android Studio Project](#create-a-new-android-studio-project)
-2. [Add the OpenTok Interactive Broadcast Solution library](#addlibrary)
-3. [Add the OpenTok Android SDK](#add-the-opentok-android-sdk)
-4. [Configure the Interactive Broadcast Solution user](#configure-the-interactive-broadcast-solution-user)
-5. [Create a web service coordinator](#create-a-web-service-coordinator)
-6. [Implement the web service coordinator listener interface](#implement-the-web-service-coordinator-listener-interface)
+- [OpenTok Interactive Broadcast Solution for Android](#opentok-interactive-broadcast-solution-for-android)
+  - [Prerequisites](#prerequisites)
+  - [Quickstart](#quickstart)
+    - [Create a new Android Studio Project](#create-a-new-android-studio-project)
+      - [Downloading and Installing the AAR File](#downloading-and-installing-the-aar-file)
+    - [Configure the Interactive Broadcast Solution user](#configure-the-interactive-broadcast-solution-user)
+    - [Create a web service coordinator](#create-a-web-service-coordinator)
+    - [Implement the web service coordinator listener interface](#implement-the-web-service-coordinator-listener-interface)
+  - [Complete code example](#complete-code-example)
+  - [Development and Contributing](#development-and-contributing)
+  - [Getting Help](#getting-help)
+  - [Further Reading](#further-reading)
 
 View the [Complete code example](#complete-code-example).
 
@@ -256,3 +263,21 @@ The `WebServiceCoordinator.Listener` interface supports the `WebServiceCoordinat
 ## Complete code example
 
 You have completed the task of setting up a fully working example that uses the OpenTok Interactive Broadcast Solution! You can add processing for events and errors, and begin using your program.
+
+## Development and Contributing
+
+Interested in contributing? We :heart: pull requests! See the 
+[Contribution](CONTRIBUTING.md) guidelines.
+
+## Getting Help
+
+We love to hear from you so if you have questions, comments or find a bug in the project, let us know! You can either:
+
+- Open an issue on this repository
+- See <https://support.tokbox.com/> for support options
+- Tweet at us! We're [@VonageDev](https://twitter.com/VonageDev) on Twitter
+- Or [join the Vonage Developer Community Slack](https://developer.nexmo.com/community/slack)
+
+## Further Reading
+
+- Check out the Developer Documentation at <https://tokbox.com/developer/>
