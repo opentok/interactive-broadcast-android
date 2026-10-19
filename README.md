@@ -2,6 +2,7 @@
 
 <img src="https://assets.tokbox.com/img/vonage/Vonage_VideoAPI_black.svg" height="48px" alt="Tokbox is now known as Vonage" />
 
+> ⚠️ This repository is deprecated and will no longer receive meaningful updates. For new projects and migrations, we recommend using the [Vonage Video Android reference application](https://github.com/Vonage/vonage-video-android-app).
 
 This document describes how to create a OpenTok Interactive Broadcast Solution mobile app for Android. 
 
